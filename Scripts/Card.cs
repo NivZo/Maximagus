@@ -12,6 +12,8 @@ public partial class Card : Control
 	{
 		base._Ready();
 
+		GlobalPosition = Vector2.Zero;
+
 		CardLogic = GetNode<CardLogic>("CardLogic");
 		CardVisual = GetNode<CardVisual>("CardVisual");
 		CardLogic.SetVisual(CardVisual);
@@ -38,9 +40,7 @@ public partial class Card : Control
 
 		var card = GD.Load<PackedScene>(CardScene).Instantiate<Card>();
 		parent.AddChild(card);
-		cardSlot.Card = card;
-		card.CardLogic.SetCardSlot(cardSlot);
-		card.CardLogic.InvokePositionChanged();
+		cardSlot.SetCard(card);
 		return card;
 	}
 }

@@ -13,13 +13,14 @@ public partial class CardLogic : Button
 	private static bool _isDraggingAnything = false;
 
 	private Vector2 _distanceFromMouse;
-	private bool _followingMouse = false;
 
+	public bool IsDragging = false;
 	public CardVisual Visual { get; private set; }
 	public CardSlot CardSlot { get; private set; }
 
 	private Area2D _interactionArea { get; set; }
 	private CollisionShape2D _collisionShape { get; set; }
+	
 
 	public override void _Ready()
 	{
@@ -39,7 +40,7 @@ public partial class CardLogic : Button
 
 	public override void _Process(double delta)
 	{
-		FollowMouse((float)delta);
+		UpdateVisualPosition((float)delta);
 	}
 
 	public void SetVisual(CardVisual visual)
@@ -78,10 +79,21 @@ public partial class CardLogic : Button
 
 	private void FollowMouse(float delta)
 	{
-		if (!_followingMouse) return;
 		Vector2 mousePos = GetGlobalMousePosition();
 		GlobalPosition = mousePos - _distanceFromMouse;
 		InvokePositionChanged(delta);
+	}
+
+	private void UpdateVisualPosition(float delta)
+	{
+		if (IsDragging)
+		{
+			FollowMouse(delta);
+		}
+		else if (Visual.GetCenter() != CardSlot.GetCenter())
+		{
+			InvokePositionChanged(delta);
+		}
 	}
 
 	private void HandleMouseClick(InputEvent @event)
@@ -89,12 +101,12 @@ public partial class CardLogic : Button
 		if (@event is not InputEventMouseButton mouseButtonEvent) return;
 		if (mouseButtonEvent.ButtonIndex != MouseButton.Left) return;
 
-		if (mouseButtonEvent.IsPressed() && !_followingMouse)
+		if (mouseButtonEvent.IsPressed() && !IsDragging)
 		{
 			_distanceFromMouse = GetGlobalMousePosition() - GlobalPosition;
 			StartDragging();
 		}
-		else if (_followingMouse)
+		else if (IsDragging)
 		{
 			StopDragging();
 		}
@@ -104,7 +116,7 @@ public partial class CardLogic : Button
 	{
 		if (_isDraggingAnything) return;
 		_isDraggingAnything = true;
-		_followingMouse = true;
+		IsDragging = true;
 		_collisionShape.SetDeferred("disabled", false);
 		
 		DragStarted?.Invoke();
@@ -113,7 +125,7 @@ public partial class CardLogic : Button
 	private void StopDragging()
 	{
 		_isDraggingAnything = false;
-		_followingMouse = false;
+		IsDragging = false;
 		_collisionShape.SetDeferred("disabled", true);
 
 		if (true)
@@ -129,8 +141,7 @@ public partial class CardLogic : Button
 	{
 		HandleMouseClick(@event);
 
-		// Don't compute hover effects when dragging
-		if (_followingMouse) return;
+		if (IsDragging) return;
 		if (@event is not InputEventMouseMotion) return;
 		
 		HandleMouseHover();
@@ -139,7 +150,7 @@ public partial class CardLogic : Button
 	public void OnMouseEntered()
 	{
 		if (_isDraggingAnything) return;
-		if (_followingMouse) return;
+		if (IsDragging) return;
 		HoverStarted?.Invoke();
 	}
 

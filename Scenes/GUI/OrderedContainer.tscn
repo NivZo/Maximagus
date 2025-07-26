@@ -12,4 +12,4 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.25098)
 script = ExtResource("1_8mca4")
-Padding = 0.0
+Padding = 24.0

@@ -10,6 +10,8 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
     [Export(PropertyHint.Range, "0,100,1")]
     public float Padding = 10.0f;
 
+    public event Action ElementsChanged;
+
     protected IOrderable[] _elements;
 
     public override void _Ready()
@@ -66,6 +68,37 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
 
     public int Count => _elements.Length;
 
+    public void MoveElement(int fromIndex, int toIndex)
+    {
+        if (_elements == null || _elements.Length == 0)
+            return;
+        
+        if (fromIndex < 0 || fromIndex >= _elements.Length || 
+            toIndex < 0 || toIndex >= _elements.Length || 
+            fromIndex == toIndex)
+            return;
+        
+        // Move element in-place by swapping adjacent elements
+        if (fromIndex < toIndex)
+        {
+            // Moving forward: swap with each element to the right
+            for (int i = fromIndex; i < toIndex; i++)
+            {
+                (_elements[i], _elements[i + 1]) = (_elements[i + 1], _elements[i]);
+            }
+        }
+        else
+        {
+            // Moving backward: swap with each element to the left
+            for (int i = fromIndex; i > toIndex; i--)
+            {
+                (_elements[i], _elements[i - 1]) = (_elements[i - 1], _elements[i]);
+            }
+        }
+        
+        RecalculatePositions();
+    }
+
     protected void RecalculatePositions()
     {
         if (_elements == null || _elements.Length == 0)
@@ -87,7 +120,6 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
                 float yPos = Size.Y / 2;
 
                 _elements[i].TargetPosition = GlobalPosition + new Vector2(xPos, yPos);
-                _elements[i].TargetSize = new Vector2(segmentWidth, GetWindow().Size.Y * 2);
             }
         }
         else
@@ -101,8 +133,9 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
                 float yPos = Padding + segmentHeight * (i + 1);
 
                 _elements[i].TargetPosition = GlobalPosition + new Vector2(xPos, yPos);
-                _elements[i].TargetSize = new Vector2(GetWindow().Size.X * 2, segmentHeight);
             }
         }
+
+        ElementsChanged?.Invoke();
     }
 }

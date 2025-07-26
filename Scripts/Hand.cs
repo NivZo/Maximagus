@@ -19,8 +19,27 @@ public partial class Hand : Control
     {
         Instance = this;
         _cardSlotsContainer = GetNode<OrderedContainer>("CardSlotsContainer");
+        _cardSlotsContainer.ElementsChanged += OnElementsChanged;
     }
-    
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+
+        var draggedCardSlot = CardSlots.FirstOrDefault(slot => slot.Card.CardLogic.IsDragging);
+        var validSlots = CardSlots.Where(slot => slot.GlobalPosition.DistanceTo(draggedCardSlot.Card.CardLogic.GetCenter()) <= draggedCardSlot.MaxValidDistance);
+
+        if (draggedCardSlot != null && validSlots.Any())
+        {
+            var validTargetSlot = validSlots.MinBy(slot => slot.GlobalPosition.DistanceSquaredTo(draggedCardSlot.Card.CardLogic.GetCenter()));
+
+            if (validTargetSlot != null && validTargetSlot != draggedCardSlot)
+            {
+                _cardSlotsContainer.MoveElement(CardSlots.IndexOf(draggedCardSlot), CardSlots.IndexOf(validTargetSlot));
+            }
+        }
+    }
+
     public void InitializeCardSlots()
     {
         GetChildren()
@@ -32,5 +51,16 @@ public partial class Hand : Control
             .ForEach(indexedSlot => _cardSlotsContainer[indexedSlot.i] = indexedSlot.slot);
 
         CardSlotsChanged.Invoke();
+    }
+    
+    private void OnElementsChanged()
+    {
+        foreach (var slot in CardSlots)
+        {
+            if (slot.Card != null)
+            {
+                slot.Card.ZIndex = CardSlots.IndexOf(slot);
+            }
+        }
     }
 }

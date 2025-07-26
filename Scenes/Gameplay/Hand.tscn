@@ -15,14 +15,38 @@ mouse_filter = 2
 script = ExtResource("1_q1mbt")
 
 [node name="CardSlot" parent="." instance=ExtResource("1_0xaq6")]
+layout_mode = 0
+anchors_preset = 0
+offset_right = 248.0
+offset_bottom = 248.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="CardSlot2" parent="." instance=ExtResource("1_0xaq6")]
+layout_mode = 0
+anchors_preset = 0
+offset_right = 248.0
+offset_bottom = 248.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="CardSlot3" parent="." instance=ExtResource("1_0xaq6")]
+layout_mode = 0
+anchors_preset = 0
+offset_right = 248.0
+offset_bottom = 248.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="CardSlot4" parent="." instance=ExtResource("1_0xaq6")]
+layout_mode = 0
+anchors_preset = 0
+offset_right = 248.0
+offset_bottom = 248.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="CardSlotsContainer" parent="." instance=ExtResource("3_fkehq")]
 layout_mode = 1
 Debug = true
-Padding = 48.0
+Padding = 0.0

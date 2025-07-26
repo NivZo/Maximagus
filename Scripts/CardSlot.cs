@@ -2,9 +2,12 @@ using Godot;
 using System;
 using System.Linq;
 
-public partial class CardSlot : Area2D, IOrderable
+public partial class CardSlot : Control, IOrderable
 {
-    [Export] public Card Card;
+    [Export] public float MaxValidDistance = 248;
+
+    public Card Card { get; private set; }
+
     public Vector2 TargetPosition
     {
         get => GlobalPosition;
@@ -15,37 +18,41 @@ public partial class CardSlot : Area2D, IOrderable
         }
     }
 
-    public Vector2 TargetSize
+    public int Z
     {
-        get => _shape.Size;
-        set
-        {
-            if (value.X > 0 && value.Y > 0)
-            {
-                _shape.Size = value;
-                Card?.CardLogic.SetCardSlot(this);
-            }
-        }
+        get => ZIndex;
+        set => ZIndex = value;
     }
-
-    private RectangleShape2D _shape;
-
 
     public override void _Ready()
     {
         base._Ready();
-        _shape = GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
-        AreaEntered += OnAreaEntered;
+    }
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+
+        // if (Card.IsDragging)
+        // {
+        //     ReorderSlots();
+        // }
     }
 
     public void SetCard(Card card)
     {
         Card = card;
-        Card?.CardLogic.SetCardSlot(this);
+
+        if (Card == null) return;
+
+        Card.CardLogic.SetCardSlot(this);
     }
 
-    private void OnAreaEntered(Area2D area)
+    private static void SwitchSlotContents(CardSlot slotA, CardSlot slotB)
     {
+        var cardA = slotA.Card;
 
+        slotA.SetCard(slotB.Card);
+        slotB.SetCard(cardA);
     }
 }

@@ -127,14 +127,13 @@ public partial class CardVisual : Control
 
     private void UpdateSway(float delta)
     {
-        float targetRotation = 0f;
-
-        if (_isDragging)
-        {
-            targetRotation = _velocity.X * VelocityFactor;
-        }
-
         float maxRotationRad = Mathf.DegToRad(MaxRotationDegrees);
+		var targetRotation = _velocity.X * VelocityFactor;
+		if (_velocity != Vector2.Zero)
+		{
+			GD.Print($"{this}: Velocity: {_velocity}, Target Rotation: {targetRotation}");
+		}
+
         targetRotation = Mathf.Clamp(targetRotation, -maxRotationRad, maxRotationRad);
 
         float springForce = -Stiffness * (_textures.Rotation - targetRotation);
