@@ -1,0 +1,86 @@
+[gd_scene load_steps=9 format=3 uid="uid://cp5fadjipbrqy"]
+
+[ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_uypal"]
+[ext_resource type="Script" uid="uid://cw1heqbb5ohcn" path="res://Scripts/CardVisual.cs" id="2_uypal"]
+[ext_resource type="Texture2D" uid="uid://ciw3yv11ydd1m" path="res://Assets/Art/BlankCard.png" id="3_kyuxn"]
+[ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_3m7nw"]
+seed = -15
+frequency = 0.0021
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_kphy1"]
+noise = SubResource("FastNoiseLite_3m7nw")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3ph3s"]
+resource_local_to_scene = true
+shader = ExtResource("1_uypal")
+shader_parameter/dissolve_texture = SubResource("NoiseTexture2D_kphy1")
+shader_parameter/dissolve_value = 1.0
+shader_parameter/burn_size = 0.03
+shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
+resource_local_to_scene = true
+shader = ExtResource("4_25b8w")
+shader_parameter/rect_size = Vector2(152, 207)
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+
+[node name="CardVisual" type="Control"]
+material = SubResource("ShaderMaterial_3ph3s")
+layout_mode = 3
+anchor_right = 0.132
+anchor_bottom = 0.319
+offset_right = 7.936
+offset_bottom = 33.288
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("2_uypal")
+
+[node name="Textures" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+mouse_filter = 1
+
+[node name="Card" type="TextureRect" parent="Textures"]
+visible = false
+material = SubResource("ShaderMaterial_cho03")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+texture = ExtResource("3_kyuxn")
+expand_mode = 1
+
+[node name="Shadow" type="TextureRect" parent="Textures"]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(1, 1, 1, 0.168627)
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+texture = ExtResource("3_kyuxn")
+expand_mode = 1

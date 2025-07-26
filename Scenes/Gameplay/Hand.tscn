@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://bn8k4bj4kkcxc"]
+
+[ext_resource type="PackedScene" uid="uid://cg3eemcq3p0ll" path="res://Scenes/Card/CardSlot.tscn" id="1_0xaq6"]
+[ext_resource type="Script" uid="uid://cp0nnaoyvpk4c" path="res://Scripts/Hand.cs" id="1_q1mbt"]
+[ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="3_fkehq"]
+
+[node name="Hand" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_q1mbt")
+
+[node name="CardSlot" parent="." instance=ExtResource("1_0xaq6")]
+
+[node name="CardSlot2" parent="." instance=ExtResource("1_0xaq6")]
+
+[node name="CardSlot3" parent="." instance=ExtResource("1_0xaq6")]
+
+[node name="CardSlot4" parent="." instance=ExtResource("1_0xaq6")]
+
+[node name="CardSlotsContainer" parent="." instance=ExtResource("3_fkehq")]
+layout_mode = 1
+Debug = true
+Padding = 48.0

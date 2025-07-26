@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://cg02ef5roa11x"]
+
+[ext_resource type="Script" uid="uid://d0weeqfgyo258" path="res://Scripts/Main.cs" id="1_rgh2o"]
+[ext_resource type="PackedScene" uid="uid://bn8k4bj4kkcxc" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_rgh2o")
+
+[node name="Hand" parent="." instance=ExtResource("3_kln2b")]
+layout_mode = 1
+offset_left = 128.0
+offset_top = 192.0
+offset_right = -128.0
+offset_bottom = -72.0
+mouse_filter = 2

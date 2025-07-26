@@ -1,0 +1,54 @@
+[gd_scene load_steps=9 format=3 uid="uid://c8x8ywuxcnmm7"]
+
+[ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_tf6mm"]
+[ext_resource type="Texture2D" uid="uid://c5wet8paisq3b" path="res://icon.svg" id="2_xu2pr"]
+[ext_resource type="Script" uid="uid://ble8in2hpuuiy" path="res://Scripts/CardLogic.cs" id="3_131e3"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_kntej"]
+seed = -15
+frequency = 0.0021
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_bboy4"]
+noise = SubResource("FastNoiseLite_kntej")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3ph3s"]
+resource_local_to_scene = true
+shader = ExtResource("1_tf6mm")
+shader_parameter/dissolve_texture = SubResource("NoiseTexture2D_bboy4")
+shader_parameter/dissolve_value = 1.0
+shader_parameter/burn_size = 0.03
+shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7aqjh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xsth3"]
+size = Vector2(130, 175)
+
+[node name="CardLogic" type="Button"]
+material = SubResource("ShaderMaterial_3ph3s")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_right = 160.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7aqjh")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7aqjh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_7aqjh")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_7aqjh")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_7aqjh")
+icon = ExtResource("2_xu2pr")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("3_131e3")
+
+[node name="InteractionArea" type="Area2D" parent="."]
+position = Vector2(80, 120)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("RectangleShape2D_xsth3")

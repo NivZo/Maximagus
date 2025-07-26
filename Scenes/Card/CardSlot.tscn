@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://cg3eemcq3p0ll"]
+
+[ext_resource type="Script" uid="uid://vvjbghc0ca0m" path="res://Scripts/CardSlot.cs" id="1_enycx"]
+[ext_resource type="Texture2D" uid="uid://c5wet8paisq3b" path="res://icon.svg" id="2_r3qn0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_enycx"]
+size = Vector2(512, 512)
+
+[node name="CardSlot" type="Area2D"]
+script = ExtResource("1_enycx")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_enycx")
+
+[node name="Icon" type="Sprite2D" parent="."]
+self_modulate = Color(1, 0.345098, 1, 0.12549)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_r3qn0")
