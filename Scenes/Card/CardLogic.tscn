@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://c8x8ywuxcnmm7"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_tf6mm"]
-[ext_resource type="Script" uid="uid://ble8in2hpuuiy" path="res://Scripts/CardLogic.cs" id="3_131e3"]
+[ext_resource type="Script" uid="uid://cdh6nbsig87sa" path="res://Scripts/Implementations/CardLogic.cs" id="2_3g4mk"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_kntej"]
 seed = -15
@@ -43,9 +43,10 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_7aqjh")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_7aqjh")
 icon_alignment = 1
 expand_icon = true
-script = ExtResource("3_131e3")
+script = ExtResource("2_3g4mk")
 
 [node name="InteractionArea" type="Area2D" parent="."]
+visible = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
 shape = SubResource("RectangleShape2D_xsth3")

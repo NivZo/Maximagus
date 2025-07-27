@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://ccpeukrdsfbkm"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_8jfk0"]
-[ext_resource type="Script" uid="uid://td8xq8w6a3hi" path="res://Scripts/Card.cs" id="1_borcn"]
+[ext_resource type="Script" uid="uid://dybj7chfwagfn" path="res://Scripts/Implementations/Card.cs" id="1_vlntq"]
 [ext_resource type="PackedScene" uid="uid://cp5fadjipbrqy" path="res://Scenes/Card/CardVisual.tscn" id="3_h8wm0"]
 [ext_resource type="PackedScene" uid="uid://c8x8ywuxcnmm7" path="res://Scenes/Card/CardLogic.tscn" id="4_vlntq"]
 
@@ -54,14 +54,11 @@ pivot_offset = Vector2(80, 120)
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
-script = ExtResource("1_borcn")
+script = ExtResource("1_vlntq")
 
 [node name="CardVisual" parent="." instance=ExtResource("3_h8wm0")]
 material = SubResource("ShaderMaterial_wejov")
 layout_mode = 1
-AngleXMax = 10.0
-AngleYMax = 10.0
-MaxOffsetShadow = 20.0
 
 [node name="Label" type="Label" parent="CardVisual"]
 layout_mode = 1

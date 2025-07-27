@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://xr3by7dgq0hx"]
 
-[ext_resource type="Script" uid="uid://cv015j237ocfl" path="res://Scripts/OrderedContainer.cs" id="1_8mca4"]
+[ext_resource type="Script" uid="uid://vscjleap3vpq" path="res://Scripts/Implementations/OrderedContainer.cs" id="1_8mca4"]
 
 [node name="OrderedContainer" type="ColorRect"]
 custom_minimum_size = Vector2(120, 12)

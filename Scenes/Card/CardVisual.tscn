@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://cp5fadjipbrqy"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_uypal"]
-[ext_resource type="Script" uid="uid://cw1heqbb5ohcn" path="res://Scripts/CardVisual.cs" id="2_uypal"]
+[ext_resource type="Script" uid="uid://c1nab7c7jdpc1" path="res://Scripts/Implementations/CardVisual.cs" id="2_j66st"]
 [ext_resource type="Texture2D" uid="uid://ciw3yv11ydd1m" path="res://Assets/Art/BlankCard.png" id="3_kyuxn"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
 
@@ -42,7 +42,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
-script = ExtResource("2_uypal")
+script = ExtResource("2_j66st")
 
 [node name="Textures" type="Control" parent="."]
 layout_mode = 1
@@ -80,5 +80,6 @@ offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
+mouse_filter = 2
 texture = ExtResource("3_kyuxn")
 expand_mode = 1
