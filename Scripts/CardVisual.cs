@@ -7,6 +7,7 @@ public partial class CardVisual : Control
 	[Export] public float AngleXMax = 15.0f;
 	[Export] public float AngleYMax = 15.0f;
 	[Export] public float MaxOffsetShadow = 50.0f;
+	[Export] public float SelectionVerticalOffset = -64.0f;
 
 	[ExportGroup("Animation Settings")]
 	[Export] public float HoverScale = 1.1f;
@@ -27,7 +28,8 @@ public partial class CardVisual : Control
     [Export(PropertyHint.Range, "0, 0.01, 0.0001")] public float VelocityFactor { get; set; } = 0.0015f;
     [Export(PropertyHint.Range, "0, 90, 1")] public float MaxRotationDegrees { get; set; } = 15f;
 
-    private bool _isDragging = false;
+	private bool _isSelected = false;
+	private bool _isDragging = false;
     private Vector2 _lastPosition;
     private float _angularVelocity = 0f;
 	private Vector2 _velocity; // Stores the current velocity of the card
@@ -41,17 +43,21 @@ public partial class CardVisual : Control
     private TextureRect _cardTexture;
     private TextureRect _shadowTexture;
 
-    public override void _Ready()
-    {
-        _textures = GetNode<Control>("Textures");
-        _cardTexture = _textures.GetNode<TextureRect>("Card");
-        _shadowTexture = _textures.GetNode<TextureRect>("Shadow");
+	public override void _Ready()
+	{
+		_textures = GetNode<Control>("Textures");
+		_cardTexture = _textures.GetNode<TextureRect>("Card");
+		_shadowTexture = _cardTexture.GetNode<TextureRect>("Shadow");
 
-        // Convert angles to radians for calculations
-        AngleXMax = Mathf.DegToRad(AngleXMax);
-        AngleYMax = Mathf.DegToRad(AngleYMax);
-        
-        PivotOffset = Size / 2;
+		Resized += SetupPerspectiveRectSize;
+		SetupPerspectiveRectSize();
+
+		// Convert angles to radians for calculations
+		AngleXMax = Mathf.DegToRad(AngleXMax);
+		AngleYMax = Mathf.DegToRad(AngleYMax);
+
+		PivotOffset = Size / 2;
+		_textures.PivotOffset = Size / 2;
 	}
 
     public override void _Process(double delta)
@@ -67,25 +73,34 @@ public partial class CardVisual : Control
 		float distance = GlobalPosition.X + Size.X / 2.0f - center.X;
 
 		_shadowTexture.Position = new Vector2(
-			Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / center.X)), 
+			Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / center.X)),
 			_shadowTexture.Position.Y
 		);
+		_shadowTexture.ZIndex = _isDragging ? 0 : -2;
+	}
+
+	public void OnClicked()
+	{
+		_isSelected = !_isSelected;
+		// Scale = new(0.8f, 0.8f);
+		Scale = Vector2.One;
+		AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 	}
 
 	public void OnDragStarted()
 	{
-        ResetPerspective();
+		ResetPerspective();
 		AnimateScale(DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
 		_isDragging = true;
-		_lastPosition = GlobalPosition; 
-		KillTween(ref _tweenHandle); 
+		_lastPosition = GlobalPosition;
+		KillTween(ref _tweenHandle);
 	}
 
-    public void OnDragEnded()
-    {
-        _isDragging = false;
-		AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
+	public void OnDragEnded()
+	{
+		_isDragging = false;
+		OnHoverEnded();
 	}
 
 	public void OnHoverStarted()
@@ -109,8 +124,9 @@ public partial class CardVisual : Control
 		UpdateCardPerspective(normalizedPosition);
 	}
 
-    public void OnPositionChanged(float delta, Vector2 position)
+    public void OnPositionChanged(float delta, Vector2 position, bool isDueToDragging)
     {
+		if (!isDueToDragging && _isDragging) return;
 		if (delta > 0)
 		{
 			_velocity = (position - _lastPosition) / delta;
@@ -120,20 +136,16 @@ public partial class CardVisual : Control
 
 	private void UpdatePosition(float delta)
 	{
-		var raw = GlobalPosition.Lerp(_lastPosition + GetPositionOffset(), delta * 10f);
-		var clamped = raw.Clamp(GlobalPosition - Size / 2, GlobalPosition + Size / 2);
-		GlobalPosition = clamped;
+		var center = this.GetCenter();
+		var raw = center.Lerp(_lastPosition + GetPositionOffset(), delta * 10f);
+		var clamped = raw.Clamp(center - Size / 2, center + Size / 2);
+		this.SetCenter(clamped);
     }
 
     private void UpdateSway(float delta)
     {
         float maxRotationRad = Mathf.DegToRad(MaxRotationDegrees);
 		var targetRotation = _velocity.X * VelocityFactor;
-		if (_velocity != Vector2.Zero)
-		{
-			GD.Print($"{this}: Velocity: {_velocity}, Target Rotation: {targetRotation}");
-		}
-
         targetRotation = Mathf.Clamp(targetRotation, -maxRotationRad, maxRotationRad);
 
         float springForce = -Stiffness * (_textures.Rotation - targetRotation);
@@ -171,6 +183,15 @@ public partial class CardVisual : Control
         _tweenHover.TweenMethod(Callable.From<float>(SetScale), Scale.X, targetScale, duration);
 	}
 
+	private void SetupPerspectiveRectSize()
+	{
+		var shaderMaterial = _cardTexture.Material as ShaderMaterial;
+        if (shaderMaterial != null)
+        {
+            shaderMaterial.SetShaderParameter("rect_size", Size);
+        }
+	}
+
 	private void ResetPerspective()
 	{
 		KillTween(ref _tweenRot);
@@ -185,6 +206,7 @@ public partial class CardVisual : Control
 			_tweenRot.TweenProperty(shaderMaterial, "shader_parameter/x_rot", 0.0f, RotationResetDuration);
 			_tweenRot.TweenProperty(shaderMaterial, "shader_parameter/y_rot", 0.0f, RotationResetDuration);
 		}
+		SetupPerspectiveRectSize();
 	}
 
 	private void ResetRotationAfterDrag()

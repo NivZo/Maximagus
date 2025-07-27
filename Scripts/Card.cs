@@ -3,10 +3,14 @@ using System;
 
 public partial class Card : Control
 {
-	private static readonly string CardScene = "res://Scenes/Card/Card.tscn";
+	private static readonly string CARD_SCENE = "res://Scenes/Card/Card.tscn";
 
 	public CardLogic CardLogic { get; private set; }
 	public CardVisual CardVisual { get; private set; }
+
+	public bool IsSelected => CardLogic.IsSelected;
+	public bool IsDragging => CardLogic.IsDragging;
+	public bool IsHovering => CardLogic.IsHovering;
 
 	public override void _Ready()
 	{
@@ -38,7 +42,7 @@ public partial class Card : Control
 			throw new ArgumentNullException(nameof(parent), "Parent cannot be null.");
 		}
 
-		var card = GD.Load<PackedScene>(CardScene).Instantiate<Card>();
+		var card = GD.Load<PackedScene>(CARD_SCENE).Instantiate<Card>();
 		parent.AddChild(card);
 		cardSlot.SetCard(card);
 		return card;

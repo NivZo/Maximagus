@@ -49,9 +49,15 @@ void vertex(){
 //	VERTEX += (UV - 0.5) / TEXTURE_PIXEL_SIZE * t * (1.0 - inset);
 }
 
-void fragment(){
+void fragment() {
 	if (cull_back && p.z <= 0.0) discard;
+
 	vec2 uv = (p.xy / p.z).xy - o;
-    COLOR = texture(TEXTURE, uv + 0.5);
-	COLOR.a *= step(max(abs(uv.x), abs(uv.y)), 0.5);
+	vec4 tex_color = texture(TEXTURE, uv + 0.5);
+
+	// Clip outside the rotated rect
+	tex_color.a *= step(max(abs(uv.x), abs(uv.y)), 0.5);
+
+	// Respect node modulate color (e.g., alpha from TextureRect or Sprite)
+	COLOR = tex_color * COLOR;
 }

@@ -4,6 +4,8 @@ using System.Linq;
 
 public partial class CardSlot : Control, IOrderable
 {
+	private static readonly string CARD_SCENE = "res://Scenes/Card/CardSlot.tscn";
+
     [Export] public float MaxValidDistance = 248;
 
     public Card Card { get; private set; }
@@ -18,10 +20,19 @@ public partial class CardSlot : Control, IOrderable
         }
     }
 
+    public Vector2 Weight => Vector2.One;
+
     public int Z
     {
         get => ZIndex;
         set => ZIndex = value;
+    }
+
+    public static CardSlot Create(Node parent = null)
+    {
+		var cardSlot = GD.Load<PackedScene>(CARD_SCENE).Instantiate<CardSlot>();
+		parent?.AddChild(cardSlot);
+		return cardSlot;
     }
 
     public override void _Ready()

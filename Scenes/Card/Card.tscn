@@ -38,7 +38,6 @@ shader_parameter/burn_size = 0.03
 shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 
 [node name="Card" type="Control"]
-custom_minimum_size = Vector2(160, 240)
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -47,8 +46,8 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -80.0
 offset_top = -120.0
-offset_right = 80.0
-offset_bottom = 120.0
+offset_right = 44.0
+offset_bottom = 60.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
@@ -60,32 +59,30 @@ script = ExtResource("1_borcn")
 [node name="CardVisual" parent="." instance=ExtResource("3_h8wm0")]
 material = SubResource("ShaderMaterial_wejov")
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
 AngleXMax = 10.0
 AngleYMax = 10.0
 MaxOffsetShadow = 20.0
 
 [node name="Label" type="Label" parent="CardVisual"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 20.0
-offset_right = 144.0
-offset_bottom = 43.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.083
+anchor_right = 0.9
+anchor_bottom = 0.083
+offset_top = 0.079998
+offset_bottom = 23.08
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "1"
 horizontal_alignment = 1
 
 [node name="CardLogic" parent="." instance=ExtResource("4_vlntq")]
 material = SubResource("ShaderMaterial_l5eg5")
-layout_mode = 0
-anchors_preset = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_left = 0.0
 anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-grow_horizontal = 1
-grow_vertical = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0

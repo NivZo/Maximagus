@@ -8,25 +8,32 @@ public partial class CardLogic : Button
 	public event Action HoverStarted;
 	public event Action HoverEnded;
 	public event Action<Vector2> MouseMoved;
-	public event Action<float, Vector2> PositionChanged;
+	public event Action<float, Vector2, bool> PositionChanged;
+	public event Action Clicked; // New click event
 
 	private static bool _isDraggingAnything = false;
 
 	private Vector2 _distanceFromMouse;
+	private Vector2 _initialMousePosition;
+	private bool _mousePressed = false;
+	private const float DRAG_THRESHOLD = 5.0f; // Minimum distance to start dragging
 
-	public bool IsDragging = false;
+	public bool IsSelected { get; private set; } = false;
+	public bool IsHovering { get; private set; } = false;
+	public bool IsDragging { get; private set; } = false;
 	public CardVisual Visual { get; private set; }
 	public CardSlot CardSlot { get; private set; }
 
 	private Area2D _interactionArea { get; set; }
 	private CollisionShape2D _collisionShape { get; set; }
-	
 
 	public override void _Ready()
 	{
 		_interactionArea = GetNode<Area2D>("InteractionArea");
 		_collisionShape = _interactionArea.GetNode<CollisionShape2D>("CollisionShape2D");
 		_collisionShape.SetDeferred("disabled", true);
+		(_collisionShape.Shape as RectangleShape2D).Size = Size;
+		_interactionArea.Position = Size / 2f;
 
 		GuiInput += OnGuiInput;
 		MouseEntered += OnMouseEntered;
@@ -41,6 +48,19 @@ public partial class CardLogic : Button
 	public override void _Process(double delta)
 	{
 		UpdateVisualPosition((float)delta);
+		
+		// Check if we should start dragging while mouse is pressed
+		if (_mousePressed && !IsDragging && !_isDraggingAnything)
+		{
+			Vector2 currentMousePos = GetGlobalMousePosition();
+			float distance = _initialMousePosition.DistanceTo(currentMousePos);
+			
+			if (distance > DRAG_THRESHOLD)
+			{
+				_distanceFromMouse = currentMousePos - this.GetCenter();
+				StartDragging();
+			}
+		}
 	}
 
 	public void SetVisual(CardVisual visual)
@@ -54,6 +74,7 @@ public partial class CardLogic : Button
 			HoverEnded -= Visual.OnHoverEnded;
 			MouseMoved -= Visual.OnMouseMoved;
 			PositionChanged -= Visual.OnPositionChanged;
+			Clicked -= Visual.OnClicked;
 		}
 
 		Visual = visual;
@@ -67,21 +88,22 @@ public partial class CardLogic : Button
 			HoverEnded += Visual.OnHoverEnded;
 			MouseMoved += Visual.OnMouseMoved;
 			PositionChanged += Visual.OnPositionChanged;
+			Clicked += Visual.OnClicked;
 		}
 	}
 
 	public void SetCardSlot(CardSlot cardSlot)
 	{
 		CardSlot = cardSlot;
-		GlobalPosition = CardSlot.GlobalPosition - Size / 2f;
+		this.SetCenter(GetTargetCenter());
 		InvokePositionChanged();
 	}
 
 	private void FollowMouse(float delta)
 	{
 		Vector2 mousePos = GetGlobalMousePosition();
-		GlobalPosition = mousePos - _distanceFromMouse;
-		InvokePositionChanged(delta);
+		this.SetCenter(mousePos - _distanceFromMouse);
+		InvokePositionChanged(delta, true);
 	}
 
 	private void UpdateVisualPosition(float delta)
@@ -90,7 +112,7 @@ public partial class CardLogic : Button
 		{
 			FollowMouse(delta);
 		}
-		else if (Visual.GetCenter() != CardSlot.GetCenter())
+		else if (Visual.GetCenter() != GetTargetSlottedCenter())
 		{
 			InvokePositionChanged(delta);
 		}
@@ -101,15 +123,39 @@ public partial class CardLogic : Button
 		if (@event is not InputEventMouseButton mouseButtonEvent) return;
 		if (mouseButtonEvent.ButtonIndex != MouseButton.Left) return;
 
-		if (mouseButtonEvent.IsPressed() && !IsDragging)
+		if (mouseButtonEvent.IsPressed())
 		{
-			_distanceFromMouse = GetGlobalMousePosition() - GlobalPosition;
-			StartDragging();
+			// Mouse button pressed
+			if (!_isDraggingAnything)
+			{
+				_mousePressed = true;
+				_initialMousePosition = GetGlobalMousePosition();
+			}
 		}
-		else if (IsDragging)
+		else
 		{
-			StopDragging();
+			// Mouse button released
+			if (IsDragging)
+			{
+				StopDragging();
+			}
+			else if (_mousePressed)
+			{
+				// This was a click (no drag occurred)
+				HandleClick();
+			}
+			
+			_mousePressed = false;
 		}
+	}
+
+	private void HandleClick()
+	{
+		IsSelected = !IsSelected;
+		this.SetCenter(GetTargetSlottedCenter());
+		
+		InvokePositionChanged();
+		Clicked?.Invoke();
 	}
 
 	private void StartDragging()
@@ -130,7 +176,7 @@ public partial class CardLogic : Button
 
 		if (true)
 		{
-			GlobalPosition = CardSlot.GlobalPosition - Size / 2f;
+			this.SetCenter(GetTargetSlottedCenter());
 			InvokePositionChanged();
 		}
 
@@ -151,11 +197,14 @@ public partial class CardLogic : Button
 	{
 		if (_isDraggingAnything) return;
 		if (IsDragging) return;
+
+		IsHovering = true;
 		HoverStarted?.Invoke();
 	}
 
 	public void OnMouseExited()
 	{
+		IsHovering = false;
 		HoverEnded?.Invoke();
 	}
 
@@ -165,9 +214,24 @@ public partial class CardLogic : Button
 		MouseMoved?.Invoke(mousePos);
 	}
 
-	public void InvokePositionChanged(float? delta = null)
+	private Vector2 GetTargetCenter()
 	{
-		PositionChanged?.Invoke(delta ?? (float)GetProcessDeltaTime(), GlobalPosition);
+		return IsDragging ? GetTargetFollowMouseCenter() : GetTargetSlottedCenter();
+	}
+
+	private Vector2 GetTargetSlottedCenter()
+	{
+		return CardSlot.GetCenter() + (IsSelected ? new Vector2(0, Visual.SelectionVerticalOffset) : Vector2.Zero);
+	}
+
+	private Vector2 GetTargetFollowMouseCenter()
+	{
+		return this.GetCenter();
+	}
+
+	public void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
+	{
+		PositionChanged?.Invoke(delta ?? (float)GetProcessDeltaTime(), GetTargetCenter(), isDueToDragging);
 	}
 
 	public void DestroyCard()

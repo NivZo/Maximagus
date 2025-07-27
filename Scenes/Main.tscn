@@ -15,7 +15,13 @@ script = ExtResource("1_rgh2o")
 
 [node name="Hand" parent="." instance=ExtResource("3_kln2b")]
 layout_mode = 1
-offset_left = 128.0
-offset_top = 192.0
-offset_right = -128.0
-offset_bottom = -72.0
+anchors_preset = -1
+anchor_left = 0.166889
+anchor_top = 0.790383
+anchor_right = 0.833111
+anchor_bottom = 0.889
+offset_left = -0.256042
+offset_top = -0.16803
+offset_right = 0.25592
+offset_bottom = -0.0720215
+metadata/_edit_use_anchors_ = true

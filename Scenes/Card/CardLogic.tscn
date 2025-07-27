@@ -26,13 +26,13 @@ size = Vector2(130, 175)
 
 [node name="CardLogic" type="Button"]
 material = SubResource("ShaderMaterial_3ph3s")
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_right = 160.0
-offset_bottom = 240.0
+anchor_right = 0.639
+anchor_bottom = 0.87
+offset_right = -0.128052
+offset_bottom = 0.239929
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
@@ -46,7 +46,6 @@ expand_icon = true
 script = ExtResource("3_131e3")
 
 [node name="InteractionArea" type="Area2D" parent="."]
-position = Vector2(80, 120)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
 shape = SubResource("RectangleShape2D_xsth3")
