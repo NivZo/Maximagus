@@ -24,7 +24,7 @@ shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
 resource_local_to_scene = true
 shader = ExtResource("4_25b8w")
-shader_parameter/rect_size = Vector2(1152, 648)
+shader_parameter/rect_size = Vector2(124, 180)
 shader_parameter/fov = 90.0
 shader_parameter/cull_back = true
 shader_parameter/y_rot = 0.0

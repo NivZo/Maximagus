@@ -39,18 +39,17 @@ shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 
 [node name="Card" type="Control"]
 layout_mode = 3
-anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -80.0
-offset_top = -120.0
-offset_right = 44.0
-offset_bottom = 60.0
+offset_left = -61.5681
+offset_top = -90.192
+offset_right = 62.4319
+offset_bottom = 89.808
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(80, 120)
+pivot_offset = Vector2(62, 90)
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
