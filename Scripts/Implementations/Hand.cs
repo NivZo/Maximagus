@@ -5,6 +5,8 @@ using System.Linq;
 
 public partial class Hand : Control
 {
+    public static Hand Instance { get; private set; }
+
     private IEventBus _eventBus;
     private ILogger _logger;
     private OrderedContainer _cardSlotsContainer;
@@ -21,13 +23,18 @@ public partial class Hand : Control
         .Where(card => card != null)
         .ToImmutableArray();
 
+    public ImmutableArray<Card> SelectedCards => Cards
+        .Where(card => card.IsSelected)
+        .ToImmutableArray();
+
     public override void _Ready()
     {
         try
         {
+            Instance = this;
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
-        
+
             InitializeComponents();
             SetupEventHandlers();
             InitializeCardSlots();
@@ -64,36 +71,6 @@ public partial class Hand : Control
         }
     }
 
-    public override void _Input(InputEvent @event)
-    {
-        try
-        {
-            if (@event is InputEventKey keyEvent && keyEvent.Pressed)
-            {
-                HandleKeyInput(keyEvent);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error handling input in Hand", ex);
-        }
-    }
-
-    private void HandleKeyInput(InputEventKey keyEvent)
-    {
-        switch (keyEvent.Keycode)
-        {
-            case Key.Left:
-                if (_cardSlotsContainer.Count > 0)
-                    _cardSlotsContainer.RemoveElementAt(_cardSlotsContainer.Count - 1);
-                break;
-                
-            case Key.Right:
-                _cardSlotsContainer.InsertElement(_cardSlotsContainer.Count, CardSlot.Create(_cardSlotsNode));
-                break;
-        }
-    }
-
     public void InitializeCardSlots()
     {
         try
@@ -109,17 +86,51 @@ public partial class Hand : Control
             }
 
             _eventBus?.Publish(new HandCardSlotsChangedEvent(this));
-            
+
             // Create cards for each slot
+            var rnd = new Random();
             foreach (var slot in CardSlots)
             {
-                Card.Create(_cardsNode, slot);
+                var resource = new CardResource()
+                {
+                    Value = rnd.Next(10),
+                };
+                Card.Create(_cardsNode, slot, resource);
             }
         }
         catch (Exception ex)
         {
             _logger?.LogError("Error initializing card slots", ex);
             throw;
+        }
+    }
+
+    public void Discard(Card card) => Discard([card]);
+
+    public void Discard(Card[] cards)
+    {
+        foreach (var card in cards)
+        {
+            if (Cards.Contains(card))
+            {
+                GD.Print($"Removed card {card.Resource.Value} from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot)+1}");
+                _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
+                card.Logic.CardSlot.QueueFree();
+                card.QueueFree();
+            }
+        }
+    }
+
+    public void DrawAndAppend(int amount)
+    {
+        for (int i = 0; i < amount; i++)
+        {
+            var slot = CardSlot.Create(_cardSlotsNode);
+            var card = Card.Create(_cardsNode, slot, new() { Value = 1 });
+            card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
+            _cardSlotsContainer.InsertElement(slot);
+
+            GD.Print($"Added card {card.Resource.Value} to slot {_cardSlotsContainer.IndexOf(slot)+1}");
         }
     }
 
@@ -131,14 +142,14 @@ public partial class Hand : Control
             if (draggedCardSlot?.Card == null)
                 return;
 
-            var validSlots = CardSlots.Where(slot => 
-                slot.GetCenter().DistanceTo(draggedCardSlot.Card.CardLogic.GetCenter()) <= draggedCardSlot.MaxValidDistance);
+            var validSlots = CardSlots.Where(slot =>
+                slot.GetCenter().DistanceTo(draggedCardSlot.Card.Logic.GetCenter()) <= draggedCardSlot.MaxValidDistance);
 
             if (!validSlots.Any())
                 return;
 
-            var validTargetSlot = validSlots.MinBy(slot => 
-                slot.GetCenter().DistanceSquaredTo(draggedCardSlot.Card.CardLogic.GetCenter()));
+            var validTargetSlot = validSlots.MinBy(slot =>
+                slot.GetCenter().DistanceSquaredTo(draggedCardSlot.Card.Logic.GetCenter()));
 
             if (validTargetSlot != null && validTargetSlot != draggedCardSlot)
             {

@@ -10,7 +10,7 @@ public partial class CardLogic : Button
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
     private bool _mousePressed = false;
-    private const float DRAG_THRESHOLD = 5.0f;
+    private const float DRAG_THRESHOLD = 35.0f;
 
     public bool IsSelected { get; private set; } = false;
     public bool IsHovering { get; private set; } = false;

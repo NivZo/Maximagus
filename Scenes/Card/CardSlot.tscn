@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cg3eemcq3p0ll"]
+[gd_scene load_steps=2 format=3 uid="uid://cg3eemcq3p0ll"]
 
 [ext_resource type="Script" uid="uid://dxnppwyqr28te" path="res://Scripts/Implementations/CardSlot.cs" id="1_qvmmg"]
-[ext_resource type="Texture2D" uid="uid://c5wet8paisq3b" path="res://icon.svg" id="2_r3qn0"]
 
 [node name="CardSlot" type="Control"]
 layout_mode = 3
@@ -10,7 +9,3 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_qvmmg")
-
-[node name="Icon" type="Sprite2D" parent="."]
-scale = Vector2(0.132813, 0.132813)
-texture = ExtResource("2_r3qn0")

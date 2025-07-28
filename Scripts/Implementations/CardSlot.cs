@@ -6,7 +6,7 @@ public partial class CardSlot : Control, IOrderable
     private static readonly string CARD_SCENE = "res://Scenes/Card/CardSlot.tscn";
     private ILogger _logger;
 
-    [Export] public float MaxValidDistance = 248;
+    [Export] public float MaxValidDistance = 512f;
 
     public Card Card { get; private set; }
 
@@ -16,7 +16,7 @@ public partial class CardSlot : Control, IOrderable
         set
         {
             GlobalPosition = value;
-            Card?.CardLogic?.SetCardSlot(this);
+            Card?.Logic?.SetCardSlot(this);
         }
     }
 
@@ -80,9 +80,9 @@ public partial class CardSlot : Control, IOrderable
         {
             Card = card;
             
-            if (Card?.CardLogic != null)
+            if (Card?.Logic != null)
             {
-                Card.CardLogic.SetCardSlot(this);
+                Card.Logic.SetCardSlot(this);
             }
         }
         catch (Exception ex)

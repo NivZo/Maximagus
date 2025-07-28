@@ -52,6 +52,10 @@ grow_vertical = 1
 grow_horizontal = 1
 grow_vertical = 1
 
+[node name="CardSlot10" parent="CardSlots" instance=ExtResource("1_0xaq6")]
+grow_horizontal = 1
+grow_vertical = 1
+
 [node name="Cards" type="Node" parent="."]
 
 [node name="CardSlotsContainer" parent="." instance=ExtResource("3_fkehq")]

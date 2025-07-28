@@ -81,16 +81,19 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
 
     public int Count => _elements.Count;
 
-    public void InsertElement(int index, IOrderable element)
+    public int IndexOf(IOrderable element) => _elements.IndexOf(element);
+
+    public void InsertElement(IOrderable element, int? index = null)
     {
         try
         {
             element.ValidateNotNull(nameof(element));
-            
+
+            if (index == null) index = _elements.Count;
             if (index < 0) index = 0;
             if (index > _elements.Count) index = _elements.Count;
-            
-            _elements.Insert(index, element);
+
+            _elements.Insert(index.Value, element);
             CallDeferred(MethodName.RecalculatePositions);
         }
         catch (Exception ex)

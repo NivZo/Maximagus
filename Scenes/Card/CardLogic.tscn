@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://c8x8ywuxcnmm7"]
+[gd_scene load_steps=9 format=3 uid="uid://c8x8ywuxcnmm7"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_tf6mm"]
 [ext_resource type="Script" uid="uid://cdh6nbsig87sa" path="res://Scripts/Implementations/CardLogic.cs" id="2_3g4mk"]
+[ext_resource type="Texture2D" uid="uid://c5wet8paisq3b" path="res://icon.svg" id="2_tf6mm"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_kntej"]
 seed = -15
@@ -41,6 +42,7 @@ theme_override_styles/disabled = SubResource("StyleBoxEmpty_7aqjh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_7aqjh")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_7aqjh")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_7aqjh")
+icon = ExtResource("2_tf6mm")
 icon_alignment = 1
 expand_icon = true
 script = ExtResource("2_3g4mk")

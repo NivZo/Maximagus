@@ -108,11 +108,11 @@ public partial class CardVisual : Control
 
     private void UpdateShadow(float delta)
     {
-        Vector2 center = GetViewportRect().Size / 2.0f;
-        float distance = GlobalPosition.X + Size.X / 2.0f - center.X;
+        Vector2 screenCenter = GetViewportRect().GetCenter();
+        float distance = this.GetCenter().X - screenCenter.X;
 
         _shadowTexture.Position = new Vector2(
-            Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / center.X)),
+            Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / screenCenter.X)),
             _shadowTexture.Position.Y
         );
         _shadowTexture.ZIndex = _isDragging ? 0 : -2;

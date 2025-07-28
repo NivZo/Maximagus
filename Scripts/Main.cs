@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class Main : Control
 {
@@ -28,8 +29,31 @@ public partial class Main : Control
         }
     }
 
-    public override void _Process(double delta)
+    public override void _Input(InputEvent @event)
     {
-        // Main process loop - kept minimal as in original
+        try
+        {
+            if (@event is InputEventKey keyEvent && keyEvent.Pressed)
+            {
+                HandleKeyInput(keyEvent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Error handling input in Main", ex);
+        }
+    }
+
+    private void HandleKeyInput(InputEventKey keyEvent)
+    {
+        switch (keyEvent.Keycode)
+        {
+            case Key.Enter:
+                var cards = Hand.Instance.SelectedCards;
+                GD.Print($"Selected cards with values: {string.Join(", ", cards.Select(c => c.Resource.Value))}");
+                Hand.Instance.Discard(cards.ToArray());
+                Hand.Instance.DrawAndAppend(cards.Length);
+                break;
+        }
     }
 }
