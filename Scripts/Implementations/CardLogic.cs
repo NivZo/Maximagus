@@ -15,7 +15,7 @@ public partial class CardLogic : Button
     public bool IsSelected { get; private set; } = false;
     public bool IsHovering { get; private set; } = false;
     public bool IsDragging { get; private set; } = false;
-    public CardVisual Visual { get; private set; }
+    public Card Card { get; set; }
     public CardSlot CardSlot { get; private set; }
 
     private Area2D _interactionArea;
@@ -98,73 +98,6 @@ public partial class CardLogic : Button
         }
     }
 
-    public void SetVisual(CardVisual visual)
-    {
-        if (Visual != null)
-            UnsubscribeFromVisualEvents();
-
-        Visual = visual;
-
-        if (Visual != null)
-            SubscribeToVisualEvents();
-    }
-
-    private void SubscribeToVisualEvents()
-    {
-        _eventBus?.Subscribe<CardDragStartedEvent>(OnCardDragStarted);
-        _eventBus?.Subscribe<CardDragEndedEvent>(OnCardDragEnded);
-        _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
-        _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Subscribe<CardClickedEvent>(OnCardClicked);
-        _eventBus?.Subscribe<CardPositionChangedEvent>(OnCardPositionChanged);
-    }
-
-    private void UnsubscribeFromVisualEvents()
-    {
-        _eventBus?.Unsubscribe<CardDragStartedEvent>(OnCardDragStarted);
-        _eventBus?.Unsubscribe<CardDragEndedEvent>(OnCardDragEnded);
-        _eventBus?.Unsubscribe<CardHoverStartedEvent>(OnCardHoverStarted);
-        _eventBus?.Unsubscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Unsubscribe<CardClickedEvent>(OnCardClicked);
-        _eventBus?.Unsubscribe<CardPositionChangedEvent>(OnCardPositionChanged);
-    }
-
-    private void OnCardDragStarted(CardDragStartedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnDragStarted();
-    }
-
-    private void OnCardDragEnded(CardDragEndedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnDragEnded();
-    }
-
-    private void OnCardHoverStarted(CardHoverStartedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnHoverStarted();
-    }
-
-    private void OnCardHoverEnded(CardHoverEndedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnHoverEnded();
-    }
-
-    private void OnCardClicked(CardClickedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnClicked();
-    }
-
-    private void OnCardPositionChanged(CardPositionChangedEvent evt)
-    {
-        if (evt.Card == GetParent<Card>())
-            Visual?.OnPositionChanged(evt.Delta, evt.Position, evt.IsDueToDragging);
-    }
-
     public void SetCardSlot(CardSlot cardSlot)
     {
         CardSlot = cardSlot?.ValidateNotNull(nameof(cardSlot));
@@ -185,7 +118,7 @@ public partial class CardLogic : Button
         {
             FollowMouse(delta);
         }
-        else if (Visual != null && Visual.GetCenter() != GetTargetSlottedCenter())
+        else if (Card.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
         {
             InvokePositionChanged(delta);
         }
@@ -274,9 +207,9 @@ public partial class CardLogic : Button
             }
 
             if (IsDragging) return;
-            if (@event is not InputEventMouseMotion) return;
+            if (@event is not InputEventMouseMotion mouseMotion) return;
             
-            HandleMouseHover();
+            HandleMouseHover(mouseMotion);
         }
         catch (Exception ex)
         {
@@ -298,10 +231,13 @@ public partial class CardLogic : Button
         _eventBus?.Publish(new CardHoverEndedEvent(GetParent<Card>()));
     }
 
-    private void HandleMouseHover()
+    private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
-        // Mouse movement handling can be added here if needed
-        // For now, maintaining original functionality
+        // Pass relative mouse position to visual for perspective effects
+        // Since we're already handling this in OnGuiInput, the position is already local to this control
+        var card = GetParent<Card>();
+        var localPosition = mouseMotion.Position; // This is already local to the control that received the event
+        _eventBus?.Publish(new CardMouseMovedEvent(card, localPosition));
     }
 
     private Vector2 GetTargetCenter()
@@ -313,7 +249,7 @@ public partial class CardLogic : Button
     {
         if (CardSlot == null) return Vector2.Zero;
         
-        Vector2 offset = IsSelected && Visual != null ? new Vector2(0, Visual.SelectionVerticalOffset) : Vector2.Zero;
+        Vector2 offset = IsSelected && Card.Visual != null ? new Vector2(0, Card.Visual.SelectionVerticalOffset) : Vector2.Zero;
         return CardSlot.GetCenter() + offset;
     }
 
@@ -332,14 +268,14 @@ public partial class CardLogic : Button
 
     public void DestroyCard()
     {
-        Visual?.StartDestroyAnimation();
+        var card = GetParent<Card>();
+        _eventBus?.Publish(new CardDestroyStartedEvent(card));
     }
 
     public override void _ExitTree()
     {
         try
         {
-            UnsubscribeFromVisualEvents();
             base._ExitTree();
         }
         catch (Exception ex)

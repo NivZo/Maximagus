@@ -85,7 +85,7 @@ public partial class Hand : Control
                 _cardSlotsContainer[i] = slots[i];
             }
 
-            _eventBus?.Publish(new HandCardSlotsChangedEvent(this));
+            _eventBus?.Publish(new HandCardSlotsChangedEvent());
 
             // Create cards for each slot
             var rnd = new Random();

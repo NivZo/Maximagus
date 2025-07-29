@@ -32,6 +32,8 @@ public partial class CardVisual : Control
     [Export(PropertyHint.Range, "0, 90, 1")] public float MaxRotationDegrees { get; set; } = 15f;
 
     private ILogger _logger;
+    private IEventBus _eventBus;
+    private Card _parentCard;
     private bool _isSelected = false;
     private bool _isDragging = false;
     private Vector2 _lastPosition;
@@ -57,10 +59,13 @@ public partial class CardVisual : Control
         try
         {
             _logger = ServiceLocator.GetService<ILogger>();
+            _eventBus = ServiceLocator.GetService<IEventBus>();
+            _parentCard = GetParent<Card>();
 
             InitializeComponents();
             SetupPerspective();
             SetupPivots();
+            SubscribeToEvents();
         }
         catch (Exception ex)
         {
@@ -92,6 +97,30 @@ public partial class CardVisual : Control
         _textures.PivotOffset = Size / 2;
     }
 
+    private void SubscribeToEvents()
+    {
+        _eventBus?.Subscribe<CardDragStartedEvent>(OnCardDragStarted);
+        _eventBus?.Subscribe<CardDragEndedEvent>(OnCardDragEnded);
+        _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
+        _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
+        _eventBus?.Subscribe<CardClickedEvent>(OnCardClicked);
+        _eventBus?.Subscribe<CardPositionChangedEvent>(OnCardPositionChanged);
+        _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
+        _eventBus?.Subscribe<CardDestroyStartedEvent>(OnCardDestroyStarted);
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        _eventBus?.Unsubscribe<CardDragStartedEvent>(OnCardDragStarted);
+        _eventBus?.Unsubscribe<CardDragEndedEvent>(OnCardDragEnded);
+        _eventBus?.Unsubscribe<CardHoverStartedEvent>(OnCardHoverStarted);
+        _eventBus?.Unsubscribe<CardHoverEndedEvent>(OnCardHoverEnded);
+        _eventBus?.Unsubscribe<CardClickedEvent>(OnCardClicked);
+        _eventBus?.Unsubscribe<CardPositionChangedEvent>(OnCardPositionChanged);
+        _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
+        _eventBus?.Unsubscribe<CardDestroyStartedEvent>(OnCardDestroyStarted);
+    }
+
     public override void _Process(double delta)
     {
         try
@@ -118,14 +147,64 @@ public partial class CardVisual : Control
         _shadowTexture.ZIndex = _isDragging ? 0 : -2;
     }
 
-    public void OnClicked()
+    // Event handlers - filtering for this card only
+    private void OnCardDragStarted(CardDragStartedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnDragStarted();
+    }
+
+    private void OnCardDragEnded(CardDragEndedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnDragEnded();
+    }
+
+    private void OnCardHoverStarted(CardHoverStartedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnHoverStarted();
+    }
+
+    private void OnCardHoverEnded(CardHoverEndedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnHoverEnded();
+    }
+
+    private void OnCardClicked(CardClickedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnClicked();
+    }
+
+    private void OnCardPositionChanged(CardPositionChangedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnPositionChanged(evt.Delta, evt.Position, evt.IsDueToDragging);
+    }
+
+    private void OnCardMouseMoved(CardMouseMovedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        OnMouseMoved(evt.LocalPosition);
+    }
+
+    private void OnCardDestroyStarted(CardDestroyStartedEvent evt)
+    {
+        if (evt.Card != _parentCard) return;
+        StartDestroyAnimation();
+    }
+
+    // Original visual methods - now private
+    private void OnClicked()
     {
         _isSelected = !_isSelected;
         Scale = Vector2.One;
         AnimateScale(HoverScale, ClickAnimationDuration, Tween.TransitionType.Elastic);
     }
 
-    public void OnDragStarted()
+    private void OnDragStarted()
     {
         KillAllTweens();
         ResetPerspective();
@@ -135,25 +214,25 @@ public partial class CardVisual : Control
         _lastPosition = GlobalPosition;
     }
 
-    public void OnDragEnded()
+    private void OnDragEnded()
     {
         _isDragging = false;
         OnHoverEnded();
     }
 
-    public void OnHoverStarted()
+    private void OnHoverStarted()
     {
         AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
     }
 
-    public void OnHoverEnded()
+    private void OnHoverEnded()
     {
         if (_isDragging) return;
         ResetPerspective();
         ResetScale();
     }
 
-    public void OnMouseMoved(Vector2 mousePosition)
+    private void OnMouseMoved(Vector2 mousePosition)
     {
         Vector2 normalizedPosition = new Vector2(
             mousePosition.X / Size.X,
@@ -162,7 +241,7 @@ public partial class CardVisual : Control
         UpdateCardPerspective(normalizedPosition);
     }
 
-    public void OnPositionChanged(float delta, Vector2 position, bool isDueToDragging)
+    private void OnPositionChanged(float delta, Vector2 position, bool isDueToDragging)
     {
         if (!isDueToDragging && _isDragging) return;
         if (delta > 0)
@@ -257,12 +336,12 @@ public partial class CardVisual : Control
         tween.TweenProperty(this, "rotation", 0.0f, DragRotationResetDuration);
     }
 
-    public void ResetScale()
+    private void ResetScale()
     {
         AnimateScale(1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
     }
 
-    public void StartDestroyAnimation()
+    private void StartDestroyAnimation()
     {
         try
         {
@@ -357,6 +436,7 @@ public partial class CardVisual : Control
     {
         try
         {
+            UnsubscribeFromEvents();
             KillAllTweens();
             base._ExitTree();
         }

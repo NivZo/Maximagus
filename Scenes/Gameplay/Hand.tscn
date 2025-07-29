@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="3_fkehq"]
 
 [node name="Hand" type="Control"]
+z_index = -2
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

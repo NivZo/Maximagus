@@ -38,8 +38,7 @@ public partial class Card : Control
 
         Logic = GetNode<CardLogic>("CardLogic").ValidateNotNull(nameof(Logic));
         Visual = GetNode<CardVisual>("CardVisual").ValidateNotNull(nameof(Visual));
-        
-        Logic.SetVisual(Visual);
+        Logic.Card = this;        
 
         // TEMP - keeping original functionality
         var label = Visual.GetNode<Label>("Label");
