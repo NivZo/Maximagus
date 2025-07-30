@@ -1,10 +1,13 @@
 using Godot;
 using System;
 using System.Linq;
+using Maximagus.Scripts.Spells.Implementations;
+using Maximagus.Scripts.Spells.Resources;
 
 public partial class Main : Control
 {
     private ILogger _logger;
+    private SpellProcessor _spellProcessor;
 
     public override void _EnterTree()
     {
@@ -12,13 +15,14 @@ public partial class Main : Control
         ServiceLocator.Initialize();
     }
 
-
     public override void _Ready()
     {
         try
         {
             base._Ready();
             _logger = ServiceLocator.GetService<ILogger>();
+            _spellProcessor = new SpellProcessor();
+            AddChild(_spellProcessor);
 
             _logger?.LogInfo("Main scene initialized successfully");
         }
@@ -50,7 +54,24 @@ public partial class Main : Control
         {
             case Key.Enter:
                 var cards = Hand.Instance.SelectedCards;
-                GD.Print($"Selected cards with values: {string.Join(", ", cards.Select(c => c.Resource.Value))}");
+                if (cards.Length == 0) return;
+
+                GD.Print($"--- Submitting Spell ---\nSelected cards in hand order: {string.Join(", ", cards.Select(c => c.Resource.SpellCard?.CardName ?? "Unknown"))}");
+
+                var spellCards = new Godot.Collections.Array<SpellCardResource>();
+                foreach (var card in cards)
+                {
+                    if (card.Resource.SpellCard != null)
+                    {
+                        spellCards.Add(card.Resource.SpellCard);
+                    }
+                }
+
+                if (spellCards.Count > 0)
+                {
+                    _spellProcessor.ProcessSpell(spellCards, null);
+                }
+
                 Hand.Instance.Discard(cards.ToArray());
                 Hand.Instance.DrawAndAppend(cards.Length);
                 break;

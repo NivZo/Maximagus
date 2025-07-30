@@ -60,6 +60,8 @@ public partial class CardVisual : Control
     private const string DISSOLVE_PROPERTY = "dissolve";
     private const string SHADOW_ALPHA_PROPERTY = "shadow_alpha";
 
+    public string Title;
+
 
     public override void _Ready()
     {
@@ -242,7 +244,7 @@ public partial class CardVisual : Control
 
         if (_tooltip == null)
         {
-            _tooltip = Tooltip.Create(_parentCard.Logic, new(0, -Size.Y), "", "");
+            _tooltip = Tooltip.Create(_parentCard.Logic, new(0, -Size.Y), Title, "");
         }
 
         _tooltip.ShowTooltip();

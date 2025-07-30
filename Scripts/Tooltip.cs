@@ -21,6 +21,7 @@ public partial class Tooltip : Control
         var tooltip = GD.Load<PackedScene>(SCENE_PATH).Instantiate<Tooltip>();
         parent.AddChild(tooltip);
         tooltip.Position = offset;
+        tooltip.GetNode<RichTextLabel>("Background/RichTextLabel").Text = title;
 
         return tooltip;
     }
