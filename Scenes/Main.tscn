@@ -39,7 +39,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_kln2b")
 
-[node name="Hand" parent="Parallax" instance=ExtResource("3_kln2b")]
+[node name="Hand" parent="." instance=ExtResource("3_kln2b")]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.444

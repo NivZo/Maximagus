@@ -14,7 +14,7 @@ public partial class CardVisual : Control
 
     [ExportGroup("Animation Settings")]
     [Export] public float HoverScale = 1.1f;
-    [Export] public float DragScale = 1.2f;
+    [Export] public float DragScale = 1.3f;
     [Export] public float ClickAnimationDuration = 1f;
     [Export] public float HoverAnimationDuration = 0.5f;
     [Export] public float RotationResetDuration = 0.5f;
@@ -35,6 +35,7 @@ public partial class CardVisual : Control
     private ILogger _logger;
     private IEventBus _eventBus;
     private Card _parentCard;
+    private Tooltip _tooltip;
     private bool _isSelected = false;
     private bool _isDragging = false;
     private bool _isHovering = false;
@@ -210,18 +211,21 @@ public partial class CardVisual : Control
     {
         _isSelected = !_isSelected;
         Scale = Vector2.One;
-        AnimateScale(HoverScale, ClickAnimationDuration, Tween.TransitionType.Elastic);
+        AnimationUtils.AnimateScale(this, HoverScale, ClickAnimationDuration, Tween.TransitionType.Elastic);
     }
 
     private void OnDragStarted()
     {
         KillAllTweens();
         ResetPerspective();
-        OnHoverStarted();
+        
+        AnimationUtils.AnimateScale(this, DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
         _isDragging = true;
         _lastPosition = GlobalPosition;
         ZIndex = 10;
+
+        _tooltip?.HideTooltip();
     }
 
     private void OnDragEnded()
@@ -234,7 +238,14 @@ public partial class CardVisual : Control
     private void OnHoverStarted()
     {
         _isHovering = true;
-        AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
+        AnimationUtils.AnimateScale(this, HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
+
+        if (_tooltip == null)
+        {
+            _tooltip = Tooltip.Create(_parentCard.Logic, new(0, -Size.Y), "", "");
+        }
+
+        _tooltip.ShowTooltip();
     }
 
     private void OnHoverEnded()
@@ -244,6 +255,8 @@ public partial class CardVisual : Control
         _isHovering = false;
         ResetPerspective();
         ResetScale();
+
+        _tooltip?.HideTooltip();
     }
 
     private void OnMouseMoved(Vector2 mousePosition)
@@ -328,15 +341,6 @@ public partial class CardVisual : Control
         Scale = new Vector2(targetScale, targetScale);
     }
 
-    private void AnimateScale(float targetScale, float duration, Tween.TransitionType transitionType)
-    {
-        var tween = CreatePropertyTween(SCALE_PROPERTY)
-            .SetEase(Tween.EaseType.Out)
-            .SetTrans(transitionType);
-        
-        tween.TweenMethod(Callable.From<float>(SetScale), Scale.X, targetScale, duration);
-    }
-
     private void SetupPerspectiveRectSize()
     {
         if (_cardTexture?.Material is ShaderMaterial shaderMaterial)
@@ -378,7 +382,7 @@ public partial class CardVisual : Control
 
     private void ResetScale()
     {
-        AnimateScale(1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
+        AnimationUtils.AnimateScale(this, 1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
     }
 
     private void StartDestroyAnimation()

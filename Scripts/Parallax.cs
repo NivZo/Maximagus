@@ -20,8 +20,8 @@ public partial class Parallax : Control
         );
 
         Position = new(
-            Mathf.Lerp(Position.X, newPos.X, Smoothing * (float)delta),
-            Mathf.Lerp(Position.Y, newPos.Y, Smoothing * (float)delta)
+            Mathf.Clamp(Mathf.Lerp(Position.X, newPos.X, Smoothing * (float)delta), -MaxOffset.X, MaxOffset.X),
+            Mathf.Clamp(Mathf.Lerp(Position.Y, newPos.Y, Smoothing * (float)delta), -MaxOffset.Y, MaxOffset.Y)
         );
     }
 }

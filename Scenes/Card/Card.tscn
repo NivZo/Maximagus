@@ -62,6 +62,7 @@ layout_mode = 1
 AngleXMax = 10.0
 AngleYMax = 10.0
 AngleIdleRatio = 0.2
+HoverScale = 1.2
 
 [node name="Label" type="Label" parent="CardVisual"]
 layout_mode = 1

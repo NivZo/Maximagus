@@ -1,6 +1,56 @@
-[gd_scene load_steps=2 format=3 uid="uid://bof7eb8y8iu68"]
+[gd_scene load_steps=8 format=3 uid="uid://bof7eb8y8iu68"]
 
 [ext_resource type="Texture2D" uid="uid://der5uuw8q4ypw" path="res://Assets/Art/TooltipBackground.png" id="1_s6jop"]
+[ext_resource type="Script" uid="uid://pkqvv4i7idv5" path="res://Scripts/Tooltip.cs" id="1_wlw5m"]
+[ext_resource type="Shader" uid="uid://c65fkofkspmy3" path="res://Shaders/Outline.gdshader" id="2_qkd78"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bpvxn"]
+shader = ExtResource("2_qkd78")
+shader_parameter/maxLineWidth = 4.0
+shader_parameter/minLineWidth = 2.0
+shader_parameter/speed = 1.0
+shader_parameter/blockSize = 12.0
+shader_parameter/color = Color(0.657282, 0.59829, 0.509494, 1)
+shader_parameter/tolerance = 0.0
+
+[sub_resource type="Animation" id="Animation_wlw5m"]
+resource_name = "idle"
+length = 4.0
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Background/DarkBackground:rotation")
+tracks/0/interp = 4
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(1.4, 3.3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [-0.0610865, -0.0785398]
+}
+
+[sub_resource type="Animation" id="Animation_qkd78"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Background/DarkBackground:rotation")
+tracks/0/interp = 4
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.0872665]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_bpvxn"]
+_data = {
+&"RESET": SubResource("Animation_qkd78"),
+&"idle": SubResource("Animation_wlw5m")
+}
 
 [node name="Tooltip" type="Control"]
 layout_mode = 3
@@ -9,12 +59,60 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_wlw5m")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_bpvxn")
+custom_minimum_size = Vector2(288, 108)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = -64.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(576, 324)
+texture = ExtResource("1_s6jop")
+expand_mode = 1
+
+[node name="DarkBackground" type="TextureRect" parent="Background"]
+self_modulate = Color(0.755386, 0.755386, 0.755386, 1)
+show_behind_parent = true
+use_parent_material = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 6.19592
+pivot_offset = Vector2(512, 260)
 texture = ExtResource("1_s6jop")
+expand_mode = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Background"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.062
+anchor_top = 0.123
+anchor_right = 0.937
+anchor_bottom = 0.246
+offset_left = 0.511997
+offset_top = 0.0399971
+offset_right = 0.511963
+offset_bottom = 0.0799942
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+text = "Title Text"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_bpvxn")
+}
+autoplay = "idle"
