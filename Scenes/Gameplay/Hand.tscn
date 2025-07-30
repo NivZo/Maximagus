@@ -61,4 +61,3 @@ grow_vertical = 1
 
 [node name="CardSlotsContainer" parent="." instance=ExtResource("3_fkehq")]
 layout_mode = 1
-Debug = true

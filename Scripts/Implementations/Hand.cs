@@ -7,6 +7,9 @@ public partial class Hand : Control
 {
     public static Hand Instance { get; private set; }
 
+    [Export] float CardsCurveMultiplier = 20;
+    [Export] float CardsRotationMultiplier = 5;
+
     private IEventBus _eventBus;
     private ILogger _logger;
     private OrderedContainer _cardSlotsContainer;
@@ -134,6 +137,32 @@ public partial class Hand : Control
         }
     }
 
+    private void AdjustFanEffect()
+    {
+        float baselineY = GlobalPosition.Y;
+
+        var count = _cardSlotsContainer.Count;
+        for (int i = 0; i < count; i++)
+        {
+            var slot = CardSlots[i];
+            var card = slot.Card;
+
+            // Handle Z
+            card.ZIndex = i;
+            _cardsNode.MoveChild(card, i);
+
+            // Handle curve
+            float normalizedPos = (count > 1) ? (2.0f * i / (count) - 1.0f) : 0;
+            float yOffset = Mathf.Pow(normalizedPos, 2) * -CardsCurveMultiplier;
+            slot.TargetPosition = new Vector2(slot.TargetPosition.X, baselineY - yOffset);
+
+
+            // Handle rotation
+            float rotation = normalizedPos * CardsRotationMultiplier;
+            card.Visual.RotationDegrees = rotation;
+        }
+    }
+
     private void HandleDrag()
     {
         try
@@ -186,12 +215,7 @@ public partial class Hand : Control
     {
         try
         {
-            var cards = Cards.ToList();
-            for (int i = 0; i < cards.Count; i++)
-            {
-                cards[i].ZIndex = i;
-                _cardsNode.MoveChild(cards[i], i);
-            }
+            AdjustFanEffect();
         }
         catch (Exception ex)
         {

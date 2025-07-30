@@ -1,12 +1,13 @@
-shader_type canvas_item;
+// Hey this is Hei! This shader "fakes" a 3D-camera perspective on CanvasItems.
+// License: MIT
 
-uniform vec2 rect_size;
+shader_type canvas_item;
 
 // Camera FOV
 uniform float fov : hint_range(1, 179) = 90;
 uniform bool cull_back = true;
-uniform float y_rot : hint_range(-360.0, 360.0) = 0.0;
-uniform float x_rot : hint_range(-360.0, 360.0) = 0.0;
+uniform float y_rot : hint_range(-180, 180) = 0.0;
+uniform float x_rot : hint_range(-180, 180) = 0.0;
 // At 0, the image retains its size when unrotated.
 // At 1, the image is resized so that it can do a full
 // rotation without clipping inside its rect.
@@ -43,21 +44,12 @@ void vertex(){
 	p.xy *= v * inv_rot_mat[2].z;
 	o = v * inv_rot_mat[2].xy;
 
-	// to (rect_size is a uniform):
-	VERTEX += (UV - 0.5) * rect_size * t * (1.0 - inset);
-
-//	VERTEX += (UV - 0.5) / TEXTURE_PIXEL_SIZE * t * (1.0 - inset);
+	VERTEX += (UV - 0.5) / TEXTURE_PIXEL_SIZE * t * (1.0 - inset);
 }
 
-void fragment() {
+void fragment(){
 	if (cull_back && p.z <= 0.0) discard;
-
 	vec2 uv = (p.xy / p.z).xy - o;
-	vec4 tex_color = texture(TEXTURE, uv + 0.5);
-
-	// Clip outside the rotated rect
-	tex_color.a *= step(max(abs(uv.x), abs(uv.y)), 0.5);
-
-	// Respect node modulate color (e.g., alpha from TextureRect or Sprite)
-	COLOR = tex_color * COLOR;
+    COLOR = texture(TEXTURE, uv + 0.5);
+	COLOR.a *= step(max(abs(uv.x), abs(uv.y)), 0.5);
 }

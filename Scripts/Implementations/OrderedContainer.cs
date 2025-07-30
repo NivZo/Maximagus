@@ -239,7 +239,7 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
 
         foreach (var element in elements)
         {
-            float elementWidth = (availableWidth * element.Weight.X) / totalHorizontalWeight;
+            float elementWidth = availableWidth * element.Weight.X / totalHorizontalWeight;
             float xPos = currentX + (elementWidth / 2);
             float yPos = Size.Y / 2;
 
@@ -256,7 +256,7 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
 
         foreach (var element in elements)
         {
-            float elementHeight = (availableHeight * element.Weight.Y) / totalVerticalWeight;
+            float elementHeight = availableHeight * element.Weight.Y / totalVerticalWeight;
             float xPos = Size.X / 2;
             float yPos = currentY + (elementHeight / 2);
 

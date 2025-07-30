@@ -2,8 +2,8 @@
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_uypal"]
 [ext_resource type="Script" uid="uid://c1nab7c7jdpc1" path="res://Scripts/Implementations/CardVisual.cs" id="2_j66st"]
-[ext_resource type="Texture2D" uid="uid://ciw3yv11ydd1m" path="res://Assets/Art/BlankCard.png" id="3_kyuxn"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
+[ext_resource type="Texture2D" uid="uid://cof0tsew7xmcx" path="res://Assets/Art/RuneOfFrost.png" id="4_j66st"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_3m7nw"]
 seed = -15
@@ -24,7 +24,6 @@ shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
 resource_local_to_scene = true
 shader = ExtResource("4_25b8w")
-shader_parameter/rect_size = Vector2(124, 180)
 shader_parameter/fov = 90.0
 shader_parameter/cull_back = true
 shader_parameter/y_rot = 0.0
@@ -62,10 +61,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
-texture = ExtResource("3_kyuxn")
+texture = ExtResource("4_j66st")
 expand_mode = 1
 
 [node name="Shadow" type="TextureRect" parent="Textures/Card"]
+visible = false
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(1, 1, 1, 0.168627)
 show_behind_parent = true
@@ -81,5 +81,5 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
 mouse_filter = 2
-texture = ExtResource("3_kyuxn")
+texture = ExtResource("4_j66st")
 expand_mode = 1

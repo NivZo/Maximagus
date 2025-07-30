@@ -8,6 +8,7 @@ public partial class CardVisual : Control
     [ExportGroup("Visual Settings")]
     [Export] public float AngleXMax = 15.0f;
     [Export] public float AngleYMax = 15.0f;
+    [Export] public float AngleIdleRatio = 0.15f;
     [Export] public float MaxOffsetShadow = 50.0f;
     [Export] public float SelectionVerticalOffset = -64.0f;
 
@@ -36,9 +37,13 @@ public partial class CardVisual : Control
     private Card _parentCard;
     private bool _isSelected = false;
     private bool _isDragging = false;
-    private Vector2 _lastPosition;
+    private bool _isHovering = false;
+    private bool _requiresPerspectiveReset = false;
+    private float _idleAnimationTime = 0;
     private float _angularVelocity = 0f;
+    private Vector2 _lastPosition;
     private Vector2 _velocity;
+    private Vector2 _shadowBasePosition;
 
     // Property-based tween management
     private readonly Dictionary<string, Tween> _propertyTweens = new();
@@ -53,6 +58,7 @@ public partial class CardVisual : Control
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
     private const string DISSOLVE_PROPERTY = "dissolve";
     private const string SHADOW_ALPHA_PROPERTY = "shadow_alpha";
+
 
     public override void _Ready()
     {
@@ -79,6 +85,7 @@ public partial class CardVisual : Control
         _textures = GetNode<Control>("Textures").ValidateNotNull("Textures");
         _cardTexture = _textures.GetNode<TextureRect>("Card").ValidateNotNull("Card");
         _shadowTexture = _cardTexture.GetNode<TextureRect>("Shadow").ValidateNotNull("Shadow");
+        _shadowBasePosition = _shadowTexture.Position;
 
         Resized += SetupPerspectiveRectSize;
         SetupPerspectiveRectSize();
@@ -87,6 +94,7 @@ public partial class CardVisual : Control
     private void SetupPerspective()
     {
         // Convert angles to radians for calculations
+        _idleAnimationTime += (float)new Random().NextDouble() * 20 - 10;
         AngleXMax = Mathf.DegToRad(AngleXMax);
         AngleYMax = Mathf.DegToRad(AngleYMax);
     }
@@ -128,6 +136,7 @@ public partial class CardVisual : Control
             UpdateShadow((float)delta);
             UpdatePosition((float)delta);
             UpdateSway((float)delta);
+            UpdateCardPerspectiveIdle((float)delta);
         }
         catch (Exception ex)
         {
@@ -142,7 +151,7 @@ public partial class CardVisual : Control
 
         _shadowTexture.Position = new Vector2(
             Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / screenCenter.X)),
-            _shadowTexture.Position.Y
+            _shadowBasePosition.Y + (_isDragging ? Size.Y * .2f : 0)
         );
         _shadowTexture.ZIndex = _isDragging ? 0 : -2;
     }
@@ -212,28 +221,35 @@ public partial class CardVisual : Control
 
         _isDragging = true;
         _lastPosition = GlobalPosition;
+        ZIndex = 10;
     }
 
     private void OnDragEnded()
     {
         _isDragging = false;
         OnHoverEnded();
+        ZIndex = 0;
     }
 
     private void OnHoverStarted()
     {
+        _isHovering = true;
         AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
     }
 
     private void OnHoverEnded()
     {
         if (_isDragging) return;
+
+        _isHovering = false;
         ResetPerspective();
         ResetScale();
     }
 
     private void OnMouseMoved(Vector2 mousePosition)
     {
+        if (_isDragging) return;
+
         Vector2 normalizedPosition = new Vector2(
             mousePosition.X / Size.X,
             mousePosition.Y / Size.Y
@@ -287,6 +303,26 @@ public partial class CardVisual : Control
         }
     }
 
+    private void UpdateCardPerspectiveIdle(float delta)
+    {
+        if (_isHovering && !_isDragging) return;
+        if (_requiresPerspectiveReset) return;
+        
+        else
+        {
+            float sine = Mathf.Sin(_idleAnimationTime) ;
+            float cosine = Mathf.Cos(_idleAnimationTime) - 1;
+            float rotX = Mathf.RadToDeg(Mathf.LerpAngle(0, AngleXMax * AngleIdleRatio, sine)) - AngleXMax * AngleIdleRatio * .5f;
+            float rotY = Mathf.RadToDeg(Mathf.LerpAngle(0, -AngleYMax * AngleIdleRatio, cosine)) + AngleYMax * AngleIdleRatio * .5f;
+
+            var shader = _cardTexture.Material as ShaderMaterial;
+            shader.SetShaderParameter("x_rot", rotY);
+            shader.SetShaderParameter("y_rot", rotX);
+            _idleAnimationTime += delta;
+        }
+    }
+
+
     private void SetScale(float targetScale)
     {
         Scale = new Vector2(targetScale, targetScale);
@@ -322,6 +358,10 @@ public partial class CardVisual : Control
                 .SetEase(Tween.EaseType.Out)
                 .SetTrans(Tween.TransitionType.Back);
             yRotTween.TweenProperty(shaderMaterial, "shader_parameter/y_rot", 0.0f, RotationResetDuration);
+
+            _idleAnimationTime = 0;
+            _requiresPerspectiveReset = true;
+            xRotTween.Finished += () => _requiresPerspectiveReset = false;
         }
         
         SetupPerspectiveRectSize();
