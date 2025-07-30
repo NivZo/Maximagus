@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=5 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://d0weeqfgyo258" path="res://Scripts/Main.cs" id="1_rgh2o"]
+[ext_resource type="Texture2D" uid="uid://dgix5r5a40r27" path="res://Assets/Art/TableBackground.png" id="2_kln2b"]
 [ext_resource type="PackedScene" uid="uid://bn8k4bj4kkcxc" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
+[ext_resource type="Script" uid="uid://c6le2mw7qwof4" path="res://Scripts/Parallax.cs" id="3_rgh2o"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -13,13 +15,37 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_rgh2o")
 
-[node name="Hand" parent="." instance=ExtResource("3_kln2b")]
+[node name="Parallax" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_rgh2o")
+MaxOffset = Vector2(16, 16)
+Smoothing = 1.0
+
+[node name="TextureRect" type="TextureRect" parent="Parallax"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_kln2b")
+
+[node name="Hand" parent="Parallax" instance=ExtResource("3_kln2b")]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.444
-anchor_top = 0.790383
+anchor_top = 0.889148
 anchor_right = 0.556
-anchor_bottom = 0.889
+anchor_bottom = 0.987765
 offset_left = -319.488
 offset_top = -0.16803
 offset_right = 319.488

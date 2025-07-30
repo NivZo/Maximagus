@@ -65,7 +65,6 @@ texture = ExtResource("4_j66st")
 expand_mode = 1
 
 [node name="Shadow" type="TextureRect" parent="Textures/Card"]
-visible = false
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(1, 1, 1, 0.168627)
 show_behind_parent = true
