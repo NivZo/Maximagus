@@ -216,7 +216,7 @@ public partial class CardLogic : Button
 
     public void OnMouseEntered()
     {
-        if (_hoverManager.IsHoveringActive || _dragManager.IsDraggingActive || IsDragging) return;
+        if (_hoverManager.IsHoveringActive || _dragManager.IsDraggingActive) return;
         if (!_hoverManager.StartHover(Card)) return;
 
         _eventBus?.Publish(new CardHoverStartedEvent(Card));
@@ -224,7 +224,7 @@ public partial class CardLogic : Button
 
     public void OnMouseExited()
     {
-        if (IsDragging) return;
+        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive) return;
 
         _hoverManager.EndHover(Card);
 
