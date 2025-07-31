@@ -233,6 +233,8 @@ public partial class CardLogic : Button
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
+        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive || IsDragging) return;
+
         var localPosition = mouseMotion.Position;
         _eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
     }

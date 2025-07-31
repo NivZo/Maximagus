@@ -43,12 +43,7 @@ public partial class Card : Control
         Visual.SetArt(Resource.CardArt);
         Logic.Card = this;
     }
-
-    public override void _Process(double delta)
-    {
-        base._Process(delta);
-    }
-
+    
     public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource)
     {
         try
@@ -67,7 +62,7 @@ public partial class Card : Control
             card.Resource = resource;
             parent.AddChild(card);
             cardSlot.SetCard(card);
-            
+
             return card;
         }
         catch (Exception ex)

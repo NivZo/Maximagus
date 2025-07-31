@@ -22,12 +22,6 @@ public partial class CardSlot : Control, IOrderable
 
     public Vector2 Weight => Vector2.One;
 
-    public int Z
-    {
-        get => ZIndex;
-        set => ZIndex = value;
-    }
-
     public static CardSlot Create(Node parent = null)
     {
         try
