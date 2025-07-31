@@ -32,7 +32,7 @@ namespace Maximagus.Resources.Definitions
                 {
                     canApply = canApply && condition switch
                     {
-                        SpellModifierCondition.IsFire => spellCardResource is ActionCardResource actionCardResource && actionCardResource.CardType == CardType.Damage && actionCardResource.DamageType == DamageType.Fire,
+                        SpellModifierCondition.IsFire => spellCardResource is CombatCardResource actionCardResource && actionCardResource.CardType == CardType.Damage && actionCardResource.DamageType == DamageType.Fire,
                         _ => false,
                     };
                 }

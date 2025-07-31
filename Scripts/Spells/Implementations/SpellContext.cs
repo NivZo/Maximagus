@@ -42,7 +42,7 @@ namespace Maximagus.Scripts.Spells.Implementations
 
         public float ApplyDamageModifiers(SpellCardResource spellCardResource)
         {
-            if (spellCardResource is ActionCardResource actionCardResource && actionCardResource.CardType == CardType.Damage)
+            if (spellCardResource is CombatCardResource actionCardResource && actionCardResource.CardType == CardType.Damage)
             {
                 float modifiedDamage = actionCardResource.ActionValue;
                 var modifiersToRemove = new Array<Resource>();

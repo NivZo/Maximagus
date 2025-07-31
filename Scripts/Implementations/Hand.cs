@@ -65,7 +65,8 @@ public partial class Hand : Control
     {
         _availableSpells = new List<SpellCardResource>
         {
-            ResourceLoader.Load<ActionCardResource>("res://Resources/Spells/Firebolt.tres"),
+            ResourceLoader.Load<CombatCardResource>("res://Resources/Spells/FrostShards.tres"),
+            ResourceLoader.Load<CombatCardResource>("res://Resources/Spells/Firebolt.tres"),
             ResourceLoader.Load<ModifierCardResource>("res://Resources/Spells/AmplifyFire.tres"),
         };
     }

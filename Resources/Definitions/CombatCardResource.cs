@@ -7,7 +7,7 @@ using Maximagus.Scripts.Spells.Implementations;
 namespace Maximagus.Resources.Definitions
 {
     [GlobalClass]
-    public partial class ActionCardResource : SpellCardResource
+    public partial class CombatCardResource : SpellCardResource
     {
         public override void Execute(SpellContext context)
         {
