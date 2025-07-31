@@ -1,7 +1,9 @@
 
 using Godot;
 using Godot.Collections;
-using Maximagus.Scripts.Spells.Interfaces;
+using Maximagus.Resources.Definitions;
+using Maximagus.Scripts.Enums;
+using Maximagus.Scripts.Spells.Abstractions;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
@@ -21,13 +23,14 @@ namespace Maximagus.Scripts.Spells.Implementations
             Properties[key] = Variant.From(value);
         }
 
-        public void ModifyProperty(ContextProperty key, float value, ModifierType type)
+        public void ModifyProperty(ContextProperty key, float value, ContextPropertyOperation operation)
         {
-            var currentValue = GetProperty<float>(key.ToString(), 0f);
-            Properties[key.ToString()] = type switch
+            var currentValue = GetProperty(key.ToString(), 0f);
+            Properties[key.ToString()] = operation switch
             {
-                ModifierType.Add => currentValue + value,
-                ModifierType.Multiply => currentValue * value,
+                ContextPropertyOperation.Add => currentValue + value,
+                ContextPropertyOperation.Multiply => currentValue * value,
+                ContextPropertyOperation.Set => currentValue,
                 _ => currentValue
             };
         }
@@ -37,38 +40,34 @@ namespace Maximagus.Scripts.Spells.Implementations
             ActiveModifiers.Add(modifier);
         }
 
-        public float ApplyDamageModifiers(float baseDamage, DamageType damageType)
+        public float ApplyDamageModifiers(SpellCardResource spellCardResource)
         {
-            float modifiedDamage = baseDamage;
-            var modifiersToRemove = new Array<Resource>();
-
-            foreach (var modifier in ActiveModifiers)
+            if (spellCardResource is ActionCardResource actionCardResource && actionCardResource.CardType == CardType.Damage)
             {
-                if (modifier is IDamageModifier damageModifier && damageModifier.CanApply(damageType))
-                {
-                    modifiedDamage = damageModifier.Apply(modifiedDamage);
-                    GD.Print($"Applied a damage modifier, new damage: {modifiedDamage}");
+                float modifiedDamage = actionCardResource.ActionValue;
+                var modifiersToRemove = new Array<Resource>();
 
-                    if (damageModifier.IsConsumedOnUse)
+                foreach (var modifier in ActiveModifiers)
+                {
+                    if (modifier is ModifierCardResource damageModifier && damageModifier.CanApply(spellCardResource))
                     {
-                        modifiersToRemove.Add(modifier);
+                        modifiedDamage = damageModifier.Apply(modifiedDamage);
+                        if (damageModifier.IsConsumedOnUse)
+                        {
+                            modifiersToRemove.Add(modifier);
+                        }
                     }
                 }
+
+                foreach (var modifier in modifiersToRemove)
+                {
+                    ActiveModifiers.Remove(modifier);
+                }
+
+                return modifiedDamage;
             }
 
-            foreach (var modifier in modifiersToRemove)
-            {
-                ActiveModifiers.Remove(modifier);
-            }
-
-            return modifiedDamage;
+            return 0;
         }
-    }
-
-    public enum ModifierType
-    {
-        Add,
-        Multiply,
-        Set,
     }
 }

@@ -36,9 +36,9 @@ public partial class CardVisual : Control
     private IEventBus _eventBus;
     private Card _parentCard;
     private Tooltip _tooltip;
-    private bool _isSelected = false;
-    private bool _isDragging = false;
-    private bool _isHovering = false;
+    private bool _isSelected => _parentCard?.IsSelected ?? false;
+    private bool _isDragging => _parentCard?.IsDragging ?? false;
+    private bool _isHovering => _parentCard?.IsHovering ?? false;
     private bool _requiresPerspectiveReset = false;
     private float _idleAnimationTime = 0;
     private float _angularVelocity = 0f;
@@ -50,10 +50,10 @@ public partial class CardVisual : Control
     private readonly Dictionary<string, Tween> _propertyTweens = new();
     private Control _textures;
     private TextureRect _cardTexture;
+    private TextureRect _artTexture;
     private TextureRect _shadowTexture;
 
     // Define tween property keys as constants for consistency
-    private const string SCALE_PROPERTY = "scale";
     private const string ROTATION_PROPERTY = "rotation";
     private const string SHADER_X_ROT_PROPERTY = "shader_x_rot";
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
@@ -87,6 +87,7 @@ public partial class CardVisual : Control
     {
         _textures = GetNode<Control>("Textures").ValidateNotNull("Textures");
         _cardTexture = _textures.GetNode<TextureRect>("Card").ValidateNotNull("Card");
+        _artTexture = _cardTexture.GetNode<TextureRect>("Art").ValidateNotNull("Art");
         _shadowTexture = _cardTexture.GetNode<TextureRect>("Shadow").ValidateNotNull("Shadow");
         _shadowBasePosition = _shadowTexture.Position;
 
@@ -149,8 +150,7 @@ public partial class CardVisual : Control
 
     public void SetArt(Texture2D texture2D)
     {
-        _cardTexture.Texture = texture2D;
-        _shadowTexture.Texture = texture2D;
+        _artTexture.Texture = texture2D;
     }
 
     private void UpdateShadow(float delta)
@@ -162,7 +162,7 @@ public partial class CardVisual : Control
             Mathf.Lerp(0.0f, -Mathf.Sign(distance) * MaxOffsetShadow, Mathf.Abs(distance / screenCenter.X)),
             _shadowBasePosition.Y + (_isDragging ? Size.Y * .2f : 0)
         );
-        _shadowTexture.ZIndex = _isDragging ? 0 : -2;
+        _shadowTexture.ZIndex = _isDragging || _isHovering ? 0 : -2;
     }
 
     // Event handlers - filtering for this card only
@@ -217,7 +217,6 @@ public partial class CardVisual : Control
     // Original visual methods - now private
     private void OnClicked()
     {
-        _isSelected = !_isSelected;
         Scale = Vector2.One;
         AnimationUtils.AnimateScale(this, HoverScale, ClickAnimationDuration, Tween.TransitionType.Elastic);
     }
@@ -229,23 +228,19 @@ public partial class CardVisual : Control
         
         AnimationUtils.AnimateScale(this, DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
-        _isDragging = true;
         _lastPosition = GlobalPosition;
-        ZIndex = 10;
 
         _tooltip?.HideTooltip();
     }
 
     private void OnDragEnded()
     {
-        _isDragging = false;
         OnHoverEnded();
-        ZIndex = 0;
     }
 
     private void OnHoverStarted()
     {
-        _isHovering = true;
+        ZIndex = LayerIndices.HoveredCard;
         AnimationUtils.AnimateScale(this, HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
         if (_tooltip == null)
@@ -260,7 +255,7 @@ public partial class CardVisual : Control
     {
         if (_isDragging) return;
 
-        _isHovering = false;
+        ZIndex = LayerIndices.Base;
         ResetPerspective();
         ResetScale();
 

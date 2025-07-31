@@ -1,4 +1,5 @@
 using Godot;
+using Maximagus.Scripts.Spells.Abstractions;
 using System;
 
 public partial class Card : Control
@@ -9,7 +10,7 @@ public partial class Card : Control
     public CardLogic Logic { get; private set; }
     public CardVisual Visual { get; private set; }
     
-    public CardResource Resource { get; private set; }
+    public SpellCardResource Resource { get; private set; }
 
     public bool IsSelected => Logic?.IsSelected ?? false;
     public bool IsDragging => Logic?.IsDragging ?? false;
@@ -38,14 +39,9 @@ public partial class Card : Control
 
         Logic = GetNode<CardLogic>("CardLogic").ValidateNotNull(nameof(Logic));
         Visual = GetNode<CardVisual>("CardVisual").ValidateNotNull(nameof(Visual));
-        Visual.Title = Resource.SpellCard.CardName;
-        Visual.SetArt(Resource.SpellCard.CardArt);
-        Logic.Card = this;        
-
-        // TEMP - keeping original functionality
-        var label = Visual.GetNode<Label>("Label");
-        if (label != null)
-            label.Text = Resource.Value.ToString();
+        Visual.Title = Resource.CardName;
+        Visual.SetArt(Resource.CardArt);
+        Logic.Card = this;
     }
 
     public override void _Process(double delta)
@@ -53,7 +49,7 @@ public partial class Card : Control
         base._Process(delta);
     }
 
-    public static Card Create(Node parent, CardSlot cardSlot, CardResource resource)
+    public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource)
     {
         try
         {

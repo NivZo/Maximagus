@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ModifierCardResource" load_steps=3 format=3 uid="uid://bsryt4x4xu5tt"]
+
+[ext_resource type="Texture2D" uid="uid://baha5p07ukyjp" path="res://Assets/Art/AmplifyFire.png" id="1_dmjhn"]
+[ext_resource type="Script" uid="uid://t1n5qkemsmhw" path="res://Resources/Definitions/ModifierCardResource.cs" id="1_ohmn1"]
+
+[resource]
+script = ExtResource("1_ohmn1")
+IsConsumedOnUse = true
+SpellModifierConditions = Array[int]([0])
+ModifierType = 1
+CardId = "doublefire"
+CardName = "Amplify Fire"
+CardArt = ExtResource("1_dmjhn")
+CardType = 1
+DamageType = 1
+ActionValue = 2
+metadata/_custom_type_script = "uid://t1n5qkemsmhw"

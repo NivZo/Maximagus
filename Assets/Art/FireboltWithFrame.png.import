@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dalcl6uugs8r5"
-path="res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"
+uid="uid://dfbqn020v4odb"
+path="res://.godot/imported/FireboltWithFrame.png-82147483d086010dbfa979c875d13ef0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/AmplifyFIre.png"
-dest_files=["res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"]
+source_file="res://Assets/Art/FireboltWithFrame.png"
+dest_files=["res://.godot/imported/FireboltWithFrame.png-82147483d086010dbfa979c875d13ef0.ctex"]
 
 [params]
 

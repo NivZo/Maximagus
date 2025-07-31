@@ -4,6 +4,7 @@ using System;
 public partial class CardLogic : Button
 {
     private IEventBus _eventBus;
+    private IHoverManager _hoverManager;
     private IDragManager _dragManager;
     private ILogger _logger;
 
@@ -13,8 +14,8 @@ public partial class CardLogic : Button
     private const float DRAG_THRESHOLD = 35.0f;
 
     public bool IsSelected { get; private set; } = false;
-    public bool IsHovering { get; private set; } = false;
-    public bool IsDragging { get; private set; } = false;
+    public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
+    public bool IsDragging => _dragManager != null ? _dragManager.CurrentlyDraggingCard == Card : false;
     public Card Card { get; set; }
     public CardSlot CardSlot { get; private set; }
 
@@ -41,6 +42,7 @@ public partial class CardLogic : Button
     {
         _logger = ServiceLocator.GetService<ILogger>();
         _eventBus = ServiceLocator.GetService<IEventBus>();
+        _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _dragManager = ServiceLocator.GetService<IDragManager>();
     }
 
@@ -167,28 +169,23 @@ public partial class CardLogic : Button
         this.SetCenter(GetTargetSlottedCenter());
         
         InvokePositionChanged();
-        _eventBus?.Publish(new CardClickedEvent(GetParent<Card>()));
+        _eventBus?.Publish(new CardClickedEvent(Card));
     }
 
     private void StartDragging()
     {
-        var card = GetParent<Card>();
-        
-        if (!_dragManager.StartDrag(card))
-            return;
+        if (!_dragManager.StartDrag(Card)) return;
 
-        IsDragging = true;
         _collisionShape.SetDeferred("disabled", false);
         
-        _eventBus?.Publish(new CardDragStartedEvent(card));
+        _eventBus?.Publish(new CardDragStartedEvent(Card));
     }
 
     private void StopDragging()
     {
-        var card = GetParent<Card>();
+        var card = Card;
         
         _dragManager.EndDrag(card);
-        IsDragging = false;
         _collisionShape.SetDeferred("disabled", true);
 
         this.SetCenter(GetTargetSlottedCenter());
@@ -219,25 +216,25 @@ public partial class CardLogic : Button
 
     public void OnMouseEntered()
     {
-        if (_dragManager.IsDraggingActive || IsDragging) return;
+        if (_hoverManager.IsHoveringActive || _dragManager.IsDraggingActive || IsDragging) return;
+        if (!_hoverManager.StartHover(Card)) return;
 
-        IsHovering = true;
-        _eventBus?.Publish(new CardHoverStartedEvent(GetParent<Card>()));
+        _eventBus?.Publish(new CardHoverStartedEvent(Card));
     }
 
     public void OnMouseExited()
     {
-        IsHovering = false;
-        _eventBus?.Publish(new CardHoverEndedEvent(GetParent<Card>()));
+        if (IsDragging) return;
+
+        _hoverManager.EndHover(Card);
+
+        _eventBus?.Publish(new CardHoverEndedEvent(Card));
     }
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
-        // Pass relative mouse position to visual for perspective effects
-        // Since we're already handling this in OnGuiInput, the position is already local to this control
-        var card = GetParent<Card>();
-        var localPosition = mouseMotion.Position; // This is already local to the control that received the event
-        _eventBus?.Publish(new CardMouseMovedEvent(card, localPosition));
+        var localPosition = mouseMotion.Position;
+        _eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
     }
 
     private Vector2 GetTargetCenter()
@@ -260,7 +257,7 @@ public partial class CardLogic : Button
 
     public void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
     {
-        var card = GetParent<Card>();
+        var card = Card;
         var actualDelta = delta ?? (float)GetProcessDeltaTime();
         
         _eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
@@ -268,7 +265,7 @@ public partial class CardLogic : Button
 
     public void DestroyCard()
     {
-        var card = GetParent<Card>();
+        var card = Card;
         _eventBus?.Publish(new CardDestroyStartedEvent(card));
     }
 

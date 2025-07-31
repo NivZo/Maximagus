@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://cp5fadjipbrqy"]
+[gd_scene load_steps=10 format=3 uid="uid://cp5fadjipbrqy"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_uypal"]
 [ext_resource type="Script" uid="uid://c1nab7c7jdpc1" path="res://Scripts/Implementations/CardVisual.cs" id="2_j66st"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
-[ext_resource type="Texture2D" uid="uid://cof0tsew7xmcx" path="res://Assets/Art/RuneOfFrost.png" id="4_j66st"]
+[ext_resource type="Texture2D" uid="uid://cywfbq2o5vtee" path="res://Assets/Art/CardFrame.png" id="4_j66st"]
+[ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_3m7nw"]
 seed = -15
@@ -55,14 +56,38 @@ mouse_filter = 1
 [node name="Card" type="TextureRect" parent="Textures"]
 material = SubResource("ShaderMaterial_cho03")
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -58.0
+offset_top = -90.0
+offset_right = 58.0
+offset_bottom = 90.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
 texture = ExtResource("4_j66st")
+stretch_mode = 5
+
+[node name="Art" type="TextureRect" parent="Textures/Card"]
+use_parent_material = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 38.0
+offset_right = -6.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(50, 50)
+mouse_filter = 2
+texture = ExtResource("5_o7v1n")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="Shadow" type="TextureRect" parent="Textures/Card"]
 modulate = Color(0, 0, 0, 1)
@@ -74,11 +99,12 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 16.0
-offset_bottom = 16.0
+offset_top = 8.0
+offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(80, 120)
 mouse_filter = 2
 texture = ExtResource("4_j66st")
 expand_mode = 1
+stretch_mode = 5

@@ -20,6 +20,7 @@ public static class ServiceLocator
     {
         RegisterService<ILogger>(new GodotLogger());
         RegisterService<IEventBus>(new SimpleEventBus());
+        RegisterService<IHoverManager>(new HoverManager(GetService<ILogger>()));
         RegisterService<IDragManager>(new DragManager(GetService<ILogger>()));
 
         GD.Print($"Initialized {_services.Count} Services");

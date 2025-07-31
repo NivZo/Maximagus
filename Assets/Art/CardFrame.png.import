@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dalcl6uugs8r5"
-path="res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"
+uid="uid://cywfbq2o5vtee"
+path="res://.godot/imported/CardFrame.png-74e8b52f3739a74c32ec5d928e00ecb1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/AmplifyFIre.png"
-dest_files=["res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"]
+source_file="res://Assets/Art/CardFrame.png"
+dest_files=["res://.godot/imported/CardFrame.png-74e8b52f3739a74c32ec5d928e00ecb1.ctex"]
 
 [params]
 

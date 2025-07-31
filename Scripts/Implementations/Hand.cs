@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Maximagus.Scripts.Spells.Resources;
+using Maximagus.Resources.Definitions;
+using Maximagus.Scripts.Spells.Abstractions;
 
 public partial class Hand : Control
 {
@@ -57,8 +58,8 @@ public partial class Hand : Control
     {
         _availableSpells = new List<SpellCardResource>
         {
-            new FireBolt { CardName = "Fire Bolt", Damage = 10 },
-            new DoubleFireModifier { CardName = "Double Fire" },
+            ResourceLoader.Load<ActionCardResource>("res://Resources/Spells/Firebolt.tres"),
+            ResourceLoader.Load<ModifierCardResource>("res://Resources/Spells/AmplifyFire.tres"),
         };
     }
 
@@ -107,11 +108,7 @@ public partial class Hand : Control
             var rnd = new Random();
             foreach (var slot in CardSlots)
             {
-                var resource = new CardResource()
-                {
-                    Value = rnd.Next(10),
-                    SpellCard = _availableSpells[rnd.Next(_availableSpells.Count)]
-                };
+                var resource = _availableSpells[rnd.Next(_availableSpells.Count)];
                 Card.Create(_cardsNode, slot, resource);
             }
         }
@@ -130,7 +127,7 @@ public partial class Hand : Control
         {
             if (Cards.Contains(card))
             {
-                GD.Print($"Removed card {card.Resource.Value} from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot)+1}");
+                GD.Print($"Removed card {card.Resource.CardName} from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot)+1}");
                 _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
                 card.Logic.CardSlot.QueueFree();
                 card.QueueFree();
@@ -144,16 +141,12 @@ public partial class Hand : Control
         for (int i = 0; i < amount; i++)
         {
             var slot = CardSlot.Create(_cardSlotsNode);
-            var resource = new CardResource()
-            {
-                Value = rnd.Next(10),
-                SpellCard = _availableSpells[rnd.Next(_availableSpells.Count)]
-            };
+            var resource = _availableSpells[rnd.Next(_availableSpells.Count)];
             var card = Card.Create(_cardsNode, slot, resource);
             card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
             _cardSlotsContainer.InsertElement(slot);
 
-            GD.Print($"Added card {card.Resource.Value} to slot {_cardSlotsContainer.IndexOf(slot)+1}");
+            GD.Print($"Added card {card.Resource.CardName} to slot {_cardSlotsContainer.IndexOf(slot)+1}");
         }
     }
 
@@ -172,7 +165,7 @@ public partial class Hand : Control
             _cardsNode.MoveChild(card, i);
 
             // Handle curve
-            float normalizedPos = (count > 1) ? (2.0f * i / (count) - 1.0f) : 0;
+            float normalizedPos = (count > 1) ? (2.0f * i / count - 1.0f) : 0;
             float yOffset = Mathf.Pow(normalizedPos, 2) * -CardsCurveMultiplier;
             slot.TargetPosition = new Vector2(slot.TargetPosition.X, baselineY - yOffset);
 

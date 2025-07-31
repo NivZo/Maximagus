@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 using Maximagus.Scripts.Spells.Implementations;
-using Maximagus.Scripts.Spells.Resources;
+using Maximagus.Scripts.Spells.Abstractions;
 
 public partial class Main : Control
 {
@@ -56,14 +56,14 @@ public partial class Main : Control
                 var cards = Hand.Instance.SelectedCards;
                 if (cards.Length == 0) return;
 
-                GD.Print($"--- Submitting Spell ---\nSelected cards in hand order: {string.Join(", ", cards.Select(c => c.Resource.SpellCard?.CardName ?? "Unknown"))}");
+                GD.Print($"--- Submitting Spell ---\nSelected cards in hand order: {string.Join(", ", cards.Select(c => c.Resource.CardName ?? "Unknown"))}");
 
                 var spellCards = new Godot.Collections.Array<SpellCardResource>();
                 foreach (var card in cards)
                 {
-                    if (card.Resource.SpellCard != null)
+                    if (card.Resource != null)
                     {
-                        spellCards.Add(card.Resource.SpellCard);
+                        spellCards.Add(card.Resource);
                     }
                 }
 

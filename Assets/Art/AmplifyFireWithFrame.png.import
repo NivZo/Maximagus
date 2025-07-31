@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dalcl6uugs8r5"
-path="res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"
+uid="uid://jjmdtktpxl26"
+path="res://.godot/imported/AmplifyFireWithFrame.png-008a611c852c67474fe3ef724b5b9402.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/AmplifyFIre.png"
-dest_files=["res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"]
+source_file="res://Assets/Art/AmplifyFireWithFrame.png"
+dest_files=["res://.godot/imported/AmplifyFireWithFrame.png-008a611c852c67474fe3ef724b5b9402.ctex"]
 
 [params]
 
