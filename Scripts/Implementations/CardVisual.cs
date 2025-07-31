@@ -147,6 +147,12 @@ public partial class CardVisual : Control
         }
     }
 
+    public void SetArt(Texture2D texture2D)
+    {
+        _cardTexture.Texture = texture2D;
+        _shadowTexture.Texture = texture2D;
+    }
+
     private void UpdateShadow(float delta)
     {
         Vector2 screenCenter = GetViewportRect().GetCenter();

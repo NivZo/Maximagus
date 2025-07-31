@@ -59,7 +59,6 @@ public partial class Hand : Control
         {
             new FireBolt { CardName = "Fire Bolt", Damage = 10 },
             new DoubleFireModifier { CardName = "Double Fire" },
-            new StatusHealUtility { CardName = "Status Heal", HealPerStatusEffect = 5 }
         };
     }
 

@@ -15,10 +15,10 @@ namespace Maximagus.Scripts.Spells.Implementations
         [Signal]
         public delegate void CardExecutedEventHandler(SpellCardResource card, SpellContext context);
 
-        public SpellResult ProcessSpell(Array<SpellCardResource> cards, ISpellTarget target)
+        public SpellResult ProcessSpell(Array<SpellCardResource> cards)
         {
             GD.Print("--- Processing Spell ---");
-            var context = new SpellContext { Target = target };
+            var context = new SpellContext();
 
 
             GD.Print($"Executing {cards.Count()} cards in the following order: {string.Join(", ", cards.Select(c => c.CardName))}");

@@ -39,6 +39,7 @@ public partial class Card : Control
         Logic = GetNode<CardLogic>("CardLogic").ValidateNotNull(nameof(Logic));
         Visual = GetNode<CardVisual>("CardVisual").ValidateNotNull(nameof(Visual));
         Visual.Title = Resource.SpellCard.CardName;
+        Visual.SetArt(Resource.SpellCard.CardArt);
         Logic.Card = this;        
 
         // TEMP - keeping original functionality

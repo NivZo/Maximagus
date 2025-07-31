@@ -69,7 +69,7 @@ public partial class Main : Control
 
                 if (spellCards.Count > 0)
                 {
-                    _spellProcessor.ProcessSpell(spellCards, null);
+                    _spellProcessor.ProcessSpell(spellCards);
                 }
 
                 Hand.Instance.Discard(cards.ToArray());

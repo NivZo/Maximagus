@@ -1,5 +1,5 @@
 using Godot;
-using Maximagus.Scripts.Spells.Core;
+using Maximagus.Scripts.Spells.Implementations;
 
 namespace Maximagus.Scripts.Spells.Abstractions
 {

@@ -2,7 +2,6 @@
 using Godot;
 using Godot.Collections;
 using Maximagus.Scripts.Spells.Interfaces;
-using Maximagus.Scripts.Spells.Resources;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
@@ -11,7 +10,6 @@ namespace Maximagus.Scripts.Spells.Implementations
         public Dictionary<string, Variant> Properties { get; set; } = new();
         public Array<Resource> ActiveModifiers { get; set; } = new();
         public Array<Resource> QueuedEffects { get; set; } = new();
-        public ISpellTarget Target { get; set; }
 
         public T GetProperty<[MustBeVariant] T>(string key, T defaultValue)
         {
@@ -42,7 +40,7 @@ namespace Maximagus.Scripts.Spells.Implementations
         public float ApplyDamageModifiers(float baseDamage, DamageType damageType)
         {
             float modifiedDamage = baseDamage;
-            var modifiersToRemove = new Godot.Collections.Array<Resource>();
+            var modifiersToRemove = new Array<Resource>();
 
             foreach (var modifier in ActiveModifiers)
             {

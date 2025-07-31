@@ -18,6 +18,7 @@ namespace Maximagus.Scripts.Spells.Resources
         [Export] public string CardName { get; set; }
         [Export] public CardType CardType { get; set; }
         [Export] public int ExecutionPriority { get; set; }
+        [Export] public Texture2D CardArt { get; set; }
 
         public abstract void Execute(SpellContext context);
         public abstract bool CanInteractWith(SpellContext context);
