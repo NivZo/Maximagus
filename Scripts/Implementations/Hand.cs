@@ -42,6 +42,7 @@ public partial class Hand : Control
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
 
+            SubscribeToEvents();
             InitializeComponents();
             SetupEventHandlers();
             InitializeSpells();
@@ -52,6 +53,12 @@ public partial class Hand : Control
             _logger?.LogError("Error initializing Hand", ex);
             throw;
         }
+    }
+
+    private void SubscribeToEvents()
+    {
+        _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
+        _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
     }
 
     private void InitializeSpells()
@@ -202,6 +209,16 @@ public partial class Hand : Control
         {
             _logger?.LogError("Error handling drag", ex);
         }
+    }
+
+    private void OnCardHoverEnded(CardHoverEndedEvent @event)
+    {
+        _cardsNode.MoveChild(@event.Card, _cardSlotsContainer.IndexOf(@event.Card.Logic.CardSlot));
+    }
+
+    private void OnCardHoverStarted(CardHoverStartedEvent @event)
+    {
+        _cardsNode.MoveChild(@event.Card, _cardSlotsContainer.Count);
     }
 
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
