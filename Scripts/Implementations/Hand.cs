@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Maximagus.Resources.Definitions;
 using Maximagus.Scripts.Spells.Abstractions;
 
 public partial class Hand : Control
@@ -65,9 +64,10 @@ public partial class Hand : Control
     {
         _availableSpells = new List<SpellCardResource>
         {
-            ResourceLoader.Load<CombatCardResource>("res://Resources/Spells/FrostShards.tres"),
-            ResourceLoader.Load<CombatCardResource>("res://Resources/Spells/Firebolt.tres"),
-            ResourceLoader.Load<ModifierCardResource>("res://Resources/Spells/AmplifyFire.tres"),
+            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/FrostShards.tres"),
+            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/Firebolt.tres"),
+            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFire.tres"),
+            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFrost.tres"),
         };
     }
 

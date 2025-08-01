@@ -1,14 +1,19 @@
-[gd_resource type="Resource" script_class="ActionCardResource" load_steps=3 format=3 uid="uid://dxbwslmvquxc6"]
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=5 format=3 uid="uid://dxbwslmvquxc6"]
 
-[ext_resource type="Texture2D" uid="uid://b3lyks0ty2xi2" path="res://Assets/Art/Firebolt.png" id="1_esx5s"]
-[ext_resource type="Script" uid="uid://dia4icskuf7nx" path="res://Resources/Definitions/ActionCardResource.cs" id="1_wosrl"]
+[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_pg10i"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="1_wosrl"]
+[ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="2_esx5s"]
+
+[sub_resource type="Resource" id="Resource_lrix1"]
+script = ExtResource("1_pg10i")
+DamageType = 1
+Amount = 10
+metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [resource]
 script = ExtResource("1_wosrl")
 CardId = "firebolt"
 CardName = "Firebolt"
-CardArt = ExtResource("1_esx5s")
-CardType = 0
-DamageType = 1
-ActionValue = 10
+CardArt = ExtResource("2_esx5s")
+Actions = Array[Resource]([SubResource("Resource_lrix1")])
 metadata/_custom_type_script = "uid://dia4icskuf7nx"

@@ -1,28 +1,26 @@
 
-using System;
 using Godot;
 using Godot.Collections;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Spells.Implementations;
 
-namespace Maximagus.Resources.Definitions
+namespace Maximagus.Resources.Definitions.Actions
 {
     [GlobalClass]
-    public partial class ModifierCardResource : SpellCardResource
+    public partial class ModifierActionResource : ActionResource
     {
-        [ExportGroup("Modifier Action")]
         [Export] public bool IsConsumedOnUse { get; set; }
         [Export] public Array<SpellModifierCondition> SpellModifierConditions { get; set; }
         [Export] public ModifierType ModifierType { get; set; }
+        [Export] public float Value { get; set; }
 
         public override void Execute(SpellContext context)
         {
-            GD.Print($"Adding modifier {CardName}");
+            GD.Print($"Adding modifier");
             context.AddModifier(this);
         }
 
-        public bool CanApply(SpellCardResource spellCardResource)
+        public bool CanApply(DamageActionResource damageAction)
         {
             var canApply = true;
 
@@ -32,7 +30,8 @@ namespace Maximagus.Resources.Definitions
                 {
                     canApply = canApply && condition switch
                     {
-                        SpellModifierCondition.IsFire => spellCardResource is CombatCardResource actionCardResource && actionCardResource.CardType == CardType.Damage && actionCardResource.DamageType == DamageType.Fire,
+                        SpellModifierCondition.IsFire => damageAction.DamageType == DamageType.Fire,
+                        SpellModifierCondition.IsFrost => damageAction.DamageType == DamageType.Frost,
                         _ => false,
                     };
                 }
@@ -45,12 +44,12 @@ namespace Maximagus.Resources.Definitions
         {
             var modifiedDamage = ModifierType switch
             {
-                ModifierType.Add => baseDamage + ActionValue,
-                ModifierType.Multiply => baseDamage * ActionValue,
-                ModifierType.Set => ActionValue,
+                ModifierType.Add => baseDamage + Value,
+                ModifierType.Multiply => baseDamage * Value,
+                ModifierType.Set => Value,
                 _ => baseDamage,
             };
-            GD.Print($"Applying modifier {CardName} - from base {baseDamage} to {modifiedDamage}");
+            GD.Print($"Applying modifier - from base {baseDamage} to {modifiedDamage}");
             return modifiedDamage;
         }
     }

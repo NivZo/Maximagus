@@ -1,17 +1,18 @@
 
 using Godot;
 using Godot.Collections;
-using Maximagus.Resources.Definitions;
+using Maximagus.Resources.Definitions.Actions;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Abstractions;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
     public partial class SpellContext : RefCounted
     {
         public Dictionary<string, Variant> Properties { get; set; } = new();
-        public Array<Resource> ActiveModifiers { get; set; } = new();
+        public Array<ModifierActionResource> ActiveModifiers { get; set; } = new();
         public Array<Resource> QueuedEffects { get; set; } = new();
+
+        public float TotalDamageDealt = 0;
 
         public T GetProperty<[MustBeVariant] T>(string key, T defaultValue)
         {
@@ -30,44 +31,39 @@ namespace Maximagus.Scripts.Spells.Implementations
             {
                 ContextPropertyOperation.Add => currentValue + value,
                 ContextPropertyOperation.Multiply => currentValue * value,
-                ContextPropertyOperation.Set => currentValue,
+                ContextPropertyOperation.Set => value,
                 _ => currentValue
             };
         }
 
-        public void AddModifier(Resource modifier)
+        public void AddModifier(ModifierActionResource modifier)
         {
             ActiveModifiers.Add(modifier);
         }
 
-        public float ApplyDamageModifiers(SpellCardResource spellCardResource)
+        public float ApplyDamageModifiers(DamageActionResource damageAction)
         {
-            if (spellCardResource is CombatCardResource actionCardResource && actionCardResource.CardType == CardType.Damage)
-            {
-                float modifiedDamage = actionCardResource.ActionValue;
-                var modifiersToRemove = new Array<Resource>();
+            float modifiedDamage = damageAction.Amount;
+            var modifiersToRemove = new Array<ModifierActionResource>();
 
-                foreach (var modifier in ActiveModifiers)
+            foreach (var modifier in ActiveModifiers)
+            {
+                if (modifier.CanApply(damageAction))
                 {
-                    if (modifier is ModifierCardResource damageModifier && damageModifier.CanApply(spellCardResource))
+                    modifiedDamage = modifier.Apply(modifiedDamage);
+                    if (modifier.IsConsumedOnUse)
                     {
-                        modifiedDamage = damageModifier.Apply(modifiedDamage);
-                        if (damageModifier.IsConsumedOnUse)
-                        {
-                            modifiersToRemove.Add(modifier);
-                        }
+                        modifiersToRemove.Add(modifier);
                     }
                 }
-
-                foreach (var modifier in modifiersToRemove)
-                {
-                    ActiveModifiers.Remove(modifier);
-                }
-
-                return modifiedDamage;
             }
 
-            return 0;
+            foreach (var modifier in modifiersToRemove)
+            {
+                ActiveModifiers.Remove(modifier);
+            }
+
+            return modifiedDamage;
         }
     }
 }

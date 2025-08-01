@@ -1,17 +1,21 @@
-[gd_resource type="Resource" script_class="ModifierCardResource" load_steps=3 format=3 uid="uid://bsryt4x4xu5tt"]
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=5 format=3 uid="uid://bsryt4x4xu5tt"]
 
-[ext_resource type="Texture2D" uid="uid://baha5p07ukyjp" path="res://Assets/Art/AmplifyFire.png" id="1_dmjhn"]
-[ext_resource type="Script" uid="uid://t1n5qkemsmhw" path="res://Resources/Definitions/ModifierCardResource.cs" id="1_ohmn1"]
+[ext_resource type="Script" uid="uid://cxk5lpt8xky65" path="res://Resources/Definitions/Actions/ModifierActionResource.cs" id="1_eiung"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="1_ohmn1"]
+[ext_resource type="Texture2D" uid="uid://dalcl6uugs8r5" path="res://Assets/Art/AmplifyFire.png" id="2_dmjhn"]
 
-[resource]
-script = ExtResource("1_ohmn1")
+[sub_resource type="Resource" id="Resource_pbgs3"]
+script = ExtResource("1_eiung")
 IsConsumedOnUse = true
 SpellModifierConditions = Array[int]([0])
 ModifierType = 1
+Value = 2.0
+metadata/_custom_type_script = "uid://cxk5lpt8xky65"
+
+[resource]
+script = ExtResource("1_ohmn1")
 CardId = "doublefire"
 CardName = "Amplify Fire"
-CardArt = ExtResource("1_dmjhn")
-CardType = 1
-DamageType = 1
-ActionValue = 2
+CardArt = ExtResource("2_dmjhn")
+Actions = Array[Resource]([SubResource("Resource_pbgs3")])
 metadata/_custom_type_script = "uid://t1n5qkemsmhw"

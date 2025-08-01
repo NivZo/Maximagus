@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=5 format=3 uid="uid://crjvhlf4hta78"]
+
+[ext_resource type="Script" uid="uid://cxk5lpt8xky65" path="res://Resources/Definitions/Actions/ModifierActionResource.cs" id="1_3pvbo"]
+[ext_resource type="Texture2D" uid="uid://ct4kwvtel1ajf" path="res://Assets/Art/AmplifyFrost.png" id="2_3pvbo"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="3_euegq"]
+
+[sub_resource type="Resource" id="Resource_pbgs3"]
+script = ExtResource("1_3pvbo")
+IsConsumedOnUse = true
+SpellModifierConditions = Array[int]([1])
+ModifierType = 1
+Value = 2.0
+metadata/_custom_type_script = "uid://cxk5lpt8xky65"
+
+[resource]
+script = ExtResource("3_euegq")
+CardId = "doublefrost"
+CardName = "Amplify Frost"
+CardArt = ExtResource("2_3pvbo")
+Actions = Array[Resource]([SubResource("Resource_pbgs3")])
+metadata/_custom_type_script = "uid://t1n5qkemsmhw"

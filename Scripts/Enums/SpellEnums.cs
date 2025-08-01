@@ -12,12 +12,12 @@ namespace Maximagus.Scripts.Enums
         None,
         Fire,
         Frost,
-        Physical
     }
 
     public enum ContextProperty
     {
         FireDamageDealt,
+        FrostDamageDealt,
     }
 
     public enum ContextPropertyOperation
@@ -37,5 +37,6 @@ namespace Maximagus.Scripts.Enums
     public enum SpellModifierCondition
     {
         IsFire,
+        IsFrost,
     }
 }

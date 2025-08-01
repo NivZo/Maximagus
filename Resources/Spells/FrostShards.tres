@@ -1,14 +1,25 @@
-[gd_resource type="Resource" script_class="ActionCardResource" load_steps=3 format=3 uid="uid://bnww4au5kjnnv"]
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=6 format=3 uid="uid://bnww4au5kjnnv"]
 
-[ext_resource type="Texture2D" uid="uid://bdgm4cwcopkcj" path="res://Assets/Art/FrostShards.png" id="1_fny2q"]
-[ext_resource type="Script" uid="uid://dia4icskuf7nx" path="res://Resources/Definitions/ActionCardResource.cs" id="1_geg3t"]
+[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_6fwmh"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="1_geg3t"]
+[ext_resource type="Texture2D" uid="uid://bdgm4cwcopkcj" path="res://Assets/Art/FrostShards.png" id="2_fny2q"]
+
+[sub_resource type="Resource" id="Resource_y114i"]
+script = ExtResource("1_6fwmh")
+DamageType = 2
+Amount = 4
+metadata/_custom_type_script = "uid://b07sh0rbkcanr"
+
+[sub_resource type="Resource" id="Resource_xcfaj"]
+script = ExtResource("1_6fwmh")
+DamageType = 2
+Amount = 4
+metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [resource]
 script = ExtResource("1_geg3t")
 CardId = "frostshards"
 CardName = "Frost Shards"
-CardArt = ExtResource("1_fny2q")
-CardType = 0
-DamageType = 2
-ActionValue = 5
+CardArt = ExtResource("2_fny2q")
+Actions = Array[Resource]([SubResource("Resource_y114i"), SubResource("Resource_xcfaj")])
 metadata/_custom_type_script = "uid://dia4icskuf7nx"
