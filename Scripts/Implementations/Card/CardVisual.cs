@@ -46,7 +46,6 @@ public partial class CardVisual : Control
     private Vector2 _velocity;
     private Vector2 _shadowBasePosition;
 
-    // Property-based tween management
     private readonly Dictionary<string, Tween> _propertyTweens = new();
     private Control _textures;
     private TextureRect _cardTexture;
@@ -57,8 +56,6 @@ public partial class CardVisual : Control
     private const string ROTATION_PROPERTY = "rotation";
     private const string SHADER_X_ROT_PROPERTY = "shader_x_rot";
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
-    private const string DISSOLVE_PROPERTY = "dissolve";
-    private const string SHADOW_ALPHA_PROPERTY = "shadow_alpha";
 
     public string Title;
 
@@ -118,7 +115,6 @@ public partial class CardVisual : Control
         _eventBus?.Subscribe<CardClickedEvent>(OnCardClicked);
         _eventBus?.Subscribe<CardPositionChangedEvent>(OnCardPositionChanged);
         _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
-        _eventBus?.Subscribe<CardDestroyStartedEvent>(OnCardDestroyStarted);
     }
 
     private void UnsubscribeFromEvents()
@@ -130,7 +126,6 @@ public partial class CardVisual : Control
         _eventBus?.Unsubscribe<CardClickedEvent>(OnCardClicked);
         _eventBus?.Unsubscribe<CardPositionChangedEvent>(OnCardPositionChanged);
         _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
-        _eventBus?.Unsubscribe<CardDestroyStartedEvent>(OnCardDestroyStarted);
     }
 
     public override void _Process(double delta)
@@ -208,13 +203,6 @@ public partial class CardVisual : Control
         OnMouseMoved(evt.LocalPosition);
     }
 
-    private void OnCardDestroyStarted(CardDestroyStartedEvent evt)
-    {
-        if (evt.Card != _parentCard) return;
-        StartDestroyAnimation();
-    }
-
-    // Original visual methods - now private
     private void OnClicked()
     {
         Scale = Vector2.One;
@@ -388,33 +376,6 @@ public partial class CardVisual : Control
         AnimationUtils.AnimateScale(this, 1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
     }
 
-    private void StartDestroyAnimation()
-    {
-        try
-        {
-            _cardTexture.UseParentMaterial = true;
-            
-            if (_cardTexture?.Material is ShaderMaterial shaderMaterial)
-            {
-                var dissolveTween = CreatePropertyTween(DISSOLVE_PROPERTY)
-                    .SetEase(Tween.EaseType.InOut)
-                    .SetTrans(Tween.TransitionType.Cubic);
-                
-                dissolveTween.TweenProperty(shaderMaterial, "shader_parameter/dissolve_value", 0.0f, DestroyDuration).From(1.0f);
-            }
-            
-            var shadowTween = CreatePropertyTween(SHADOW_ALPHA_PROPERTY)
-                .SetEase(Tween.EaseType.InOut)
-                .SetTrans(Tween.TransitionType.Cubic);
-            
-            shadowTween.TweenProperty(_shadowTexture, "self_modulate:a", 0.0f, ShadowFadeDuration);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error starting destroy animation", ex);
-        }
-    }
-    
     private Vector2 GetPositionOffset()
     {
         return Size / 2 * (Vector2.One - Scale);

@@ -257,18 +257,12 @@ public partial class CardLogic : Button
         return this.GetCenter();
     }
 
-    public void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
+    private void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
     {
         var card = Card;
         var actualDelta = delta ?? (float)GetProcessDeltaTime();
         
         _eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
-    }
-
-    public void DestroyCard()
-    {
-        var card = Card;
-        _eventBus?.Publish(new CardDestroyStartedEvent(card));
     }
 
     public override void _ExitTree()

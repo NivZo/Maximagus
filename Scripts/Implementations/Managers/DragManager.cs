@@ -27,7 +27,7 @@ public class DragManager : IDragManager
         }
         
         CurrentlyDraggingCard = card;
-        _logger.LogInfo($"Started dragging card: {card.Name}");
+        _logger.LogDebug($"Started dragging card: {card.Name}");
         return true;
     }
     
@@ -46,6 +46,6 @@ public class DragManager : IDragManager
         }
         
         CurrentlyDraggingCard = null;
-        _logger.LogInfo($"Ended dragging card: {card.Name}");
+        _logger.LogDebug($"Ended dragging card: {card.Name}");
     }
 }

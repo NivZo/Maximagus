@@ -24,11 +24,24 @@ namespace Maximagus.Resources.Definitions.Actions
                 {
                     DamageType.Fire => ContextProperty.FireDamageDealt,
                     DamageType.Frost => ContextProperty.FrostDamageDealt,
+                    DamageType.PerChill => ContextProperty.FrostDamageDealt,
                     _ => throw new System.Exception($"No context property implemented for damage type {DamageType}")
                 };
 
                 context.ModifyProperty(damageDealtContextProperty, finalDamage, ContextPropertyOperation.Add);
             }
+        }
+
+        public int GetRawDamage()
+        {
+            return DamageType switch
+            {
+                DamageType.None => Amount,
+                DamageType.Fire => Amount,
+                DamageType.Frost => Amount,
+                DamageType.PerChill => Amount * ServiceLocator.GetService<IStatusEffectManager>().GetStacksOfEffect(StatusEffectType.Chill),
+                _ => Amount,
+            };
         }
     }
 }

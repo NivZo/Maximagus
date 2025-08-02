@@ -4,6 +4,7 @@ using System.Linq;
 using Maximagus.Scripts.Enums;
 using Maximagus.Scripts.StatusEffects;
 using Maximagus.Resources.Definitions.StatusEffects;
+using Maximagus.Scripts.Events;
 
 namespace Maximagus.Scripts.Managers
 {
@@ -11,28 +12,34 @@ namespace Maximagus.Scripts.Managers
     {
         private Array<StatusEffectInstance> _activeEffects = new();
 
-        public void AddStatusEffect(StatusEffectResource effect, int stacks = 1)
+        public void AddStatusEffect(StatusEffectResource effect, int stacks = 1, StatusEffectActionType actionType = StatusEffectActionType.Add)
         {
-            var existingEffect = _activeEffects.FirstOrDefault(e => 
-                e.Effect.EffectType == effect.EffectType && e.Effect.IsStackable);
+            var existingEffect = _activeEffects.FirstOrDefault(e => e.Effect.EffectType == effect.EffectType);
 
-            if (existingEffect != null && effect.IsStackable)
+            var newStacks = (existingEffect != null, actionType) switch
             {
-                existingEffect.AddStacks(stacks);
-                GD.Print($"Added {stacks} stacks to {effect.EffectName}. Total: {existingEffect.CurrentStacks}");
+                (true, StatusEffectActionType.Add) => existingEffect.CurrentStacks + stacks,
+                (false, StatusEffectActionType.Add) => stacks,
+                (true, StatusEffectActionType.Multiply) => existingEffect.CurrentStacks * stacks,
+                (false, StatusEffectActionType.Multiply) => 0,
+                (_, StatusEffectActionType.Set) => stacks,
+                _ => 0,
+            };
+
+
+            if (existingEffect != null)
+            {
+                existingEffect.SetStacks(newStacks);
             }
             else
             {
-                var newInstance = new StatusEffectInstance(effect, stacks);
+                var newInstance = new StatusEffectInstance(effect, newStacks);
                 _activeEffects.Add(newInstance);
-                GD.Print($"Applied new status effect: {effect.EffectName} with {stacks} stacks");
             }
         }
 
         public void TriggerEffects(StatusEffectTrigger trigger)
         {
-            var effectsToRemove = new Array<StatusEffectInstance>();
-
             foreach (var effectInstance in _activeEffects)
             {
                 GD.Print($"Triggerring status effect {trigger}");
@@ -46,59 +53,52 @@ namespace Maximagus.Scripts.Managers
                     }
                     else if (effectInstance.Effect.DecayMode == StatusEffectDecayMode.RemoveOnTrigger)
                     {
-                        effectInstance.ReduceStacks(GetStacksOfEffect(effectInstance.Effect.EffectType));
-                    }
-
-                    if (effectInstance.IsExpired)
-                    {
-                        effectsToRemove.Add(effectInstance);
+                        effectInstance.SetStacks(0);
                     }
                 }
             }
 
-            // Remove expired effects
-            foreach (var expiredEffect in effectsToRemove)
+            RemoveExpiredEffects();
+        }
+
+        private void RemoveExpiredEffects()
+        {
+            foreach (var effect in _activeEffects)
             {
-                _activeEffects.Remove(expiredEffect);
-                GD.Print($"Removed expired status effect: {expiredEffect.Effect.EffectName}");
+                if (effect.IsExpired)
+                {
+                    _activeEffects.Remove(effect);
+                }
             }
         }
 
         public void ProcessEndOfTurnDecay()
         {
-            var effectsToRemove = new Array<StatusEffectInstance>();
-
             foreach (var effectInstance in _activeEffects)
             {
                 switch (effectInstance.Effect.DecayMode)
                 {
                     case StatusEffectDecayMode.EndOfTurn:
-                        effectsToRemove.Add(effectInstance);
+                        effectInstance.SetStacks(0);
                         break;
                     case StatusEffectDecayMode.ReduceByOneEndOfTurn:
                         effectInstance.ReduceStacks();
-                        if (effectInstance.IsExpired)
-                            effectsToRemove.Add(effectInstance);
                         break;
                 }
             }
 
-            foreach (var expiredEffect in effectsToRemove)
-            {
-                _activeEffects.Remove(expiredEffect);
-                GD.Print($"End of turn removed: {expiredEffect.Effect.EffectName}");
-            }
+            RemoveExpiredEffects();
         }
 
-        private void ClearActiveEffects() => _activeEffects.Clear();
-
-        private Array<StatusEffectInstance> GetActiveEffects() => _activeEffects;
-        
-        private int GetStacksOfEffect(StatusEffectType effectType)
+        public int GetStacksOfEffect(StatusEffectType effectType)
         {
             return _activeEffects
                 .Where(e => e.Effect.EffectType == effectType)
                 .Sum(e => e.CurrentStacks);
         }
+
+        private void ClearActiveEffects() => _activeEffects.Clear();
+
+        private Array<StatusEffectInstance> GetActiveEffects() => _activeEffects;
     }
 }

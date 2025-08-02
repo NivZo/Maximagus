@@ -12,7 +12,6 @@ namespace Maximagus.Resources.Definitions.StatusEffects
         [Export] public string Description { get; set; }
         [Export] public StatusEffectTrigger Trigger { get; set; }
         [Export] public StatusEffectDecayMode DecayMode { get; set; }
-        [Export] public bool IsStackable { get; set; } = true;
         [Export] public int InitialStacks { get; set; } = 1;
         [Export] public float Value { get; set; }
         [Export] public int MaxStacks { get; set; } = 99;

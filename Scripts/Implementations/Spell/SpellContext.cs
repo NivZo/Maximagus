@@ -42,7 +42,7 @@ namespace Maximagus.Scripts.Spells.Implementations
 
         public float ApplyDamageModifiers(DamageActionResource damageAction)
         {
-            float modifiedDamage = damageAction.Amount;
+            float modifiedDamage = damageAction.GetRawDamage();
             var modifiersToRemove = new Array<ModifierActionResource>();
 
             foreach (var modifier in ActiveModifiers)

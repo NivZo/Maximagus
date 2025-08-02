@@ -67,7 +67,6 @@ public class CardPositionChangedEvent
     }
 }
 
-// New events added for the refactored design
 public class CardMouseMovedEvent
 {
     public Card Card { get; }
@@ -80,18 +79,6 @@ public class CardMouseMovedEvent
     }
 }
 
-public class CardDestroyStartedEvent
-{
-    public Card Card { get; }
-    
-    public CardDestroyStartedEvent(Card card)
-    {
-        Card = card;
-    }
-}
-
-// External event that CardLogic subscribes to
 public class HandCardSlotsChangedEvent
 {
-    // Add properties as needed for your hand system
 }

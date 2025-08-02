@@ -5,6 +5,6 @@ namespace Maximagus.Scripts.Enums
         Poison,
         Bleeding,
         Burning,
-        Brittle,
+        Chill,
     }
 }

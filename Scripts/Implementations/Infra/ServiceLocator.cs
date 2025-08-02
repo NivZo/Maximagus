@@ -7,34 +7,54 @@ using Maximagus.Scripts.Spells.Implementations;
 
 public static class ServiceLocator
 {
-    private static readonly Dictionary<Type, object> _services = new();
-
-    public static T RegisterService<T>(T service)
-    {
-        _services[typeof(T)] = service;
-        return service;
-    }
+    private static Main _main;
+    private static readonly Dictionary<Type, Lazy<object>> _services = [];
 
     public static T GetService<T>()
     {
-        return _services.TryGetValue(typeof(T), out var service) ? (T)service : default(T);
+        return _services.TryGetValue(typeof(T), out var service) ? (T)service.Value : default;
     }
 
-    public static void Initialize()
+    public static void Initialize(Main main)
     {
-        RegisterService<ILogger>(new GodotLogger());
-        RegisterService<IEventBus>(new SimpleEventBus());
-        RegisterService<IHoverManager>(new HoverManager());
-        RegisterService<IDragManager>(new DragManager());
-        RegisterService<IHandManager>(new HandManager());
-        RegisterService<IStatusEffectManager>(new StatusEffectManager());
-        RegisterService<ISpellProcessingManager>(new SpellProcessingManager());
+        _main = main;
 
-        GD.Print($"Initialized {_services.Count} Services");
+        // Script services
+        RegisterService<ILogger, GodotLogger>();
+        RegisterService<IEventBus, SimpleEventBus>();
+        RegisterService<IHoverManager, HoverManager>();
+        RegisterService<IDragManager, DragManager>();
+        RegisterService<IHandManager, HandManager>();
+        RegisterService<IStatusEffectManager, StatusEffectManager>();
+        RegisterService<ISpellProcessingManager, SpellProcessingManager>();
+        RegisterService<IGameStateManager, GameStateManager>();
+
+        // Node services
+        RegisterNodeService<GameInputManager>(false);
     }
 
-    public static void InitializeNodes(Main main)
+    private static void RegisterService<TInterface, TImplementation>()
+        where TImplementation : TInterface, new()
     {
-        main.AddChild(RegisterService(new GameInputManager()));
+        var lazyImplementation = new Lazy<object>(() => new TImplementation());
+        _services[typeof(TInterface)] = lazyImplementation;
+    }
+
+    private static void RegisterNodeService<TNode>(bool lazy = true)
+        where TNode : Node, new()
+    {
+        var lazyNode = new Lazy<object>(() =>
+        {
+            var node = new TNode();
+            _main.AddChild(node);
+            return node;
+        });
+
+        if (!lazy)
+        {
+            GD.Print("Initializing non-lazy node service - ", lazyNode.Value.GetType());
+        }
+
+        _services[typeof(TNode)] = lazyNode;
     }
 }

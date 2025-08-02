@@ -12,6 +12,7 @@ namespace Maximagus.Scripts.Enums
         None,
         Fire,
         Frost,
+        PerChill,
     }
 
     public enum ContextProperty
@@ -28,6 +29,13 @@ namespace Maximagus.Scripts.Enums
     }
 
     public enum ModifierType
+    {
+        Add,
+        Multiply,
+        Set,
+    }
+
+    public enum StatusEffectActionType
     {
         Add,
         Multiply,

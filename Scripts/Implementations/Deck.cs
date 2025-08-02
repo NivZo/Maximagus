@@ -14,7 +14,7 @@ public class Deck
             ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/FrostShards.tres"),
             ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/Firebolt.tres"),
             ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFire.tres"),
-            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFrost.tres"),
+            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/Shatter.tres"),
         ];
     }
 

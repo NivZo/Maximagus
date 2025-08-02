@@ -18,15 +18,17 @@ namespace Maximagus.Scripts.StatusEffects
 
         public void AddStacks(int amount)
         {
-            if (Effect.IsStackable)
-            {
-                CurrentStacks = Mathf.Min(CurrentStacks + amount, Effect.MaxStacks);
-            }
+            CurrentStacks = Mathf.Min(CurrentStacks + amount, Effect.MaxStacks);
         }
 
         public void ReduceStacks(int amount = 1)
         {
             CurrentStacks = Mathf.Max(0, CurrentStacks - amount);
+        }
+
+        public void SetStacks(int amount)
+        {
+            CurrentStacks = Mathf.Min(Mathf.Max(0, amount), Effect.MaxStacks);
         }
 
         public bool IsExpired => CurrentStacks <= 0;

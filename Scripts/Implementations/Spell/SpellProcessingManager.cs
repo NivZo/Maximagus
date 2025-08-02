@@ -10,10 +10,12 @@ namespace Maximagus.Scripts.Spells.Implementations
     public partial class SpellProcessingManager : ISpellProcessingManager
     {
         private IStatusEffectManager _statusEffectManager;
+        private IGameStateManager _gameStateManager;
 
         public SpellProcessingManager()
         {
             _statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
+            _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
         }
 
         public void ProcessSpell(Array<SpellCardResource> cards)
@@ -33,6 +35,8 @@ namespace Maximagus.Scripts.Spells.Implementations
 
             GD.Print($"Spell total damage dealt: {context.TotalDamageDealt}");
             GD.Print("--- Spell Finished ---");
+
+            _gameStateManager.TriggerEvent(GameStateEvent.SpellsComplete);
         }
     }
 }

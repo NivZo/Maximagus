@@ -27,7 +27,7 @@ public class HoverManager : IHoverManager
         }
         
         CurrentlyHoveringCard = card;
-        _logger.LogInfo($"Started hovering card: {card.Name}");
+        _logger.LogDebug($"Started hovering card: {card.Name}");
         return true;
     }
     
@@ -46,6 +46,6 @@ public class HoverManager : IHoverManager
         }
         
         CurrentlyHoveringCard = null;
-        _logger.LogInfo($"Ended hovering card: {card.Name}");
+        _logger.LogDebug($"Ended hovering card: {card.Name}");
     }
 }

@@ -8,8 +8,7 @@ public partial class Main : Control
     public override void _EnterTree()
     {
         base._EnterTree();
-        ServiceLocator.Initialize();
-        ServiceLocator.InitializeNodes(this);
+        ServiceLocator.Initialize(this);
     }
 
     public override void _Ready()
@@ -19,6 +18,11 @@ public partial class Main : Control
             base._Ready();
             _logger = ServiceLocator.GetService<ILogger>();
             _logger?.LogInfo("Main scene initialized successfully");
+
+            // temp
+            var turnStateMachine = ServiceLocator.GetService<IGameStateManager>();
+            turnStateMachine.StartGame();
+            
         }
         catch (Exception ex)
         {

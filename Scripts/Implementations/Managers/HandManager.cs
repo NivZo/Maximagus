@@ -19,11 +19,15 @@ namespace Maximagus.Scripts.Managers
 
         private int _remainingHands;
         private int _remainingDiscards;
+        private ILogger _logger;
         private IEventBus _eventBus;
+        private IGameStateManager _turnStateMachine;
 
         public HandManager()
         {
+            _logger = ServiceLocator.GetService<ILogger>();
             _eventBus = ServiceLocator.GetService<IEventBus>();
+            _turnStateMachine = ServiceLocator.GetService<IGameStateManager>();
             ResetForNewEncounter();
         }
         
@@ -36,6 +40,7 @@ namespace Maximagus.Scripts.Managers
 
         public bool CanSubmitHand(HandActionType actionType)
         {
+            if (_turnStateMachine.GetCurrentState() is not SubmitPhaseState) return false;
             return actionType switch
             {
                 HandActionType.Play => _remainingHands > 0,
@@ -48,13 +53,13 @@ namespace Maximagus.Scripts.Managers
         {
             if (!CanSubmitHand(actionType))
             {
-                GD.Print($"Cannot submit hand: no {actionType} actions remaining");
+                _logger.LogWarning($"Cannot submit hand: no {actionType} actions remaining");
                 return false;
             }
 
             if (selectedCards.Count == 0 || selectedCards.Count > MaxCardsPerSubmission)
             {
-                GD.Print($"Invalid card count: {selectedCards.Count} (max: {MaxCardsPerSubmission})");
+                _logger.LogWarning($"Invalid card count: {selectedCards.Count} (max: {MaxCardsPerSubmission})");
                 return false;
             }
 
@@ -63,7 +68,7 @@ namespace Maximagus.Scripts.Managers
             {
                 if (!currentHandCards.Contains(card))
                 {
-                    GD.Print($"Card {card.CardName} not in current hand");
+                    _logger.LogWarning($"Card {card.CardName} not in current hand");
                     return false;
                 }
             }
@@ -73,20 +78,20 @@ namespace Maximagus.Scripts.Managers
             else
                 _remainingDiscards--;
 
-            _eventBus.Publish(new HandSubmittedEvent 
+            _eventBus.Publish(new HandSubmittedEvent
             { 
                 Cards = selectedCards, 
                 ActionType = actionType 
             });
 
-            GD.Print($"{actionType} action completed. Remaining: {_remainingHands} hands, {_remainingDiscards} discards");
+            _turnStateMachine.TriggerEvent(actionType == HandActionType.Play ? GameStateEvent.HandSubmitted : GameStateEvent.HandDiscarded);
 
             if (_remainingHands == 0 && _remainingDiscards == 0)
             {
-                _eventBus.Publish(new HandLimitReachedEvent 
-                { 
-                    RemainingHands = _remainingHands, 
-                    RemainingDiscards = _remainingDiscards 
+                _eventBus.Publish(new HandLimitReachedEvent
+                {
+                    RemainingHands = _remainingHands,
+                    RemainingDiscards = _remainingDiscards
                 });
             }
 

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=8 format=3 uid="uid://crjvhlf4hta78"]
+
+[ext_resource type="Script" uid="uid://cv2tlkbcoaiyr" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="1_8biyy"]
+[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_ludp6"]
+[ext_resource type="Resource" uid="uid://binjto7ckoq7k" path="res://Resources/StatusEffects/Chill.tres" id="2_3r3pg"]
+[ext_resource type="Texture2D" uid="uid://dm3rikfmbctbx" path="res://Assets/Art/Shatter.png" id="2_pgbnt"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="3_euegq"]
+
+[sub_resource type="Resource" id="Resource_fk7u1"]
+script = ExtResource("1_ludp6")
+DamageType = 3
+Amount = 2
+metadata/_custom_type_script = "uid://b07sh0rbkcanr"
+
+[sub_resource type="Resource" id="Resource_ludp6"]
+script = ExtResource("1_8biyy")
+StatusEffect = ExtResource("2_3r3pg")
+ActionType = 2
+Stacks = 0
+metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
+
+[resource]
+script = ExtResource("3_euegq")
+CardId = "shatter"
+CardName = "Shatter"
+CardArt = ExtResource("2_pgbnt")
+Actions = Array[Resource]([SubResource("Resource_fk7u1"), SubResource("Resource_ludp6")])
