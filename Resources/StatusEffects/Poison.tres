@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectResource" load_steps=2 format=3 uid="uid://dplk7gq8g8g7c"]
+
+[ext_resource type="Script" uid="uid://bnpfrvo0g6q82" path="res://Resources/Definitions/StatusEffects/StatusEffectResource.cs" id="1_abcde"]
+
+[resource]
+script = ExtResource("1_abcde")
+EffectType = 0
+EffectName = "Poison"
+Description = "Deals 1 damage per stack at the end of the turn."
+Trigger = 1
+DecayMode = 3
+IsStackable = true
+InitialStacks = 1
+Value = 3
+MaxStacks = 99

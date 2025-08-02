@@ -20,42 +20,52 @@ script = ExtResource("1_3p1lq")
 [node name="CardSlot" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot2" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot3" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot4" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot5" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot6" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot7" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot8" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot9" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="CardSlot10" parent="CardSlots" instance=ExtResource("1_0xaq6")]
 grow_horizontal = 1
 grow_vertical = 1
+MaxValidDistance = 512.0
 
 [node name="Cards" type="Node" parent="."]
 

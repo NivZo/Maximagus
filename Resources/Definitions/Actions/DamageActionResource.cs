@@ -14,7 +14,7 @@ namespace Maximagus.Resources.Definitions.Actions
         public override void Execute(SpellContext context)
         {
             var finalDamage = context.ApplyDamageModifiers(this);
-            // Apply damage to target
+
             GD.Print($"Dealt {finalDamage} damage of type {DamageType}.");
             context.TotalDamageDealt += finalDamage;
 

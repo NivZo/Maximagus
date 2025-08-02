@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://c8x8ywuxcnmm7"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_tf6mm"]
-[ext_resource type="Script" uid="uid://cdh6nbsig87sa" path="res://Scripts/Implementations/CardLogic.cs" id="2_3g4mk"]
+[ext_resource type="Script" uid="uid://cu6gfjux5bubf" path="res://Scripts/Implementations/Card/CardLogic.cs" id="2_3g4mk"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_kntej"]
 seed = -15

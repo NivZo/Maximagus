@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectResource" load_steps=2 format=3 uid="uid://dplk7gq8g8g7d"]
+
+[ext_resource type="Script" path="res://Resources/Definitions/StatusEffects/StatusEffectResource.cs" id="1_abcde"]
+
+[resource]
+script = ExtResource("1_abcde")
+EffectType = 1
+EffectName = "Bleeding"
+Description = "Deals 1 bonus damage per stack on any damage instance."
+Trigger = 2
+DecayMode = 0
+IsStackable = true
+InitialStacks = 1
+Value = 1
+MaxStacks = 99

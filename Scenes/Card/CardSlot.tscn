@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cg3eemcq3p0ll"]
 
-[ext_resource type="Script" uid="uid://dxnppwyqr28te" path="res://Scripts/Implementations/CardSlot.cs" id="1_qvmmg"]
+[ext_resource type="Script" uid="uid://xlvn7mqi27e1" path="res://Scripts/Implementations/Card/CardSlot.cs" id="1_qvmmg"]
 
 [node name="CardSlot" type="Control"]
 layout_mode = 3

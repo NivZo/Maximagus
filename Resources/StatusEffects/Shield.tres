@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectResource" load_steps=2 format=3 uid="uid://dplk7gq8g8g7e"]
+
+[ext_resource type="Script" path="res://Resources/Definitions/StatusEffects/StatusEffectResource.cs" id="1_abcde"]
+
+[resource]
+script = ExtResource("1_abcde")
+EffectType = 3
+EffectName = "Shield"
+Description = "Absorbs 5 damage per stack."
+Trigger = 3
+DecayMode = 2
+IsStackable = true
+InitialStacks = 1
+Value = 5
+MaxStacks = 99

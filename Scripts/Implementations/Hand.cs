@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Maximagus.Scripts.Spells.Abstractions;
+using Maximagus.Scripts.Events;
 
 public partial class Hand : Control
 {
@@ -14,10 +15,10 @@ public partial class Hand : Control
 
     private IEventBus _eventBus;
     private ILogger _logger;
+    private Deck _deck;
     private OrderedContainer _cardSlotsContainer;
     private Node _cardsNode;
     private Node _cardSlotsNode;
-    private List<SpellCardResource> _availableSpells;
 
     public ImmutableArray<CardSlot> CardSlots => _cardSlotsContainer
         ?.Where(n => n is CardSlot)
@@ -40,11 +41,11 @@ public partial class Hand : Control
             Instance = this;
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
+            _deck = new();
 
             SubscribeToEvents();
             InitializeComponents();
             SetupEventHandlers();
-            InitializeSpells();
             InitializeCardSlots();
         }
         catch (Exception ex)
@@ -58,17 +59,14 @@ public partial class Hand : Control
     {
         _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
+        _eventBus?.Subscribe<HandSubmittedEvent>(OnHandSubmitted);
     }
 
-    private void InitializeSpells()
+    private void OnHandSubmitted(HandSubmittedEvent @event)
     {
-        _availableSpells = new List<SpellCardResource>
-        {
-            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/FrostShards.tres"),
-            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/Firebolt.tres"),
-            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFire.tres"),
-            ResourceLoader.Load<SpellCardResource>("res://Resources/Spells/AmplifyFrost.tres"),
-        };
+        var cardsToDiscard = SelectedCards.ToArray();
+        Discard(cardsToDiscard);
+        DrawAndAppend(cardsToDiscard.Length);
     }
 
     private void InitializeComponents()
@@ -116,7 +114,7 @@ public partial class Hand : Control
             var rnd = new Random();
             foreach (var slot in CardSlots)
             {
-                var resource = _availableSpells[rnd.Next(_availableSpells.Count)];
+                var resource = _deck.GetNext();
                 Card.Create(_cardsNode, slot, resource);
             }
         }
@@ -145,11 +143,10 @@ public partial class Hand : Control
 
     public void DrawAndAppend(int amount)
     {
-        var rnd = new Random();
         for (int i = 0; i < amount; i++)
         {
+            var resource = _deck.GetNext();
             var slot = CardSlot.Create(_cardSlotsNode);
-            var resource = _availableSpells[rnd.Next(_availableSpells.Count)];
             var card = Card.Create(_cardsNode, slot, resource);
             card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
             _cardSlotsContainer.InsertElement(slot);
@@ -214,12 +211,12 @@ public partial class Hand : Control
 
     private void OnCardHoverEnded(CardHoverEndedEvent @event)
     {
-        _cardsNode.MoveChild(@event.Card, _cardSlotsContainer.IndexOf(@event.Card.Logic.CardSlot));
+        CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.IndexOf(@event.Card.Logic.CardSlot));
     }
 
     private void OnCardHoverStarted(CardHoverStartedEvent @event)
     {
-        _cardsNode.MoveChild(@event.Card, _cardSlotsContainer.Count);
+        CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.Count);
     }
 
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
@@ -239,6 +236,14 @@ public partial class Hand : Control
         {
             _cardSlotsContainer.MoveElement(draggedIndex, targetIndex);
             GD.Print($"Moving dragged: {draggedIndex} and target: {targetIndex}");
+        }
+    }
+
+    private void MoveChildSafe(Card card, int index)
+    {
+        if (card != null && !card.IsQueuedForDeletion())
+        {
+            _cardsNode.MoveChild(card, index);
         }
     }
 

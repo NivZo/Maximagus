@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://ccpeukrdsfbkm"]
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_8jfk0"]
-[ext_resource type="Script" uid="uid://dybj7chfwagfn" path="res://Scripts/Implementations/Card.cs" id="1_vlntq"]
+[ext_resource type="Script" uid="uid://cgffjj3qsq8ww" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
 [ext_resource type="PackedScene" uid="uid://cp5fadjipbrqy" path="res://Scenes/Card/CardVisual.tscn" id="3_h8wm0"]
 [ext_resource type="PackedScene" uid="uid://c8x8ywuxcnmm7" path="res://Scenes/Card/CardLogic.tscn" id="4_vlntq"]
 
@@ -62,7 +62,22 @@ layout_mode = 1
 AngleXMax = 3.0
 AngleYMax = 3.0
 AngleIdleRatio = 0.5
+MaxOffsetShadow = 50.0
+SelectionVerticalOffset = -64.0
 HoverScale = 1.2
+DragScale = 1.3
+ClickAnimationDuration = 1.0
+HoverAnimationDuration = 0.5
+RotationResetDuration = 0.5
+DragRotationResetDuration = 0.3
+ScaleResetDuration = 0.55
+DestroyDuration = 2.0
+ShadowFadeDuration = 1.0
+MaxSpeed = 1.0
+Stiffness = 150.0
+Damping = 10.0
+VelocityFactor = 0.0015
+MaxRotationDegrees = 15.0
 
 [node name="CardLogic" parent="." instance=ExtResource("4_vlntq")]
 material = SubResource("ShaderMaterial_l5eg5")
