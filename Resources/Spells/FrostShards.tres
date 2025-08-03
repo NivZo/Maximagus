@@ -29,5 +29,7 @@ metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 script = ExtResource("1_geg3t")
 CardId = "frostshards"
 CardName = "Frost Shards"
+CardDescription = "Deal 3 [b]Frost[/b] damage twice
+Inflict 2 [b]Chill[/b]"
 CardArt = ExtResource("2_fny2q")
 Actions = Array[Resource]([SubResource("Resource_y114i"), SubResource("Resource_xcfaj"), SubResource("Resource_0vcwd")])

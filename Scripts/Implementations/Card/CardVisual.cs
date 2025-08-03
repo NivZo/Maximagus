@@ -1,4 +1,5 @@
 using Godot;
+using Maximagus.Scripts.Spells.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,7 @@ public partial class CardVisual : Control
     private IEventBus _eventBus;
     private Card _parentCard;
     private Tooltip _tooltip;
+    private SpellCardResource _spellCardResource;
     private bool _isSelected => _parentCard?.IsSelected ?? false;
     private bool _isDragging => _parentCard?.IsDragging ?? false;
     private bool _isHovering => _parentCard?.IsHovering ?? false;
@@ -57,7 +59,6 @@ public partial class CardVisual : Control
     private const string SHADER_X_ROT_PROPERTY = "shader_x_rot";
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
 
-    public string Title;
 
 
     public override void _Ready()
@@ -143,9 +144,11 @@ public partial class CardVisual : Control
         }
     }
 
-    public void SetArt(Texture2D texture2D)
+    public void SetupCardResource(SpellCardResource spellCardResource)
     {
-        _artTexture.Texture = texture2D;
+        _spellCardResource = spellCardResource;
+        _artTexture.Texture = spellCardResource.CardArt;
+        _tooltip = Tooltip.Create(_parentCard.Logic, new(0, -Size.Y), _spellCardResource.CardName, _spellCardResource.CardDescription);
     }
 
     private void UpdateShadow(float delta)
@@ -230,11 +233,6 @@ public partial class CardVisual : Control
     {
         ZIndex = LayerIndices.HoveredCard;
         AnimationUtils.AnimateScale(this, HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
-
-        if (_tooltip == null)
-        {
-            _tooltip = Tooltip.Create(_parentCard.Logic, new(0, -Size.Y), Title, "");
-        }
 
         _tooltip.ShowTooltip();
     }

@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=8 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://d0weeqfgyo258" path="res://Scripts/Main.cs" id="1_rgh2o"]
-[ext_resource type="Texture2D" uid="uid://dgix5r5a40r27" path="res://Assets/Art/TableBackground.png" id="2_kln2b"]
 [ext_resource type="PackedScene" uid="uid://bn8k4bj4kkcxc" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://c6le2mw7qwof4" path="res://Scripts/Parallax.cs" id="3_rgh2o"]
+[ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
+[ext_resource type="Texture2D" uid="uid://blklk0m08hgfi" path="res://Assets/Art/HealthbarFrame.png" id="6_v1gob"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
@@ -12,8 +13,8 @@ shader_parameter/overlay = true
 shader_parameter/scanlines_opacity = 0.0
 shader_parameter/scanlines_width = 0.0
 shader_parameter/grille_opacity = 0.0
-shader_parameter/resolution = Vector2(960, 540)
-shader_parameter/pixelate = true
+shader_parameter/resolution = Vector2(1152, 648)
+shader_parameter/pixelate = false
 shader_parameter/roll = false
 shader_parameter/roll_speed = 8.0
 shader_parameter/roll_size = 0.0
@@ -62,7 +63,8 @@ offset_right = 64.0
 offset_bottom = 64.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_kln2b")
+texture = ExtResource("3_v1gob")
+stretch_mode = 1
 
 [node name="Hand" parent="." instance=ExtResource("3_kln2b")]
 layout_mode = 1
@@ -87,3 +89,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Healthbar" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 166.0
+offset_top = 16.0
+offset_right = 986.0
+offset_bottom = 136.0
+texture = ExtResource("6_v1gob")

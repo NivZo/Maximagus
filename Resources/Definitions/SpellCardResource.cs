@@ -10,6 +10,7 @@ namespace Maximagus.Scripts.Spells.Abstractions
     {
         [Export] public string CardId { get; set; }
         [Export] public string CardName { get; set; }
+        [Export(PropertyHint.MultilineText)] public string CardDescription { get; set; }
         [Export] public Texture2D CardArt { get; set; }
 
         [Export] public Array<ActionResource> Actions { get; set; }

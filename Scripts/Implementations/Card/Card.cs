@@ -39,8 +39,7 @@ public partial class Card : Control
 
         Logic = GetNode<CardLogic>("CardLogic").ValidateNotNull(nameof(Logic));
         Visual = GetNode<CardVisual>("CardVisual").ValidateNotNull(nameof(Visual));
-        Visual.Title = Resource.CardName;
-        Visual.SetArt(Resource.CardArt);
+        Visual.SetupCardResource(Resource);
         Logic.Card = this;
     }
     

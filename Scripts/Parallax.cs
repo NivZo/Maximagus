@@ -4,7 +4,7 @@ using System;
 public partial class Parallax : Control
 {
     [Export] public Vector2 MaxOffset;
-    [Export] public float Smoothing = 2;
+    [Export] public float Smoothing = .1f;
 
     public override void _Process(double delta)
     {

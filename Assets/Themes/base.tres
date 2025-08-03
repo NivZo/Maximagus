@@ -1,0 +1,15 @@
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://bky1darji2kb4"]
+
+[ext_resource type="FontFile" uid="uid://ck34cg1c1kj02" path="res://Assets/Fonts/Adventurer.ttf" id="1_x1wxt"]
+
+[sub_resource type="FontVariation" id="FontVariation_x1wxt"]
+base_font = ExtResource("1_x1wxt")
+variation_embolden = 1.0
+spacing_glyph = 1
+
+[resource]
+RichTextLabel/colors/default_color = Color(1, 1, 1, 1)
+RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 1)
+RichTextLabel/constants/outline_size = 4
+RichTextLabel/fonts/bold_font = SubResource("FontVariation_x1wxt")
+RichTextLabel/fonts/normal_font = ExtResource("1_x1wxt")

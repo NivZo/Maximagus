@@ -1,119 +1,98 @@
-[gd_scene load_steps=8 format=3 uid="uid://bof7eb8y8iu68"]
+[gd_scene load_steps=7 format=3 uid="uid://bof7eb8y8iu68"]
 
-[ext_resource type="Texture2D" uid="uid://der5uuw8q4ypw" path="res://Assets/Art/TooltipBackground.png" id="1_s6jop"]
+[ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_npmai"]
 [ext_resource type="Script" uid="uid://pkqvv4i7idv5" path="res://Scripts/Tooltip.cs" id="1_wlw5m"]
-[ext_resource type="Shader" uid="uid://c65fkofkspmy3" path="res://Shaders/Outline.gdshader" id="2_qkd78"]
+[ext_resource type="Texture2D" uid="uid://2ljma303kjn" path="res://Assets/Art/TooltipBody.png" id="2_bpvxn"]
+[ext_resource type="Texture2D" uid="uid://0kcvlh3rn4xl" path="res://Assets/Art/TooltipTop.png" id="3_npmai"]
+[ext_resource type="Texture2D" uid="uid://disvtvnh4firm" path="res://Assets/Art/TooltipBottom.png" id="4_rgrnt"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_bpvxn"]
-shader = ExtResource("2_qkd78")
-shader_parameter/maxLineWidth = 4.0
-shader_parameter/minLineWidth = 2.0
-shader_parameter/speed = 1.0
-shader_parameter/blockSize = 12.0
-shader_parameter/color = Color(0.657282, 0.59829, 0.509494, 1)
-shader_parameter/tolerance = 0.0
-
-[sub_resource type="Animation" id="Animation_qkd78"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Background/DarkBackground:rotation")
-tracks/0/interp = 4
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-0.0872665]
-}
-
-[sub_resource type="Animation" id="Animation_wlw5m"]
-resource_name = "idle"
-length = 4.0
-loop_mode = 1
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Background/DarkBackground:rotation")
-tracks/0/interp = 4
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(1.4, 3.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [-0.0610865, -0.0785398]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_bpvxn"]
-_data = {
-&"RESET": SubResource("Animation_qkd78"),
-&"idle": SubResource("Animation_wlw5m")
-}
+[sub_resource type="Theme" id="Theme_bpvxn"]
 
 [node name="Tooltip" type="Control"]
+custom_minimum_size = Vector2(144, 90)
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -72.0
+offset_top = -45.0
+offset_right = 72.0
+offset_bottom = 45.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_npmai")
 script = ExtResource("1_wlw5m")
 
-[node name="Background" type="TextureRect" parent="."]
-material = SubResource("ShaderMaterial_bpvxn")
-custom_minimum_size = Vector2(288, 108)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = -64.0
-offset_bottom = -64.0
-grow_horizontal = 2
-grow_vertical = 2
-pivot_offset = Vector2(576, 324)
-texture = ExtResource("1_s6jop")
-expand_mode = 1
-
-[node name="DarkBackground" type="TextureRect" parent="Background"]
-self_modulate = Color(0.755386, 0.755386, 0.755386, 1)
-show_behind_parent = true
-use_parent_material = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 6.19592
-pivot_offset = Vector2(512, 260)
-texture = ExtResource("1_s6jop")
-expand_mode = 1
-
-[node name="RichTextLabel" type="RichTextLabel" parent="Background"]
+[node name="TooltipMiddle" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.062
-anchor_top = 0.123
-anchor_right = 0.937
-anchor_bottom = 0.246
-offset_left = 0.511997
-offset_top = 0.0399971
-offset_right = 0.511963
-offset_bottom = 0.0799942
+anchor_left = 0.5
+anchor_top = 0.4
+anchor_right = 0.5
+anchor_bottom = 0.4
+offset_left = -72.0
+offset_right = 72.0
+offset_bottom = 40.0
+texture = ExtResource("2_bpvxn")
+expand_mode = 1
+
+[node name="TooltipTop" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.4
+texture = ExtResource("3_npmai")
+
+[node name="TitleLabel" type="RichTextLabel" parent="TooltipTop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 8.0
+offset_right = -20.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 12
 text = "Title Text"
 fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_bpvxn")
-}
-autoplay = "idle"
+[node name="TooltipBottom" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.4
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 1.52588e-05
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_rgrnt")
+
+[node name="ContentLabel" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.111
+anchor_top = 0.4
+anchor_right = 0.889
+anchor_bottom = 0.844
+offset_left = 0.0159988
+offset_right = -0.0159454
+offset_bottom = 0.039978
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_bpvxn")
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+bbcode_enabled = true
+text = "Deal 8 [b]Fire[/b] damage"
+fit_content = true
+scroll_active = false
+shortcut_keys_enabled = false
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
