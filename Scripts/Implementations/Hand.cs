@@ -59,14 +59,17 @@ public partial class Hand : Control
     {
         _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Subscribe<HandSubmittedEvent>(OnHandSubmitted);
+        _eventBus?.Subscribe<GameStateChangedEvent>(OnGameStateChanged);
     }
 
-    private void OnHandSubmitted(HandSubmittedEvent @event)
+    private void OnGameStateChanged(GameStateChangedEvent @event)
     {
-        var cardsToDiscard = SelectedCards.ToArray();
-        Discard(cardsToDiscard);
-        DrawAndAppend(cardsToDiscard.Length);
+        if (@event.NewState is SubmitPhaseState)
+        {
+            var cardsToDiscard = SelectedCards.ToArray();
+            Discard(cardsToDiscard);
+            DrawAndAppend(cardsToDiscard.Length);
+        }
     }
 
     private void InitializeComponents()

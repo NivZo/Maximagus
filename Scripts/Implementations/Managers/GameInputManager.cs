@@ -3,6 +3,7 @@ using Godot.Collections;
 using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Enums;
 using System.Linq;
+using Maximagus.Scripts.Events;
 
 namespace Maximagus.Scripts.Input
 {
@@ -11,6 +12,7 @@ namespace Maximagus.Scripts.Input
         private IGameStateManager _gameStateManager;
         private IHandManager _handManager;
         private ISpellProcessingManager _spellProcessor;
+        private IEventBus _eventBus;
 
         public override void _Ready()
         {
@@ -18,6 +20,7 @@ namespace Maximagus.Scripts.Input
             _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
             _handManager = ServiceLocator.GetService<IHandManager>();
             _spellProcessor = ServiceLocator.GetService<ISpellProcessingManager>();
+            _eventBus = ServiceLocator.GetService<IEventBus>();
         }
 
         public override void _Input(InputEvent @event)
@@ -46,17 +49,16 @@ namespace Maximagus.Scripts.Input
 
         private void HandlePlayAction()
         {
-            var selectedCards = new Array<SpellCardResource>(Hand.Instance.SelectedCards.Select(c => c.Resource));
-            if (_handManager.SubmitHand(selectedCards, HandActionType.Play))
-            {
-                _spellProcessor.ProcessSpell(selectedCards);
-            }
+            var selectedCards = new Array<Card>(Hand.Instance.SelectedCards);
+            var currentHandCards = new Array<Card>(Hand.Instance.Cards);
+            _eventBus.Publish(new PlayCardsRequestedEvent { SelectedCards = selectedCards, CurrentHandCards = currentHandCards });
         }
 
         private void HandleDiscardAction()
         {
-            var selectedCards = new Array<SpellCardResource>(Hand.Instance.SelectedCards.Select(c => c.Resource));
-            _handManager.SubmitHand(selectedCards, HandActionType.Discard);
+            var selectedCards = new Array<Card>(Hand.Instance.SelectedCards);
+            var currentHandCards = new Array<Card>(Hand.Instance.Cards);
+            _eventBus.Publish(new DiscardCardsRequestedEvent { SelectedCards = selectedCards, CurrentHandCards = currentHandCards });
         }
     }
 }

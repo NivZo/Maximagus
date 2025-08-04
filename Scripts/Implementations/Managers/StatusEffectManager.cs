@@ -63,11 +63,11 @@ namespace Maximagus.Scripts.Managers
 
         private void RemoveExpiredEffects()
         {
-            foreach (var effect in _activeEffects)
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
-                if (effect.IsExpired)
+                if (_activeEffects[i].IsExpired)
                 {
-                    _activeEffects.Remove(effect);
+                    _activeEffects.RemoveAt(i);
                 }
             }
         }

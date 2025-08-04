@@ -29,8 +29,21 @@ namespace Maximagus.Scripts.Managers
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _turnStateMachine = ServiceLocator.GetService<IGameStateManager>();
             ResetForNewEncounter();
+
+            _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
+            _eventBus.Subscribe<DiscardCardsRequestedEvent>(HandleDiscardCardsRequested);
         }
-        
+
+        private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
+        {
+            SubmitHand([.. e.SelectedCards.Select(c => c.Resource)], [.. e.CurrentHandCards.Select(c => c.Resource)], HandActionType.Play);
+        }
+
+        private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
+        {
+            SubmitHand([.. e.SelectedCards.Select(c => c.Resource)], [.. e.CurrentHandCards.Select(c => c.Resource)], HandActionType.Discard);
+        }
+
         public void ResetForNewEncounter()
         {
             _remainingHands = MaxHandsPerEncounter;
@@ -49,27 +62,26 @@ namespace Maximagus.Scripts.Managers
             };
         }
 
-        public bool SubmitHand(Array<SpellCardResource> selectedCards, HandActionType actionType)
+        private void SubmitHand(SpellCardResource[] selectedCards, SpellCardResource[] currentHandCards, HandActionType actionType)
         {
             if (!CanSubmitHand(actionType))
             {
                 _logger.LogWarning($"Cannot submit hand: no {actionType} actions remaining");
-                return false;
+                return;
             }
 
-            if (selectedCards.Count == 0 || selectedCards.Count > MaxCardsPerSubmission)
+            if (selectedCards.Length == 0 || selectedCards.Length > MaxCardsPerSubmission)
             {
-                _logger.LogWarning($"Invalid card count: {selectedCards.Count} (max: {MaxCardsPerSubmission})");
-                return false;
+                _logger.LogWarning($"Invalid card count: {selectedCards.Length} (max: {MaxCardsPerSubmission})");
+                return;
             }
 
-            var currentHandCards = Hand.Instance.Cards.Select(c => c.Resource).ToList();
             foreach (var card in selectedCards)
             {
                 if (!currentHandCards.Contains(card))
                 {
                     _logger.LogWarning($"Card {card.CardName} not in current hand");
-                    return false;
+                    return;
                 }
             }
 
@@ -80,7 +92,7 @@ namespace Maximagus.Scripts.Managers
 
             _eventBus.Publish(new HandSubmittedEvent
             { 
-                Cards = selectedCards, 
+                Cards = selectedCards,
                 ActionType = actionType 
             });
 
@@ -94,8 +106,6 @@ namespace Maximagus.Scripts.Managers
                     RemainingDiscards = _remainingDiscards
                 });
             }
-
-            return true;
         }
     }
 }

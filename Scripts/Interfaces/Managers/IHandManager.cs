@@ -7,6 +7,4 @@ public interface IHandManager
     void ResetForNewEncounter();
 
     bool CanSubmitHand(HandActionType actionType);
-
-    bool SubmitHand(Array<SpellCardResource> selectedCards, HandActionType actionType);
 }

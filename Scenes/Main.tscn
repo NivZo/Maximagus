@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://d0weeqfgyo258" path="res://Scripts/Main.cs" id="1_rgh2o"]
-[ext_resource type="PackedScene" uid="uid://bn8k4bj4kkcxc" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
+[ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://c6le2mw7qwof4" path="res://Scripts/Parallax.cs" id="3_rgh2o"]
 [ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
@@ -77,6 +77,7 @@ offset_left = -319.488
 offset_top = -0.16803
 offset_right = 319.488
 offset_bottom = -0.0720215
+pivot_offset = Vector2(384, 32)
 metadata/_edit_use_anchors_ = true
 
 [node name="Shaders" type="CanvasLayer" parent="."]
@@ -91,9 +92,14 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Healthbar" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 166.0
-offset_top = 16.0
-offset_right = 986.0
-offset_bottom = 136.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.025
+anchor_right = 0.5
+anchor_bottom = 0.21
+offset_left = -410.0
+offset_top = -0.200001
+offset_right = 410.0
+offset_bottom = -0.0800018
 texture = ExtResource("6_v1gob")

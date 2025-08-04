@@ -6,7 +6,7 @@ namespace Maximagus.Scripts.Events
 {
     public class HandSubmittedEvent
     {
-        public Array<SpellCardResource> Cards { get; set; }
+        public SpellCardResource[] Cards { get; set; }
         public HandActionType ActionType { get; set; }
     }
 
@@ -18,6 +18,6 @@ namespace Maximagus.Scripts.Events
 
     public class CardsRedrawEvent
     {
-        public Array<SpellCardResource> NewCards { get; set; }
+        public SpellCardResource[] NewCards { get; set; }
     }
 }

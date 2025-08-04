@@ -31,6 +31,7 @@ public static class ServiceLocator
 
         // Node services
         RegisterNodeService<GameInputManager>(false);
+        RegisterNodeService<QueuedActionsManager>(false);
     }
 
     private static void RegisterService<TInterface, TImplementation>()
