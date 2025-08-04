@@ -1,6 +1,7 @@
 using Godot;
 using Maximagus.Scripts.Spells.Abstractions;
 using System;
+using Scripts.Input;
 
 public partial class Card : Control
 {
@@ -9,6 +10,9 @@ public partial class Card : Control
 
     public CardLogic Logic { get; private set; }
     public CardVisual Visual { get; private set; }
+    
+    // New input system integration
+    private CardInputHandler _cardInputHandler;
     
     public SpellCardResource Resource { get; private set; }
 
@@ -41,6 +45,41 @@ public partial class Card : Control
         Visual = GetNode<CardVisual>("CardVisual").ValidateNotNull(nameof(Visual));
         Visual.SetupCardResource(Resource);
         Logic.Card = this;
+        
+        // Initialize new input system integration
+        InitializeNewInputSystem();
+    }
+
+    private void InitializeNewInputSystem()
+    {
+        try
+        {
+            // Get the main scene to access the input mapper
+            var main = GetTree().CurrentScene as Main;
+            var inputMapper = main?.GetInputMapper();
+            
+            if (inputMapper != null)
+            {
+                // Create and add card input handler
+                _cardInputHandler = new CardInputHandler();
+                AddChild(_cardInputHandler);
+                
+                // Initialize with card ID and input mapper
+                var cardId = GetInstanceId().ToString();
+                _cardInputHandler.Initialize(cardId, inputMapper);
+                
+                _logger?.LogInfo($"Card input handler initialized for card {cardId}");
+            }
+            else
+            {
+                _logger?.LogWarning("Input mapper not available - card will use legacy input system");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Failed to initialize card input system", ex);
+            // Continue without new input system - legacy system will handle input
+        }
     }
     
     public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource)
