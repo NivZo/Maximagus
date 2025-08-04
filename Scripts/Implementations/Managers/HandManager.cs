@@ -41,11 +41,13 @@ namespace Maximagus.Scripts.Managers
 
         private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
         {
+            _logger.LogInfo("HandlePlayCardsRequested called - processing play cards request");
             SubmitHand(Hand.SelectedCards.Select(c => c.Resource).ToArray(), HandActionType.Play);
         }
 
         private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
         {
+            _logger.LogInfo("HandleDiscardCardsRequested called - processing discard cards request");
             SubmitHand(Hand.SelectedCards.Select(c => c.Resource).ToArray(), HandActionType.Discard);
         }
 
@@ -73,13 +75,26 @@ namespace Maximagus.Scripts.Managers
 
         public bool CanSubmitHand(HandActionType actionType)
         {
-            if (_turnStateMachine.GetCurrentState() is not SubmitPhaseState) return false;
-            return actionType switch
+            var currentState = _turnStateMachine.GetCurrentState();
+            
+            // Debug logging to understand what's happening
+            _logger.LogInfo($"CanSubmitHand check: ActionType={actionType}, CurrentState={currentState?.GetType().Name}, RemainingHands={RemainingHands}, RemainingDiscards={RemainingDiscards}");
+            
+            if (currentState is not SubmitPhaseState)
+            {
+                _logger.LogInfo($"Cannot submit hand: current state is {currentState?.GetType().Name}, need SubmitPhaseState");
+                return false;
+            }
+
+            var canSubmit = actionType switch
             {
                 HandActionType.Play => RemainingHands > 0,
                 HandActionType.Discard => RemainingDiscards > 0,
                 _ => false
             };
+            
+            _logger.LogInfo($"CanSubmitHand result: {canSubmit}");
+            return canSubmit;
         }
 
         private void SubmitHand(SpellCardResource[] selectedCards, HandActionType actionType)

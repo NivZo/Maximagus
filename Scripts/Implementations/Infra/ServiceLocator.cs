@@ -30,7 +30,8 @@ public static class ServiceLocator
         RegisterService<IGameStateManager, GameStateManager>();
 
         // Node services
-        RegisterNodeService<GameInputManager>(false);
+        // GameInputManager disabled - using new input system
+        // RegisterNodeService<GameInputManager>(false);
         RegisterNodeService<QueuedActionsManager>(false);
     }
 

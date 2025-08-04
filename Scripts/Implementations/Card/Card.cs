@@ -46,41 +46,9 @@ public partial class Card : Control
         Visual.SetupCardResource(Resource);
         Logic.Card = this;
         
-        // Initialize new input system integration
-        InitializeNewInputSystem();
+        // New input system will be initialized via notification from Main
     }
 
-    private void InitializeNewInputSystem()
-    {
-        try
-        {
-            // Get the main scene to access the input mapper
-            var main = GetTree().CurrentScene as Main;
-            var inputMapper = main?.GetInputMapper();
-            
-            if (inputMapper != null)
-            {
-                // Create and add card input handler
-                _cardInputHandler = new CardInputHandler();
-                AddChild(_cardInputHandler);
-                
-                // Initialize with card ID and input mapper
-                var cardId = GetInstanceId().ToString();
-                _cardInputHandler.Initialize(cardId, inputMapper);
-                
-                _logger?.LogInfo($"Card input handler initialized for card {cardId}");
-            }
-            else
-            {
-                _logger?.LogWarning("Input mapper not available - card will use legacy input system");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Failed to initialize card input system", ex);
-            // Continue without new input system - legacy system will handle input
-        }
-    }
 
     /// <summary>
     /// Called by Main when the input system becomes available
