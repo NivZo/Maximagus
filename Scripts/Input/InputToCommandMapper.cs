@@ -4,6 +4,7 @@ using System.Linq;
 using Scripts.Commands;
 using Scripts.Commands.Card;
 using Scripts.Commands.Hand;
+using Scripts.Commands.Game;
 using Scripts.State;
 using Godot;
 
@@ -126,7 +127,7 @@ namespace Scripts.Input
             // Use ONLY the new command system - no legacy integration
             return inputData.KeyCode switch
             {
-                Key.Enter => null, // TODO: Add StartGameCommand when needed
+                Key.Enter => new StartGameCommand(),
                 Key.Space => new PlayHandCommand(),
                 Key.Delete or Key.Backspace => new DiscardHandCommand(),
                 Key.Escape => CreateClearSelectionCommand(),
