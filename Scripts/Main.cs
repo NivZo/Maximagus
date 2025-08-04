@@ -6,14 +6,15 @@ using Scripts.Input;
 public partial class Main : Control
 {
     private ILogger _logger;
-    private IGameStateManager _gameStateManager;
-    private IHandManager _handManager;
     
-    // New input system components
+    // New command system components (replacing legacy systems)
     private GameCommandProcessor _commandProcessor;
     private InputToCommandMapper _inputMapper;
     private KeyboardInputHandler _keyboardHandler;
     private MouseInputHandler _mouseHandler;
+    
+    // Direct reference to Hand node (no HandManager)
+    private Hand _hand;
 
     public override void _EnterTree()
     {
@@ -27,17 +28,13 @@ public partial class Main : Control
         {
             base._Ready();
             _logger = ServiceLocator.GetService<ILogger>();
-            _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
-            _handManager = ServiceLocator.GetService<IHandManager>();
-            
             _logger?.LogInfo("Main scene initialized successfully");
 
-            _handManager.SetupHandNode(GetNode<Hand>("Hand"));
+            // Get direct reference to Hand node (no legacy HandManager)
+            _hand = GetNode<Hand>("Hand");
             
-            // Initialize new input system AFTER hand is setup
-            InitializeNewInputSystem();
-            
-            _gameStateManager.StartGame();
+            // Initialize new command system (replaces legacy systems)
+            InitializeNewCommandSystem();
             
         }
         catch (Exception ex)
@@ -47,14 +44,14 @@ public partial class Main : Control
         }
     }
 
-    private void InitializeNewInputSystem()
+    private void InitializeNewCommandSystem()
     {
         try
         {
             // Get existing event bus from service locator
             var eventBus = ServiceLocator.GetService<IEventBus>();
             
-            // Initialize command processor
+            // Initialize command processor with initial game state
             _commandProcessor = new GameCommandProcessor(eventBus);
             
             // Initialize input mapper
@@ -71,19 +68,16 @@ public partial class Main : Control
             _keyboardHandler.Initialize(_inputMapper);
             _mouseHandler.Initialize(_inputMapper);
             
-            // Store references for other components to use
-            // Note: ServiceLocator doesn't support direct instance registration,
-            // so we'll provide a way for Card components to access these
-            
             // Notify existing cards that input system is ready
             NotifyCardsInputSystemReady();
             
-            _logger?.LogInfo("New input system initialized successfully");
+            _logger?.LogInfo("New command system initialized successfully");
+            _logger?.LogInfo("LEGACY SYSTEMS DISABLED - Using only new command architecture");
         }
         catch (Exception ex)
         {
-            _logger?.LogError("Failed to initialize new input system", ex);
-            // Don't throw - allow game to continue with legacy system
+            _logger?.LogError("Failed to initialize new command system", ex);
+            throw; // Can't continue without the new system now
         }
     }
 

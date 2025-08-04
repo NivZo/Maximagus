@@ -6,7 +6,6 @@ using Scripts.Commands.Card;
 using Scripts.Commands.Hand;
 using Scripts.State;
 using Godot;
-using Maximagus.Scripts.Events;
 
 namespace Scripts.Input
 {
@@ -124,36 +123,16 @@ namespace Scripts.Input
         /// </summary>
         private IGameCommand HandleKeyPress(InputEventData inputData)
         {
-            // For global game actions, publish events to integrate with existing system
-            switch (inputData.KeyCode)
+            // Use ONLY the new command system - no legacy integration
+            return inputData.KeyCode switch
             {
-                case Key.Enter:
-                    // Integrate with existing GameInputManager logic
-                    var gameStateManager = ServiceLocator.GetService<IGameStateManager>();
-                    gameStateManager?.TriggerEvent(GameStateEvent.StartGame);
-                    return null; // Don't return a command, event handled
-
-                case Key.Space:
-                    // Integrate with existing play cards logic
-                    var eventBus = ServiceLocator.GetService<IEventBus>();
-                    eventBus?.Publish(new PlayCardsRequestedEvent());
-                    return null; // Don't return a command, event handled
-
-                case Key.Delete:
-                case Key.Backspace:
-                    // Integrate with existing discard logic
-                    var eventBus2 = ServiceLocator.GetService<IEventBus>();
-                    eventBus2?.Publish(new DiscardCardsRequestedEvent());
-                    return null; // Don't return a command, event handled
-
-                case Key.Escape:
-                    return CreateClearSelectionCommand();
-
-                default:
-                    if (inputData.IsCtrlPressed && inputData.KeyCode == Key.Z)
-                        return CreateUndoCommand();
-                    return null;
-            }
+                Key.Enter => null, // TODO: Add StartGameCommand when needed
+                Key.Space => new PlayHandCommand(),
+                Key.Delete or Key.Backspace => new DiscardHandCommand(),
+                Key.Escape => CreateClearSelectionCommand(),
+                Key.Z when inputData.IsCtrlPressed => CreateUndoCommand(),
+                _ => null
+            };
         }
 
         /// <summary>

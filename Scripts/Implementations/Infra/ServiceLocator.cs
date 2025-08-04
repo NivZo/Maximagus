@@ -24,10 +24,10 @@ public static class ServiceLocator
         RegisterService<IEventBus, SimpleEventBus>();
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IDragManager, DragManager>();
-        RegisterService<IHandManager, HandManager>();
+        // RegisterService<IHandManager, HandManager>(); // DISABLED - using new command system
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
-        RegisterService<IGameStateManager, GameStateManager>();
+        // RegisterService<IGameStateManager, GameStateManager>(); // DISABLED - using new command system
 
         // Node services
         // GameInputManager disabled - using new input system
