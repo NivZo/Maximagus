@@ -81,6 +81,32 @@ public partial class Card : Control
             // Continue without new input system - legacy system will handle input
         }
     }
+
+    /// <summary>
+    /// Called by Main when the input system becomes available
+    /// </summary>
+    public void NotifyInputSystemReady(InputToCommandMapper inputMapper)
+    {
+        try
+        {
+            if (_cardInputHandler == null && inputMapper != null)
+            {
+                // Create and add card input handler now that input mapper is available
+                _cardInputHandler = new CardInputHandler();
+                AddChild(_cardInputHandler);
+                
+                // Initialize with card ID and input mapper
+                var cardId = GetInstanceId().ToString();
+                _cardInputHandler.Initialize(cardId, inputMapper);
+                
+                _logger?.LogInfo($"Card input handler initialized for card {cardId} via notification");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Failed to initialize card input system via notification", ex);
+        }
+    }
     
     public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource)
     {

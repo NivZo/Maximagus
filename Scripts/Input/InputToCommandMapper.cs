@@ -6,6 +6,7 @@ using Scripts.Commands.Card;
 using Scripts.Commands.Hand;
 using Scripts.State;
 using Godot;
+using Maximagus.Scripts.Events;
 
 namespace Scripts.Input
 {
@@ -123,14 +124,36 @@ namespace Scripts.Input
         /// </summary>
         private IGameCommand HandleKeyPress(InputEventData inputData)
         {
-            return inputData.KeyCode switch
+            // For global game actions, publish events to integrate with existing system
+            switch (inputData.KeyCode)
             {
-                Key.Enter or Key.Space => new PlayHandCommand(),
-                Key.Delete or Key.Backspace => new DiscardHandCommand(),
-                Key.Escape => CreateClearSelectionCommand(),
-                Key.Ctrl when inputData.Action == "Z" => CreateUndoCommand(),
-                _ => null
-            };
+                case Key.Enter:
+                    // Integrate with existing GameInputManager logic
+                    var gameStateManager = ServiceLocator.GetService<IGameStateManager>();
+                    gameStateManager?.TriggerEvent(GameStateEvent.StartGame);
+                    return null; // Don't return a command, event handled
+
+                case Key.Space:
+                    // Integrate with existing play cards logic
+                    var eventBus = ServiceLocator.GetService<IEventBus>();
+                    eventBus?.Publish(new PlayCardsRequestedEvent());
+                    return null; // Don't return a command, event handled
+
+                case Key.Delete:
+                case Key.Backspace:
+                    // Integrate with existing discard logic
+                    var eventBus2 = ServiceLocator.GetService<IEventBus>();
+                    eventBus2?.Publish(new DiscardCardsRequestedEvent());
+                    return null; // Don't return a command, event handled
+
+                case Key.Escape:
+                    return CreateClearSelectionCommand();
+
+                default:
+                    if (inputData.IsCtrlPressed && inputData.KeyCode == Key.Z)
+                        return CreateUndoCommand();
+                    return null;
+            }
         }
 
         /// <summary>
