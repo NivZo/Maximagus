@@ -135,7 +135,6 @@ namespace Scripts.Input
 
                 case Key.Space:
                     // Integrate with existing play cards logic
-                    Console.WriteLine("[InputMapper] Space key pressed - publishing PlayCardsRequestedEvent");
                     var eventBus = ServiceLocator.GetService<IEventBus>();
                     eventBus?.Publish(new PlayCardsRequestedEvent());
                     return null; // Don't return a command, event handled
@@ -143,7 +142,6 @@ namespace Scripts.Input
                 case Key.Delete:
                 case Key.Backspace:
                     // Integrate with existing discard logic
-                    Console.WriteLine("[InputMapper] Delete/Backspace key pressed - publishing DiscardCardsRequestedEvent");
                     var eventBus2 = ServiceLocator.GetService<IEventBus>();
                     eventBus2?.Publish(new DiscardCardsRequestedEvent());
                     return null; // Don't return a command, event handled

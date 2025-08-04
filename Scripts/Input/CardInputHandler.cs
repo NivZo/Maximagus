@@ -63,8 +63,8 @@ namespace Scripts.Input
                 case InputEventMouseMotion mouseMotion:
                     return ProcessMouseMotion(mouseMotion);
                 
-                case InputEventKey key:
-                    return ProcessKeyEvent(key);
+                // Cards should NOT process keyboard events at all!
+                // All keyboard input is handled by KeyboardInputHandler
                 
                 default:
                     return null;
@@ -158,23 +158,9 @@ namespace Scripts.Input
             return null;
         }
 
-        /// <summary>
-        /// Processes keyboard events when this card has focus
-        /// </summary>
-        private InputEventData ProcessKeyEvent(InputEventKey key)
-        {
-            if (!key.Pressed) return null;
-
-            return new InputEventData(InputType.KeyPress)
-            {
-                CardId = _cardId,
-                KeyCode = key.Keycode,
-                Action = key.AsText(),
-                IsShiftPressed = key.ShiftPressed,
-                IsCtrlPressed = key.CtrlPressed,
-                IsAltPressed = key.AltPressed
-            };
-        }
+        // Cards should NOT process keyboard events at all!
+        // All keyboard input is handled by KeyboardInputHandler
+        // Cards only handle mouse interactions: clicks, drags, hover
 
         /// <summary>
         /// Called when mouse enters the card area
