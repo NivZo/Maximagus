@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Godot;
 using Scripts.State;
 
 namespace Scripts.Commands
@@ -205,19 +206,19 @@ namespace Scripts.Commands
         private void LogInfo(string message)
         {
             // TODO: Use proper logging system
-            Console.WriteLine($"[GameCommandProcessor] INFO: {message}");
+            GD.Print($"[GameCommandProcessor] INFO: {message}");
         }
 
         private void LogWarning(string message)
         {
             // TODO: Use proper logging system
-            Console.WriteLine($"[GameCommandProcessor] WARNING: {message}");
+            GD.Print($"[GameCommandProcessor] WARNING: {message}");
         }
 
         private void LogError(string message)
         {
             // TODO: Use proper logging system
-            Console.WriteLine($"[GameCommandProcessor] ERROR: {message}");
+            GD.Print($"[GameCommandProcessor] ERROR: {message}");
         }
     }
 

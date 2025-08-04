@@ -52,17 +52,17 @@ Add these logs to test if commands are executing:
 
 **In PlayHandCommand.Execute():**
 ```csharp
-Console.WriteLine("[PlayHandCommand] Execute() called!");
+GD.Print("[PlayHandCommand] Execute() called!");
 ```
 
 **In DiscardHandCommand.Execute():**
 ```csharp
-Console.WriteLine("[DiscardHandCommand] Execute() called!");
+GD.Print("[DiscardHandCommand] Execute() called!");
 ```
 
 **In SelectCardCommand.Execute():**
 ```csharp
-Console.WriteLine("[SelectCardCommand] Execute() called!");
+GD.Print("[SelectCardCommand] Execute() called!");
 ```
 
 ### **Expected Results:**

@@ -32,18 +32,29 @@ namespace Scripts.Input
         /// <param name="event">The input event</param>
         public override void _UnhandledInput(InputEvent @event)
         {
+            GD.Print("[KeyboardInputHandler] _UnhandledInput called");
+            
             if (_inputMapper == null)
+            {
+                GD.Print("[KeyboardInputHandler] ERROR: _inputMapper is null!");
                 return;
+            }
 
             var inputData = ProcessKeyboardEvent(@event);
             if (inputData != null)
             {
+                GD.Print($"[KeyboardInputHandler] Processing key: {inputData.KeyCode}");
                 var processed = _inputMapper.ProcessInput(inputData);
+                GD.Print($"[KeyboardInputHandler] Command processed: {processed}");
                 if (processed)
                 {
                     // Mark the event as handled to prevent further processing
                     GetViewport().SetInputAsHandled();
                 }
+            }
+            else
+            {
+                GD.Print("[KeyboardInputHandler] inputData is null - key not handled");
             }
         }
 

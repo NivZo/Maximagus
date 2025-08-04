@@ -1,3 +1,5 @@
+using System;
+using Godot;
 using Scripts.State;
 
 namespace Scripts.Commands.Game
@@ -18,11 +20,19 @@ namespace Scripts.Commands.Game
 
         public IGameStateData Execute(IGameStateData currentState)
         {
+            GD.Print("[StartGameCommand] Execute() called!");
+            GD.Print($"[StartGameCommand] Current phase: {currentState.Phase.CurrentPhase}");
+            
             // Start the game by transitioning from Menu to the first gameplay phase
             var nextPhase = currentState.Phase.GetNextPhase();
-            var newPhaseState = currentState.Phase.WithPhase(nextPhase);
+            GD.Print($"[StartGameCommand] Next phase: {nextPhase}");
             
-            return currentState.WithPhase(newPhaseState);
+            var newPhaseState = currentState.Phase.WithPhase(nextPhase);
+            var newState = currentState.WithPhase(newPhaseState);
+            
+            GD.Print($"[StartGameCommand] Execute() completed - new phase: {newState.Phase.CurrentPhase}");
+            
+            return newState;
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)

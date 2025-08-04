@@ -1,4 +1,5 @@
 using System;
+using Godot;
 
 namespace Scripts
 {
@@ -93,7 +94,7 @@ namespace Scripts
 
             if (EnableFeatureFlagLogging)
             {
-                Console.WriteLine("[FeatureFlags] All new systems enabled");
+                GD.Print("[FeatureFlags] All new systems enabled");
             }
         }
 
@@ -110,7 +111,7 @@ namespace Scripts
 
             if (EnableFeatureFlagLogging)
             {
-                Console.WriteLine("[FeatureFlags] All systems reverted to legacy");
+                GD.Print("[FeatureFlags] All systems reverted to legacy");
             }
         }
 
@@ -131,7 +132,7 @@ namespace Scripts
         private static void LogFeatureFlag(FeatureFlag feature, bool useNew, string reason)
         {
             var system = useNew ? "NEW" : "LEGACY";
-            Console.WriteLine($"[FeatureFlags] {feature}: {system} - {reason}");
+            GD.Print($"[FeatureFlags] {feature}: {system} - {reason}");
         }
     }
 

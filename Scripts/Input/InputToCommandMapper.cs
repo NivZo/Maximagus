@@ -48,14 +48,14 @@ namespace Scripts.Input
                 
                 if (success)
                 {
-                    Console.WriteLine($"[InputMapper] Successfully processed {inputData.Type}: {command.GetDescription()}");
+                    GD.Print($"[InputMapper] Successfully processed {inputData.Type}: {command.GetDescription()}");
                 }
 
                 return success;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InputMapper] Error processing input {inputData.Type}: {ex.Message}");
+                GD.Print($"[InputMapper] Error processing input {inputData.Type}: {ex.Message}");
                 return false;
             }
         }
