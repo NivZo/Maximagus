@@ -1,9 +1,11 @@
-using Godot.Collections;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Abstractions;
 
 public interface IHandManager
 {
+    Hand Hand { get; }
+
+    void SetupHandNode(Hand hand);
+
     void ResetForNewEncounter();
 
     bool CanSubmitHand(HandActionType actionType);

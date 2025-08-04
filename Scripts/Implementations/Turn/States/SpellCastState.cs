@@ -2,9 +2,18 @@ using Godot;
 
 public class SpellCastState : IGameState
 {
+    private ISpellProcessingManager _spellProcessingManager;
+
+    public SpellCastState()
+    {
+        _spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
+    }
+
     public void OnEnter()
     {
         GD.Print("=== SPELL CAST ===");
+
+        _spellProcessingManager.ProcessSpell();
     }
 
     public void OnExit()

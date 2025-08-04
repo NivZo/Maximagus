@@ -1,5 +1,4 @@
 using Godot;
-using Maximagus.Scripts.Enums;
 
 public class MenuState : IGameState
 {

@@ -12,6 +12,7 @@ namespace Maximagus.Scripts.Spells.Implementations
     {
         private IStatusEffectManager _statusEffectManager;
         private IGameStateManager _gameStateManager;
+        private IHandManager _handManager;
         private IEventBus _eventBus;
         private QueuedActionsManager _queuedActionsManager;
 
@@ -19,20 +20,22 @@ namespace Maximagus.Scripts.Spells.Implementations
         {
             _statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
             _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
+            _handManager = ServiceLocator.GetService<IHandManager>();
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
 
-            _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
+            _eventBus.Subscribe<CastSpellRequestedEvent>(HandleCastSpellRequest);
         }
 
-        private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
+        private void HandleCastSpellRequest(CastSpellRequestedEvent _)
         {
-            ProcessSpell(e.SelectedCards);
+            ProcessSpell();
         }
 
-        private void ProcessSpell(Array<Card> cards)
+        public void ProcessSpell()
         {
             GD.Print("--- Processing Spell ---");
+            var cards = _handManager.Hand.SelectedCards.ToArray();
             var context = new SpellContext();
 
             _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);

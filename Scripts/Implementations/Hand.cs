@@ -59,17 +59,6 @@ public partial class Hand : Control
     {
         _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Subscribe<GameStateChangedEvent>(OnGameStateChanged);
-    }
-
-    private void OnGameStateChanged(GameStateChangedEvent @event)
-    {
-        if (@event.NewState is SubmitPhaseState)
-        {
-            var cardsToDiscard = SelectedCards.ToArray();
-            Discard(cardsToDiscard);
-            DrawAndAppend(cardsToDiscard.Length);
-        }
     }
 
     private void InitializeComponents()
@@ -130,7 +119,7 @@ public partial class Hand : Control
 
     public void Discard(Card card) => Discard([card]);
 
-    public void Discard(Card[] cards)
+    public void Discard(IEnumerable<Card> cards)
     {
         foreach (var card in cards)
         {

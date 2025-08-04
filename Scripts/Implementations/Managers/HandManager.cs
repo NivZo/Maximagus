@@ -9,19 +9,18 @@ namespace Maximagus.Scripts.Managers
 {
     public partial class HandManager : IHandManager
     {
-        [Export] public int MaxHandsPerEncounter { get; set; } = 5;
-        [Export] public int MaxDiscardsPerEncounter { get; set; } = 5;
-        [Export] public int MaxCardsInHand { get; set; } = 10;
-        [Export] public int MaxCardsPerSubmission { get; set; } = 4;
+        public int MaxHandsPerEncounter { get; set; } = 5;
+        public int MaxDiscardsPerEncounter { get; set; } = 5;
+        public int MaxCardsInHand { get; set; } = 10;
+        public int MaxCardsPerSubmission { get; set; } = 4;
         
-        public int RemainingHands => _remainingHands;
-        public int RemainingDiscards => _remainingDiscards;
+        public int RemainingHands { get; private set; }
+        public int RemainingDiscards { get; private set; }
 
-        private int _remainingHands;
-        private int _remainingDiscards;
         private ILogger _logger;
         private IEventBus _eventBus;
         private IGameStateManager _turnStateMachine;
+        public Hand Hand { get; private set; }
 
         public HandManager()
         {
@@ -32,23 +31,44 @@ namespace Maximagus.Scripts.Managers
 
             _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
             _eventBus.Subscribe<DiscardCardsRequestedEvent>(HandleDiscardCardsRequested);
+            _eventBus.Subscribe<GameStateChangedEvent>(HandleGameStateChanged);
+        }
+
+        public void SetupHandNode(Hand hand)
+        {
+            Hand = hand;
         }
 
         private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
         {
-            SubmitHand([.. e.SelectedCards.Select(c => c.Resource)], [.. e.CurrentHandCards.Select(c => c.Resource)], HandActionType.Play);
+            SubmitHand(Hand.SelectedCards.Select(c => c.Resource).ToArray(), HandActionType.Play);
         }
 
         private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
         {
-            SubmitHand([.. e.SelectedCards.Select(c => c.Resource)], [.. e.CurrentHandCards.Select(c => c.Resource)], HandActionType.Discard);
+            SubmitHand(Hand.SelectedCards.Select(c => c.Resource).ToArray(), HandActionType.Discard);
+        }
+
+        private void HandleGameStateChanged(GameStateChangedEvent e)
+        {
+            if (e.PreviousState is SpellCastState ||
+                (e.PreviousState is SubmitPhaseState && e.NewState is SubmitPhaseState))
+            {
+                var count = Hand.SelectedCards.Count();
+                if (count > 0)
+                {
+                    Hand.Discard(Hand.SelectedCards);
+                    Hand.DrawAndAppend(count);
+                }
+            }
+
         }
 
         public void ResetForNewEncounter()
         {
-            _remainingHands = MaxHandsPerEncounter;
-            _remainingDiscards = MaxDiscardsPerEncounter;
-            GD.Print($"Hand Manager reset: {_remainingHands} hands, {_remainingDiscards} discards available");
+            RemainingHands = MaxHandsPerEncounter;
+            RemainingDiscards = MaxDiscardsPerEncounter;
+            GD.Print($"Hand Manager reset: {RemainingHands} hands, {RemainingDiscards} discards available");
         }
 
         public bool CanSubmitHand(HandActionType actionType)
@@ -56,13 +76,13 @@ namespace Maximagus.Scripts.Managers
             if (_turnStateMachine.GetCurrentState() is not SubmitPhaseState) return false;
             return actionType switch
             {
-                HandActionType.Play => _remainingHands > 0,
-                HandActionType.Discard => _remainingDiscards > 0,
+                HandActionType.Play => RemainingHands > 0,
+                HandActionType.Discard => RemainingDiscards > 0,
                 _ => false
             };
         }
 
-        private void SubmitHand(SpellCardResource[] selectedCards, SpellCardResource[] currentHandCards, HandActionType actionType)
+        private void SubmitHand(SpellCardResource[] selectedCards, HandActionType actionType)
         {
             if (!CanSubmitHand(actionType))
             {
@@ -76,36 +96,12 @@ namespace Maximagus.Scripts.Managers
                 return;
             }
 
-            foreach (var card in selectedCards)
-            {
-                if (!currentHandCards.Contains(card))
-                {
-                    _logger.LogWarning($"Card {card.CardName} not in current hand");
-                    return;
-                }
-            }
-
             if (actionType == HandActionType.Play)
-                _remainingHands--;
+                RemainingHands--;
             else
-                _remainingDiscards--;
-
-            _eventBus.Publish(new HandSubmittedEvent
-            { 
-                Cards = selectedCards,
-                ActionType = actionType 
-            });
+                RemainingDiscards--;
 
             _turnStateMachine.TriggerEvent(actionType == HandActionType.Play ? GameStateEvent.HandSubmitted : GameStateEvent.HandDiscarded);
-
-            if (_remainingHands == 0 && _remainingDiscards == 0)
-            {
-                _eventBus.Publish(new HandLimitReachedEvent
-                {
-                    RemainingHands = _remainingHands,
-                    RemainingDiscards = _remainingDiscards
-                });
-            }
         }
     }
 }
