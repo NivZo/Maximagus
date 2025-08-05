@@ -1,5 +1,8 @@
 using Godot;
 using System;
+using System.Linq;
+using Scripts.Commands;
+using Scripts.Commands.Card;
 
 public partial class CardLogic : Button
 {
@@ -7,6 +10,7 @@ public partial class CardLogic : Button
     private IHoverManager _hoverManager;
     private IDragManager _dragManager;
     private ILogger _logger;
+    private GameCommandProcessor _commandProcessor;
 
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
@@ -44,6 +48,7 @@ public partial class CardLogic : Button
         _eventBus = ServiceLocator.GetService<IEventBus>();
         _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _dragManager = ServiceLocator.GetService<IDragManager>();
+        _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
     }
 
     private void InitializeComponents()
@@ -165,11 +170,49 @@ public partial class CardLogic : Button
 
     private void HandleClick()
     {
-        IsSelected = !IsSelected;
-        this.SetCenter(GetTargetSlottedCenter());
-        
-        InvokePositionChanged();
-        _eventBus?.Publish(new CardClickedEvent(Card));
+        // NEW COMMAND SYSTEM: Use SelectCardCommand/DeselectCardCommand instead of direct manipulation
+        if (_commandProcessor != null)
+        {
+            var cardId = Card.GetInstanceId().ToString();
+            IGameCommand command;
+            
+            if (IsSelected)
+            {
+                command = new DeselectCardCommand(cardId);
+            }
+            else
+            {
+                command = new SelectCardCommand(cardId);
+            }
+            
+            var success = _commandProcessor.ExecuteCommand(command);
+            _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
+            
+            if (success)
+            {
+                // Update local state to match command result
+                var newState = _commandProcessor.CurrentState;
+                var wasSelected = IsSelected;
+                var selectedIds = newState.Hand.SelectedCardIds;
+                IsSelected = selectedIds.Any(id => id == cardId);
+                
+                if (wasSelected != IsSelected)
+                {
+                    this.SetCenter(GetTargetSlottedCenter());
+                    InvokePositionChanged();
+                    _eventBus?.Publish(new CardClickedEvent(Card));
+                }
+            }
+        }
+        else
+        {
+            // FALLBACK: Legacy system if command processor not available
+            _logger?.LogWarning("[CardLogic] CommandProcessor not available, using legacy selection");
+            IsSelected = !IsSelected;
+            this.SetCenter(GetTargetSlottedCenter());
+            InvokePositionChanged();
+            _eventBus?.Publish(new CardClickedEvent(Card));
+        }
     }
 
     private void StartDragging()
@@ -191,7 +234,22 @@ public partial class CardLogic : Button
         this.SetCenter(GetTargetSlottedCenter());
         InvokePositionChanged();
 
+        // TODO: Future Phase - Implement ReorderCardsCommand here
+        // For now, keep legacy drag behavior
         _eventBus?.Publish(new CardDragEndedEvent(card));
+    }
+
+    /// <summary>
+    /// Called by command system to update selection state
+    /// </summary>
+    public void SetSelected(bool selected)
+    {
+        if (IsSelected != selected)
+        {
+            IsSelected = selected;
+            this.SetCenter(GetTargetSlottedCenter());
+            InvokePositionChanged();
+        }
     }
 
     public void OnGuiInput(InputEvent @event)

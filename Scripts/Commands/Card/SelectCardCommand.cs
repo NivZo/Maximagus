@@ -64,23 +64,25 @@ namespace Scripts.Commands.Card
                 return currentState;
             }
 
-            // Select the real card by simulating a click
-            if (!realCard.IsSelected)
+            // NEW SYSTEM: Directly call the CardLogic SetSelected method
+            if (!realCard.IsSelected && realCard.Logic != null)
             {
-                var mouseEvent = new InputEventMouseButton();
-                mouseEvent.ButtonIndex = MouseButton.Left;
-                mouseEvent.Pressed = false; // Release event triggers the click
-                realCard.Logic.OnGuiInput(mouseEvent);
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} selected successfully");
+                realCard.Logic.SetSelected(true);
+                Console.WriteLine($"[SelectCardCommand] Card {_cardId} selected successfully via command system");
             }
             else
             {
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} was already selected");
+                Console.WriteLine($"[SelectCardCommand] Card {_cardId} was already selected or Logic is null");
             }
 
             // Update GameState to keep it in sync
             var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
             return currentState.WithHand(newHandState);
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new DeselectCardCommand(_cardId);
         }
 
         public string GetDescription()

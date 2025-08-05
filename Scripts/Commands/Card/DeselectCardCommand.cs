@@ -1,5 +1,8 @@
 using System;
 using Scripts.State;
+using System.Linq;
+using Godot;
+using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Card
 {
@@ -30,7 +33,7 @@ namespace Scripts.Commands.Card
             {
                 if (card.CardId == _cardId)
                 {
-                    return card.IsSelected;
+                    return card.IsSelected; // Can only deselect if currently selected
                 }
             }
 
@@ -39,14 +42,43 @@ namespace Scripts.Commands.Card
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException($"Cannot execute DeselectCardCommand for card {_cardId}");
+            Console.WriteLine($"[DeselectCardCommand] Execute() called for card {_cardId}!");
+            
+            // Get HandManager to access the Hand properly
+            var handManager = ServiceLocator.GetService<IHandManager>();
+            if (handManager?.Hand == null)
+            {
+                Console.WriteLine("[DeselectCardCommand] ERROR: HandManager.Hand is null!");
+                return currentState;
+            }
 
-            // Update hand state to deselect the card
+            // Find the real card by ID
+            var realCard = handManager.Hand.Cards.FirstOrDefault(c => c.GetInstanceId().ToString() == _cardId);
+            if (realCard == null)
+            {
+                Console.WriteLine($"[DeselectCardCommand] ERROR: Card {_cardId} not found in hand!");
+                return currentState;
+            }
+
+            // NEW SYSTEM: Directly call the CardLogic SetSelected method
+            if (realCard.IsSelected && realCard.Logic != null)
+            {
+                realCard.Logic.SetSelected(false);
+                Console.WriteLine($"[DeselectCardCommand] Card {_cardId} deselected successfully via command system");
+            }
+            else
+            {
+                Console.WriteLine($"[DeselectCardCommand] Card {_cardId} was already deselected or Logic is null");
+            }
+
+            // Update GameState to keep it in sync
             var newHandState = currentState.Hand.WithCardSelection(_cardId, false);
-
-            // Return new game state with updated hand
             return currentState.WithHand(newHandState);
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new SelectCardCommand(_cardId);
         }
 
         public string GetDescription()
