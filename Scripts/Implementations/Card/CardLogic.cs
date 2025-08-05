@@ -99,21 +99,30 @@ public partial class CardLogic : Button
     private void SyncWithGameState()
     {
         // Keep CardLogic selection state in sync with GameState
-        var currentState = _commandProcessor.CurrentState;
-        var cardId = Card.GetInstanceId().ToString();
-        var shouldBeSelected = currentState.Hand.SelectedCardIds.Any(id => id == cardId);
+        if (_commandProcessor?.CurrentState == null || Card == null) return;
         
-        if (IsSelected != shouldBeSelected)
+        try
         {
-            IsSelected = shouldBeSelected;
-            this.SetCenter(GetTargetSlottedCenter());
-            InvokePositionChanged();
+            var currentState = _commandProcessor.CurrentState;
+            var cardId = Card.GetInstanceId().ToString();
+            var shouldBeSelected = currentState.Hand.SelectedCardIds.Any(id => id == cardId);
+            
+            if (IsSelected != shouldBeSelected)
+            {
+                IsSelected = shouldBeSelected;
+                this.SetCenter(GetTargetSlottedCenter());
+                InvokePositionChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"Error syncing with GameState: {ex.Message}", ex);
         }
     }
 
     private void CheckDragThreshold()
     {
-        if (!_mousePressed || IsDragging || _dragManager.IsDraggingActive) 
+        if (!_mousePressed || IsDragging || _dragManager?.IsDraggingActive == true) 
             return;
 
         Vector2 currentMousePos = GetGlobalMousePosition();
@@ -146,7 +155,7 @@ public partial class CardLogic : Button
         {
             FollowMouse(delta);
         }
-        else if (Card.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
+        else if (Card?.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
         {
             InvokePositionChanged(delta);
         }
@@ -168,7 +177,7 @@ public partial class CardLogic : Button
 
     private void HandleMousePressed()
     {
-        if (!_dragManager.IsDraggingActive)
+        if (_dragManager?.IsDraggingActive != true)
         {
             _mousePressed = true;
             _initialMousePosition = GetGlobalMousePosition();
@@ -192,39 +201,50 @@ public partial class CardLogic : Button
     private void HandleClick()
     {
         // COMMAND SYSTEM ONLY - No fallbacks
-        var cardId = Card.GetInstanceId().ToString();
-        IGameCommand command;
+        if (Card == null || _commandProcessor == null) return;
         
-        if (IsSelected)
+        try
         {
-            command = new DeselectCardCommand(cardId);
+            var cardId = Card.GetInstanceId().ToString();
+            IGameCommand command;
+            
+            if (IsSelected)
+            {
+                command = new DeselectCardCommand(cardId);
+            }
+            else
+            {
+                command = new SelectCardCommand(cardId);
+            }
+            
+            var success = _commandProcessor.ExecuteCommand(command);
+            _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
         }
-        else
+        catch (Exception ex)
         {
-            command = new SelectCardCommand(cardId);
+            _logger?.LogError($"Error handling card click: {ex.Message}", ex);
         }
-        
-        var success = _commandProcessor.ExecuteCommand(command);
-        _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
         
         // State will be synced automatically in next _Process call via SyncWithGameState()
     }
 
     private void StartDragging()
     {
-        if (!_dragManager.StartDrag(Card)) return;
+        if (_dragManager?.StartDrag(Card) != true) return;
 
-        _collisionShape.SetDeferred("disabled", false);
+        _collisionShape?.SetDeferred("disabled", false);
         
         _eventBus?.Publish(new CardDragStartedEvent(Card));
     }
 
     private void StopDragging()
     {
+        if (Card == null) return;
+        
         var card = Card;
         
-        _dragManager.EndDrag(card);
-        _collisionShape.SetDeferred("disabled", true);
+        _dragManager?.EndDrag(card);
+        _collisionShape?.SetDeferred("disabled", true);
 
         this.SetCenter(GetTargetSlottedCenter());
         InvokePositionChanged();
@@ -256,24 +276,24 @@ public partial class CardLogic : Button
 
     public void OnMouseEntered()
     {
-        if (_hoverManager.IsHoveringActive || _dragManager.IsDraggingActive) return;
-        if (!_hoverManager.StartHover(Card)) return;
+        if (_hoverManager?.IsHoveringActive == true || _dragManager?.IsDraggingActive == true) return;
+        if (_hoverManager?.StartHover(Card) != true) return;
 
         _eventBus?.Publish(new CardHoverStartedEvent(Card));
     }
 
     public void OnMouseExited()
     {
-        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive) return;
+        if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true) return;
 
-        _hoverManager.EndHover(Card);
+        _hoverManager?.EndHover(Card);
 
         _eventBus?.Publish(new CardHoverEndedEvent(Card));
     }
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
-        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive || IsDragging) return;
+        if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true || IsDragging) return;
 
         var localPosition = mouseMotion.Position;
         _eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
@@ -288,7 +308,20 @@ public partial class CardLogic : Button
     {
         if (CardSlot == null) return Vector2.Zero;
         
-        Vector2 offset = IsSelected && Card.Visual != null ? new Vector2(0, Card.Visual.SelectionVerticalOffset) : Vector2.Zero;
+        Vector2 offset = Vector2.Zero;
+        if (IsSelected && Card?.Visual != null)
+        {
+            try
+            {
+                offset = new Vector2(0, Card.Visual.SelectionVerticalOffset);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError($"Error accessing Card.Visual.SelectionVerticalOffset: {ex.Message}", ex);
+                // Continue with zero offset
+            }
+        }
+        
         return CardSlot.GetCenter() + offset;
     }
 
@@ -299,10 +332,19 @@ public partial class CardLogic : Button
 
     private void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
     {
-        var card = Card;
-        var actualDelta = delta ?? (float)GetProcessDeltaTime();
+        if (Card == null) return;
         
-        _eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
+        try
+        {
+            var card = Card;
+            var actualDelta = delta ?? (float)GetProcessDeltaTime();
+            
+            _eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"Error invoking position changed: {ex.Message}", ex);
+        }
     }
 
     public override void _ExitTree()
