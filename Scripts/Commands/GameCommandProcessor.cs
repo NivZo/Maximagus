@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Scripts.State;
+using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands
 {
@@ -44,6 +46,9 @@ namespace Scripts.Commands
                 LogError("Cannot execute null command");
                 return false;
             }
+
+            // Sync GameState with real game before validation
+            SyncGameStateWithRealGame();
 
             // Validate command can be executed
             if (!command.CanExecute(_currentState))
@@ -201,6 +206,51 @@ namespace Scripts.Commands
         public string GetStateSummary()
         {
             return _currentState.ToString();
+        }
+
+        /// <summary>
+        /// Syncs the GameState with the real game objects to ensure single source of truth
+        /// </summary>
+        private void SyncGameStateWithRealGame()
+        {
+            try
+            {
+                // Get real game objects
+                var handManager = ServiceLocator.GetService<IHandManager>();
+                if (handManager?.Hand == null) return;
+
+                var realHand = handManager.Hand;
+                
+                // Convert real cards to CardState objects
+                var cardStates = realHand.Cards.Select(card => new CardState(
+                    cardId: card.GetInstanceId().ToString(),
+                    isSelected: card.IsSelected,
+                    isDragging: card.IsDragging,
+                    position: 0
+                )).ToList();
+
+                // Get selected card IDs
+                var selectedCardIds = realHand.SelectedCards
+                    .Select(card => card.GetInstanceId().ToString())
+                    .ToList();
+
+                // Create updated HandState with real data
+                var newHandState = new HandState(
+                    cards: cardStates,
+                    selectedCardIds: selectedCardIds,
+                    maxHandSize: 10,
+                    isLocked: false
+                );
+
+                // Update the current state with real data
+                _currentState = _currentState.WithHand(newHandState);
+
+                LogInfo($"Synced GameState: {cardStates.Count} cards, {selectedCardIds.Count} selected");
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to sync GameState with real game: {ex.Message}");
+            }
         }
 
         private void LogInfo(string message)

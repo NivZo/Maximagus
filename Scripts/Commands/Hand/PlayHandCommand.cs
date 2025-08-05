@@ -14,8 +14,8 @@ namespace Scripts.Commands.Hand
         {
             if (currentState == null) return false;
 
-            // Must be in spell casting phase
-            if (!currentState.Phase.AllowsSpellCasting) return false;
+            // Must be in card selection phase (where player can play cards)
+            if (!currentState.Phase.AllowsCardSelection) return false;
 
             // Player must have hands remaining
             if (!currentState.Player.HasHandsRemaining) return false;
@@ -56,8 +56,8 @@ namespace Scripts.Commands.Hand
             
             Console.WriteLine("[PlayHandCommand] Cards played and replaced successfully");
 
-            // Also update GameState to keep it in sync
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellResolution);
+            // Transition to SpellCasting phase following the turn loop
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellCasting);
             var newPlayerState = currentState.Player.WithHandUsed();
             
             return currentState
