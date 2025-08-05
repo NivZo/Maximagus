@@ -50,19 +50,58 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // Execute the real game action through HandManager's Hand
-            handManager.Hand.Discard(selectedCards);
-            handManager.Hand.DrawAndAppend(selectedCards.Length);
-            
-            Console.WriteLine("[PlayHandCommand] Cards played and replaced successfully");
+            // STEP 1: Process the spell using SpellProcessingManager (this queues spell animations)
+            var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
+            if (spellProcessingManager != null)
+            {
+                Console.WriteLine("[PlayHandCommand] Processing spell...");
+                spellProcessingManager.ProcessSpell(); // This queues spell animations and effects
+                Console.WriteLine("[PlayHandCommand] Spell queued for processing");
+            }
+            else
+            {
+                Console.WriteLine("[PlayHandCommand] WARNING: SpellProcessingManager not available");
+            }
 
-            // Transition to SpellCasting phase following the turn loop
+            // STEP 2: Queue the discard and draw actions to happen after spell processing
+            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
+            if (queuedActionsManager != null)
+            {
+                Console.WriteLine("[PlayHandCommand] Queuing card discard and draw actions...");
+                
+                // Store selected cards for the queued action (to avoid stale references)
+                var cardsToDiscard = selectedCards.ToArray();
+                var cardCount = cardsToDiscard.Length;
+                
+                // Queue the discard and draw to happen after the spell animations complete
+                queuedActionsManager.QueueAction(() =>
+                {
+                    Console.WriteLine("[PlayHandCommand] Executing queued discard and draw...");
+                    handManager.Hand.Discard(cardsToDiscard);
+                    handManager.Hand.DrawAndAppend(cardCount);
+                    Console.WriteLine("[PlayHandCommand] Cards discarded and replaced successfully");
+                });
+            }
+            else
+            {
+                Console.WriteLine("[PlayHandCommand] WARNING: QueuedActionsManager not available, executing immediately");
+                // Fallback to immediate execution if QueuedActionsManager is not available
+                handManager.Hand.Discard(selectedCards);
+                handManager.Hand.DrawAndAppend(selectedCards.Length);
+                Console.WriteLine("[PlayHandCommand] Cards played and replaced successfully");
+            }
+
+            // STEP 3: Update GameState - transition to SpellCasting phase and update player
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellCasting);
             var newPlayerState = currentState.Player.WithHandUsed();
             
-            return currentState
+            // Create new state with updated phase and player
+            var newState = currentState
                 .WithPhase(newPhaseState)
                 .WithPlayer(newPlayerState);
+            
+            Console.WriteLine($"[PlayHandCommand] State updated: {newState.Phase.CurrentPhase} phase, hands remaining: {newState.Player.RemainingHands}");
+            return newState;
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)
@@ -93,7 +132,7 @@ namespace Scripts.Commands.Hand
         public bool CanExecute(IGameStateData currentState)
         {
             // Can always restore to a valid previous state
-            return _targetState.IsValid();
+            return _targetState?.IsValid() == true;
         }
 
         public IGameStateData Execute(IGameStateData currentState)
@@ -111,7 +150,7 @@ namespace Scripts.Commands.Hand
 
         public string GetDescription()
         {
-            return $"Restore game state to: {_targetState.Phase.CurrentPhase}";
+            return $"Restore game state to: {_targetState?.Phase?.CurrentPhase}";
         }
     }
 }
