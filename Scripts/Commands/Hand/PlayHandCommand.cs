@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using Scripts.Commands.Game;
 using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
@@ -63,21 +64,56 @@ namespace Scripts.Commands.Hand
                 Console.WriteLine("[PlayHandCommand] WARNING: SpellProcessingManager not available");
             }
 
-            // STEP 2: Queue only the discard action - cards will be drawn at turn start
+            // STEP 2: Queue discard and turn start actions
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                Console.WriteLine("[PlayHandCommand] Queuing card discard action...");
+                Console.WriteLine("[PlayHandCommand] Queuing card discard and turn start actions...");
                 
-                // Store selected cards for the queued action (to avoid stale references)
-                var cardsToDiscard = selectedCards.ToArray();
+                // Store card names to avoid null reference when cards get freed
+                var cardNamesToDiscard = selectedCards.Select(card => card.Resource.CardName).ToArray();
+                var cardCount = selectedCards.Length;
                 
-                // Queue only the discard to happen after the spell animations complete
+                // Queue the discard to happen after the spell animations complete
                 queuedActionsManager.QueueAction(() =>
                 {
                     Console.WriteLine("[PlayHandCommand] Executing queued discard...");
-                    handManager.Hand.Discard(cardsToDiscard);
-                    Console.WriteLine("[PlayHandCommand] Cards discarded successfully (will draw at turn start)");
+                    
+                    // Get fresh references to avoid null reference errors
+                    var handManagerForDiscard = ServiceLocator.GetService<IHandManager>();
+                    if (handManagerForDiscard?.Hand != null)
+                    {
+                        // Find the first N selected cards to discard (since spell processing might have changed selection)
+                        var cardsToDiscard = handManagerForDiscard.Hand.SelectedCards.Take(cardCount).ToArray();
+                        if (cardsToDiscard.Length == 0)
+                        {
+                            // Fallback: discard the first N cards if none are selected
+                            cardsToDiscard = handManagerForDiscard.Hand.Cards.Take(cardCount).ToArray();
+                        }
+                        
+                        if (cardsToDiscard.Length > 0)
+                        {
+                            handManagerForDiscard.Hand.Discard(cardsToDiscard);
+                            Console.WriteLine($"[PlayHandCommand] {cardsToDiscard.Length} cards discarded successfully");
+                        }
+                    }
+                    
+                    // After discard, queue turn start to draw new cards
+                    Console.WriteLine("[PlayHandCommand] Queuing turn start to draw new cards...");
+                    queuedActionsManager.QueueAction(() =>
+                    {
+                        var gameCommandProcessor = ServiceLocator.GetService<Scripts.Commands.GameCommandProcessor>();
+                        if (gameCommandProcessor != null)
+                        {
+                            var turnStartCommand = new TurnStartCommand();
+                            var success = gameCommandProcessor.ExecuteCommand(turnStartCommand);
+                            Console.WriteLine($"[PlayHandCommand] Turn start command executed: {success}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[PlayHandCommand] ERROR: GameCommandProcessor not available for turn start");
+                        }
+                    });
                 });
             }
             else
