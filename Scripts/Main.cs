@@ -2,6 +2,8 @@ using Godot;
 using System;
 using Scripts.Commands;
 using Scripts.Input;
+using Scripts.State;
+using System.Linq;
 
 public partial class Main : Control
 {
@@ -35,6 +37,9 @@ public partial class Main : Control
             
             // Initialize new command system (replaces legacy systems)
             InitializeNewCommandSystem();
+            
+            // Initialize GameState with actual Hand data
+            InitializeGameStateWithRealHandData();
             
             // Connect Hand as observer to GameState changes
             _hand.SetGameCommandProcessor(_commandProcessor);
@@ -137,6 +142,58 @@ public partial class Main : Control
         foreach (Node child in node.GetChildren())
         {
             FindCardsRecursive(child, cards);
+        }
+    }
+
+    /// <summary>
+    /// Initializes the GameState with actual card data from the real Hand
+    /// </summary>
+    private void InitializeGameStateWithRealHandData()
+    {
+        try
+        {
+            Console.WriteLine("[Main] Initializing GameState with real Hand data");
+            
+            // Get actual cards from the real Hand
+            var realCards = _hand.Cards;
+            var realSelectedCards = _hand.SelectedCards;
+            
+            // Convert real cards to CardState objects
+            var cardStates = realCards.Select(card => new CardState(
+                cardId: card.GetInstanceId().ToString(),
+                isSelected: card.IsSelected,
+                isDragging: false,
+                position: 0
+            )).ToList();
+            
+            // Get selected card IDs
+            var selectedCardIds = realSelectedCards.Select(card => card.GetInstanceId().ToString()).ToList();
+            
+            // Create HandState with real data
+            var handState = new HandState(
+                cards: cardStates,
+                selectedCardIds: selectedCardIds,
+                maxHandSize: 10,
+                isLocked: false
+            );
+            
+            // Create complete GameState with real hand data
+            var gameState = GameState.Create(
+                hand: handState,
+                player: new PlayerState(),
+                phase: new GamePhaseState()
+            );
+            
+            // Set the GameState in the command processor
+            _commandProcessor.SetState(gameState, clearHistory: true);
+            
+            Console.WriteLine($"[Main] GameState initialized with {cardStates.Count} cards, {selectedCardIds.Count} selected");
+            _logger?.LogInfo($"GameState initialized with real Hand data: {cardStates.Count} cards");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Failed to initialize GameState with real Hand data", ex);
+            Console.WriteLine($"[Main] ERROR initializing GameState: {ex.Message}");
         }
     }
 }

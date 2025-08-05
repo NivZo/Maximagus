@@ -32,13 +32,12 @@ namespace Scripts.Input
         /// <param name="event">The input event</param>
         public override void _UnhandledInput(InputEvent @event)
         {
-            GD.Print("[KeyboardInputHandler] _UnhandledInput called");
+            // Only process keyboard events, ignore mouse events
+            if (@event is not InputEventKey)
+                return;
             
             if (_inputMapper == null)
-            {
-                GD.Print("[KeyboardInputHandler] ERROR: _inputMapper is null!");
                 return;
-            }
 
             var inputData = ProcessKeyboardEvent(@event);
             if (inputData != null)
@@ -51,10 +50,6 @@ namespace Scripts.Input
                     // Mark the event as handled to prevent further processing
                     GetViewport().SetInputAsHandled();
                 }
-            }
-            else
-            {
-                GD.Print("[KeyboardInputHandler] inputData is null - key not handled");
             }
         }
 

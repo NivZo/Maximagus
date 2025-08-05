@@ -263,9 +263,9 @@ public partial class Hand : Control, IGameStateObserver
         {
             // Sync card selections
             SyncCardSelections(newState.Hand);
-            
-            // Sync card count (add/remove cards as needed)
+            // Sync card count (now enabled since GameState is properly initialized)
             SyncCardCount(newState.Hand);
+            
             
             Console.WriteLine($"[Hand] Synced with GameState: {newState.Hand.Count} cards, {newState.Hand.SelectedCount} selected");
         }
