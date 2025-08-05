@@ -1,279 +1,381 @@
 using Godot;
 using System;
+using System.Linq;
+using Scripts.Commands;
+using Scripts.Commands.Card;
 
 public partial class CardLogic : Button
 {
-    private IEventBus _eventBus;
-    private IHoverManager _hoverManager;
-    private IDragManager _dragManager;
-    private ILogger _logger;
+	private IEventBus _eventBus;
+	private IHoverManager _hoverManager;
+	private IDragManager _dragManager;
+	private ILogger _logger;
+	private GameCommandProcessor _commandProcessor;
+	private bool _commandSystemReady = false;
 
-    private Vector2 _distanceFromMouse;
-    private Vector2 _initialMousePosition;
-    private bool _mousePressed = false;
-    private const float DRAG_THRESHOLD = 35.0f;
+	private Vector2 _distanceFromMouse;
+	private Vector2 _initialMousePosition;
+	private bool _mousePressed = false;
+	private const float DRAG_THRESHOLD = 35.0f;
 
-    public bool IsSelected { get; private set; } = false;
-    public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
-    public bool IsDragging => _dragManager != null ? _dragManager.CurrentlyDraggingCard == Card : false;
-    public Card Card { get; set; }
-    public CardSlot CardSlot { get; private set; }
+	public bool IsSelected { get; private set; } = false;
+	public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
+	public bool IsDragging => _dragManager != null ? _dragManager.CurrentlyDraggingCard == Card : false;
+	public Card Card { get; set; }
+	public CardSlot CardSlot { get; private set; }
 
-    private Area2D _interactionArea;
-    private CollisionShape2D _collisionShape;
+	private Area2D _interactionArea;
+	private CollisionShape2D _collisionShape;
 
-    public override void _Ready()
-    {
-        try
-        {
-            SetupServices();
-            InitializeComponents();
-            SetupEventHandlers();
-            SetupCollision();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error initializing CardLogic for {GetParent()?.Name}", ex);
-            throw;
-        }
-    }
+	public override void _Ready()
+	{
+		try
+		{
+			SetupServices();
+			InitializeComponents();
+			SetupEventHandlers();
+			SetupCollision();
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error initializing CardLogic for {GetParent()?.Name}", ex);
+			throw;
+		}
+	}
 
-    private void SetupServices()
-    {
-        _logger = ServiceLocator.GetService<ILogger>();
-        _eventBus = ServiceLocator.GetService<IEventBus>();
-        _hoverManager = ServiceLocator.GetService<IHoverManager>();
-        _dragManager = ServiceLocator.GetService<IDragManager>();
-    }
+	private void SetupServices()
+	{
+		_logger = ServiceLocator.GetService<ILogger>();
+		_eventBus = ServiceLocator.GetService<IEventBus>();
+		_hoverManager = ServiceLocator.GetService<IHoverManager>();
+		_dragManager = ServiceLocator.GetService<IDragManager>();
+		
+		// DEFERRED: Try to get GameCommandProcessor, but don't fail if not available yet
+		TrySetupCommandSystem();
+	}
 
-    private void InitializeComponents()
-    {
-        _interactionArea = GetNode<Area2D>("InteractionArea").ValidateNotNull("InteractionArea");
-        _collisionShape = _interactionArea.GetNode<CollisionShape2D>("CollisionShape2D").ValidateNotNull("CollisionShape2D");
-    }
+	private void TrySetupCommandSystem()
+	{
+		if (_commandSystemReady) return;
+		
+		_commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+		if (_commandProcessor != null)
+		{
+			_commandSystemReady = true;
+			_logger?.LogDebug($"[CardLogic] Command system ready for card {Card?.GetInstanceId()}");
+		}
+	}
 
-    private void SetupEventHandlers()
-    {
-        GuiInput += OnGuiInput;
-        MouseEntered += OnMouseEntered;
-        MouseExited += OnMouseExited;
+	private void InitializeComponents()
+	{
+		_interactionArea = GetNode<Area2D>("InteractionArea").ValidateNotNull("InteractionArea");
+		_collisionShape = _interactionArea.GetNode<CollisionShape2D>("CollisionShape2D").ValidateNotNull("CollisionShape2D");
+	}
 
-        // Subscribe to hand events through event bus
-        _eventBus?.Subscribe<HandCardSlotsChangedEvent>(_ => InvokePositionChanged());
-    }
+	private void SetupEventHandlers()
+	{
+		GuiInput += OnGuiInput;
+		MouseEntered += OnMouseEntered;
+		MouseExited += OnMouseExited;
 
-    private void SetupCollision()
-    {
-        _collisionShape.SetDeferred("disabled", true);
-        
-        if (_collisionShape.Shape is RectangleShape2D rect)
-            rect.Size = Size;
-        
-        _interactionArea.Position = Size / 2f;
-    }
+		// Subscribe to hand events through event bus
+		_eventBus?.Subscribe<HandCardSlotsChangedEvent>(_ => InvokePositionChanged());
+	}
 
-    public override void _Process(double delta)
-    {
-        try
-        {
-            UpdateVisualPosition((float)delta);
-            CheckDragThreshold();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error in CardLogic process for {GetParent()?.Name}", ex);
-        }
-    }
+	private void SetupCollision()
+	{
+		_collisionShape.SetDeferred("disabled", true);
+		
+		if (_collisionShape.Shape is RectangleShape2D rect)
+			rect.Size = Size;
+		
+		_interactionArea.Position = Size / 2f;
+	}
 
-    private void CheckDragThreshold()
-    {
-        if (!_mousePressed || IsDragging || _dragManager.IsDraggingActive) 
-            return;
+	public override void _Process(double delta)
+	{
+		try
+		{
+			// Try to set up command system if not ready yet
+			if (!_commandSystemReady)
+			{
+				TrySetupCommandSystem();
+			}
+			
+			UpdateVisualPosition((float)delta);
+			CheckDragThreshold();
+			
+			// Only sync with GameState if command system is ready
+			if (_commandSystemReady)
+			{
+				SyncWithGameState();
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error in CardLogic process for {GetParent()?.Name}", ex);
+		}
+	}
 
-        Vector2 currentMousePos = GetGlobalMousePosition();
-        float distance = _initialMousePosition.DistanceTo(currentMousePos);
-        
-        if (distance > DRAG_THRESHOLD)
-        {
-            _distanceFromMouse = currentMousePos - this.GetCenter();
-            StartDragging();
-        }
-    }
+	/// <summary>
+	/// PURE COMMAND SYSTEM: Synchronize visual state with GameState
+	/// </summary>
+	private void SyncWithGameState()
+	{
+		if (_commandProcessor?.CurrentState == null || Card == null) return;
+		
+		try
+		{
+			var currentState = _commandProcessor.CurrentState;
+			var cardId = Card.GetInstanceId().ToString();
+			var shouldBeSelected = currentState.Hand.SelectedCardIds.Any(id => id == cardId);
+			
+			if (IsSelected != shouldBeSelected)
+			{
+				IsSelected = shouldBeSelected;
+				this.SetCenter(GetTargetSlottedCenter());
+				InvokePositionChanged();
+				_logger?.LogDebug($"[CardLogic] Card {cardId} selection synced: {IsSelected}");
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error syncing with GameState: {ex.Message}", ex);
+		}
+	}
 
-    public void SetCardSlot(CardSlot cardSlot)
-    {
-        CardSlot = cardSlot?.ValidateNotNull(nameof(cardSlot));
-        this.SetCenter(GetTargetCenter());
-        InvokePositionChanged();
-    }
+	private void CheckDragThreshold()
+	{
+		if (!_mousePressed || IsDragging || _dragManager?.IsDraggingActive == true) 
+			return;
 
-    private void FollowMouse(float delta)
-    {
-        Vector2 mousePos = GetGlobalMousePosition();
-        this.SetCenter(mousePos - _distanceFromMouse);
-        InvokePositionChanged(delta, true);
-    }
+		Vector2 currentMousePos = GetGlobalMousePosition();
+		float distance = _initialMousePosition.DistanceTo(currentMousePos);
+		
+		if (distance > DRAG_THRESHOLD)
+		{
+			_distanceFromMouse = currentMousePos - this.GetCenter();
+			StartDragging();
+		}
+	}
 
-    private void UpdateVisualPosition(float delta)
-    {
-        if (IsDragging)
-        {
-            FollowMouse(delta);
-        }
-        else if (Card.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
-        {
-            InvokePositionChanged(delta);
-        }
-    }
+	public void SetCardSlot(CardSlot cardSlot)
+	{
+		CardSlot = cardSlot?.ValidateNotNull(nameof(cardSlot));
+		this.SetCenter(GetTargetCenter());
+		InvokePositionChanged();
+	}
 
-    private void HandleMouseClick(InputEventMouseButton mouseButtonEvent)
-    {
-        if (mouseButtonEvent.ButtonIndex != MouseButton.Left) return;
+	private void FollowMouse(float delta)
+	{
+		Vector2 mousePos = GetGlobalMousePosition();
+		this.SetCenter(mousePos - _distanceFromMouse);
+		InvokePositionChanged(delta, true);
+	}
 
-        if (mouseButtonEvent.IsPressed())
-        {
-            HandleMousePressed();
-        }
-        else
-        {
-            HandleMouseReleased();
-        }
-    }
+	private void UpdateVisualPosition(float delta)
+	{
+		if (IsDragging)
+		{
+			FollowMouse(delta);
+		}
+		else if (Card?.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
+		{
+			InvokePositionChanged(delta);
+		}
+	}
 
-    private void HandleMousePressed()
-    {
-        if (!_dragManager.IsDraggingActive)
-        {
-            _mousePressed = true;
-            _initialMousePosition = GetGlobalMousePosition();
-        }
-    }
+	private void HandleMouseClick(InputEventMouseButton mouseButtonEvent)
+	{
+		if (mouseButtonEvent.ButtonIndex != MouseButton.Left) return;
 
-    private void HandleMouseReleased()
-    {
-        if (IsDragging)
-        {
-            StopDragging();
-        }
-        else if (_mousePressed)
-        {
-            HandleClick();
-        }
-        
-        _mousePressed = false;
-    }
+		if (mouseButtonEvent.IsPressed())
+		{
+			HandleMousePressed();
+		}
+		else
+		{
+			HandleMouseReleased();
+		}
+	}
 
-    private void HandleClick()
-    {
-        IsSelected = !IsSelected;
-        this.SetCenter(GetTargetSlottedCenter());
-        
-        InvokePositionChanged();
-        _eventBus?.Publish(new CardClickedEvent(Card));
-    }
+	private void HandleMousePressed()
+	{
+		if (_dragManager?.IsDraggingActive != true)
+		{
+			_mousePressed = true;
+			_initialMousePosition = GetGlobalMousePosition();
+		}
+	}
 
-    private void StartDragging()
-    {
-        if (!_dragManager.StartDrag(Card)) return;
+	private void HandleMouseReleased()
+	{
+		if (IsDragging)
+		{
+			StopDragging();
+		}
+		else if (_mousePressed)
+		{
+			HandleClick();
+		}
+		
+		_mousePressed = false;
+	}
 
-        _collisionShape.SetDeferred("disabled", false);
-        
-        _eventBus?.Publish(new CardDragStartedEvent(Card));
-    }
+	/// <summary>
+	/// PURE COMMAND SYSTEM: Execute selection commands when ready
+	/// </summary>
+	private void HandleClick()
+	{
+		// Wait for command system to be ready
+		if (!_commandSystemReady || _commandProcessor == null)
+		{
+			_logger?.LogWarning($"[CardLogic] Command system not ready yet for card {Card?.GetInstanceId()}, click ignored");
+			return;
+		}
+		
+		var cardId = Card.GetInstanceId().ToString();
+		IGameCommand command;
+		
+		if (IsSelected)
+		{
+			command = new DeselectCardCommand(cardId);
+		}
+		else
+		{
+			command = new SelectCardCommand(cardId);
+		}
+		
+		var success = _commandProcessor.ExecuteCommand(command);
+		_logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
+		
+		// NO LEGACY CODE: State sync happens automatically in SyncWithGameState()
+		// NO LEGACY EVENTS: No CardClickedEvent publishing
+	}
 
-    private void StopDragging()
-    {
-        var card = Card;
-        
-        _dragManager.EndDrag(card);
-        _collisionShape.SetDeferred("disabled", true);
+	private void StartDragging()
+	{
+		if (_dragManager?.StartDrag(Card) != true) return;
 
-        this.SetCenter(GetTargetSlottedCenter());
-        InvokePositionChanged();
+		_collisionShape?.SetDeferred("disabled", false);
+		
+		_eventBus?.Publish(new CardDragStartedEvent(Card));
+	}
 
-        _eventBus?.Publish(new CardDragEndedEvent(card));
-    }
+	private void StopDragging()
+	{
+		var card = Card;
+		
+		_dragManager?.EndDrag(card);
+		_collisionShape?.SetDeferred("disabled", true);
 
-    public void OnGuiInput(InputEvent @event)
-    {
-        try
-        {
-            if (@event is InputEventMouseButton mouseButtonEvent)
-            {
-                HandleMouseClick(mouseButtonEvent);
-            }
+		this.SetCenter(GetTargetSlottedCenter());
+		InvokePositionChanged();
 
-            if (IsDragging) return;
-            if (@event is not InputEventMouseMotion mouseMotion) return;
-            
-            HandleMouseHover(mouseMotion);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error handling GUI input for {GetParent()?.Name}", ex);
-        }
-    }
+		_eventBus?.Publish(new CardDragEndedEvent(card));
+	}
 
-    public void OnMouseEntered()
-    {
-        if (_hoverManager.IsHoveringActive || _dragManager.IsDraggingActive) return;
-        if (!_hoverManager.StartHover(Card)) return;
+	public void OnGuiInput(InputEvent @event)
+	{
+		try
+		{
+			if (@event is InputEventMouseButton mouseButtonEvent)
+			{
+				HandleMouseClick(mouseButtonEvent);
+			}
 
-        _eventBus?.Publish(new CardHoverStartedEvent(Card));
-    }
+			if (IsDragging) return;
+			if (@event is not InputEventMouseMotion mouseMotion) return;
+			
+			HandleMouseHover(mouseMotion);
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error handling GUI input for {GetParent()?.Name}", ex);
+		}
+	}
 
-    public void OnMouseExited()
-    {
-        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive) return;
+	public void OnMouseEntered()
+	{
+		if (_hoverManager?.IsHoveringActive == true || _dragManager?.IsDraggingActive == true) return;
+		if (_hoverManager?.StartHover(Card) != true) return;
 
-        _hoverManager.EndHover(Card);
+		_eventBus?.Publish(new CardHoverStartedEvent(Card));
+	}
 
-        _eventBus?.Publish(new CardHoverEndedEvent(Card));
-    }
+	public void OnMouseExited()
+	{
+		if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true) return;
 
-    private void HandleMouseHover(InputEventMouseMotion mouseMotion)
-    {
-        if (_hoverManager.CurrentlyHoveringCard != Card || _dragManager.IsDraggingActive || IsDragging) return;
+		_hoverManager?.EndHover(Card);
 
-        var localPosition = mouseMotion.Position;
-        _eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
-    }
+		_eventBus?.Publish(new CardHoverEndedEvent(Card));
+	}
 
-    private Vector2 GetTargetCenter()
-    {
-        return IsDragging ? GetTargetFollowMouseCenter() : GetTargetSlottedCenter();
-    }
+	private void HandleMouseHover(InputEventMouseMotion mouseMotion)
+	{
+		if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true || IsDragging) return;
 
-    private Vector2 GetTargetSlottedCenter()
-    {
-        if (CardSlot == null) return Vector2.Zero;
-        
-        Vector2 offset = IsSelected && Card.Visual != null ? new Vector2(0, Card.Visual.SelectionVerticalOffset) : Vector2.Zero;
-        return CardSlot.GetCenter() + offset;
-    }
+		var localPosition = mouseMotion.Position;
+		_eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
+	}
 
-    private Vector2 GetTargetFollowMouseCenter()
-    {
-        return this.GetCenter();
-    }
+	private Vector2 GetTargetCenter()
+	{
+		return IsDragging ? GetTargetFollowMouseCenter() : GetTargetSlottedCenter();
+	}
 
-    private void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
-    {
-        var card = Card;
-        var actualDelta = delta ?? (float)GetProcessDeltaTime();
-        
-        _eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
-    }
+	private Vector2 GetTargetSlottedCenter()
+	{
+		if (CardSlot == null) return Vector2.Zero;
+		
+		Vector2 offset = Vector2.Zero;
+		if (IsSelected && Card?.Visual != null)
+		{
+			try
+			{
+				offset = new Vector2(0, Card.Visual.SelectionVerticalOffset);
+			}
+			catch (Exception ex)
+			{
+				_logger?.LogError($"Error accessing Card.Visual.SelectionVerticalOffset: {ex.Message}", ex);
+			}
+		}
+		
+		return CardSlot.GetCenter() + offset;
+	}
 
-    public override void _ExitTree()
-    {
-        try
-        {
-            base._ExitTree();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error during CardLogic cleanup for {GetParent()?.Name}", ex);
-        }
-    }
+	private Vector2 GetTargetFollowMouseCenter()
+	{
+		return this.GetCenter();
+	}
+
+	private void InvokePositionChanged(float? delta = null, bool isDueToDragging = false)
+	{
+		if (Card == null) return;
+		
+		try
+		{
+			var card = Card;
+			var actualDelta = delta ?? (float)GetProcessDeltaTime();
+			
+			_eventBus?.Publish(new CardPositionChangedEvent(card, actualDelta, GetTargetCenter(), isDueToDragging));
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error invoking position changed: {ex.Message}", ex);
+		}
+	}
+
+	public override void _ExitTree()
+	{
+		try
+		{
+			base._ExitTree();
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError($"Error during CardLogic cleanup for {GetParent()?.Name}", ex);
+		}
+	}
 }

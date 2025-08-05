@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Events;
+using Scripts.Commands;
 
 public partial class Hand : Control
 {
@@ -15,6 +16,7 @@ public partial class Hand : Control
 
     private IEventBus _eventBus;
     private ILogger _logger;
+    private GameCommandProcessor _commandProcessor;
     private Deck _deck;
     private OrderedContainer _cardSlotsContainer;
     private Node _cardsNode;
@@ -30,9 +32,22 @@ public partial class Hand : Control
         .Where(card => card != null)
         .ToImmutableArray();
 
-    public ImmutableArray<Card> SelectedCards => Cards
-        .Where(card => card.IsSelected)
-        .ToImmutableArray();
+    /// <summary>
+    /// PURE COMMAND SYSTEM: Query GameState instead of individual card states
+    /// </summary>
+    public ImmutableArray<Card> SelectedCards
+    {
+        get
+        {
+            if (_commandProcessor?.CurrentState == null) 
+                return ImmutableArray<Card>.Empty;
+
+            var selectedCardIds = _commandProcessor.CurrentState.Hand.SelectedCardIds;
+            return Cards
+                .Where(card => selectedCardIds.Contains(card.GetInstanceId().ToString()))
+                .ToImmutableArray();
+        }
+    }
 
     public override void _Ready()
     {
@@ -41,6 +56,7 @@ public partial class Hand : Control
             Instance = this;
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
+            _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
             _deck = new();
 
             SubscribeToEvents();
@@ -78,7 +94,7 @@ public partial class Hand : Control
         try
         {
             base._Process(delta);
-            HandleDrag();
+            HandleDrag(); // KEEPING: Legacy drag handling for now, per instructions
         }
         catch (Exception ex)
         {
@@ -175,6 +191,9 @@ public partial class Hand : Control
         }
     }
 
+    /// <summary>
+    /// KEEPING: Legacy drag handling per instructions (card-scoped drag only, not reordering)
+    /// </summary>
     private void HandleDrag()
     {
         try
@@ -213,6 +232,9 @@ public partial class Hand : Control
         CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.Count);
     }
 
+    /// <summary>
+    /// KEEPING: Legacy slot reordering per instructions (to be replaced in future phase)
+    /// </summary>
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
     {
         var draggedIndex = CardSlots.IndexOf(draggedSlot);

@@ -45,8 +45,8 @@ namespace Scripts.Commands
                 return false;
             }
 
-            // Sync GameState with real game before validation
-            SyncGameStateWithRealGame();
+            // REMOVED: SyncGameStateWithRealGame() - GameState is the single source of truth
+            // The visual components should sync FROM GameState, not TO GameState
 
             // Validate command can be executed
             if (!command.CanExecute(_currentState))
@@ -104,7 +104,6 @@ namespace Scripts.Commands
         /// Sets the game state directly (used for initialization or loading saved games)
         /// </summary>
         /// <param name="newState">The new game state</param>
-        /// <param name="clearHistory">Whether to clear command history</param>
         public void SetState(IGameStateData newState)
         {
             if (newState == null) throw new ArgumentNullException(nameof(newState));
@@ -139,66 +138,18 @@ namespace Scripts.Commands
             return _currentState.ToString();
         }
 
-        /// <summary>
-        /// Syncs the GameState with the real game objects to ensure single source of truth
-        /// </summary>
-        private void SyncGameStateWithRealGame()
-        {
-            try
-            {
-                // Get real game objects
-                var handManager = ServiceLocator.GetService<IHandManager>();
-                if (handManager?.Hand == null) return;
-
-                var realHand = handManager.Hand;
-                
-                // Convert real cards to CardState objects
-                var cardStates = realHand.Cards.Select(card => new CardState(
-                    cardId: card.GetInstanceId().ToString(),
-                    isSelected: card.IsSelected,
-                    isDragging: card.IsDragging,
-                    position: 0
-                )).ToList();
-
-                // Get selected card IDs
-                var selectedCardIds = realHand.SelectedCards
-                    .Select(card => card.GetInstanceId().ToString())
-                    .ToList();
-
-                // Create updated HandState with real data
-                var newHandState = new HandState(
-                    cards: cardStates,
-                    selectedCardIds: selectedCardIds,
-                    maxHandSize: 10,
-                    isLocked: false
-                );
-
-                // Update the current state with real data
-                _currentState = _currentState.WithHand(newHandState);
-
-                LogInfo($"Synced GameState: {cardStates.Count} cards, {selectedCardIds.Count} selected");
-            }
-            catch (Exception ex)
-            {
-                LogError($"Failed to sync GameState with real game: {ex.Message}");
-            }
-        }
-
         private void LogInfo(string message)
         {
-            // TODO: Use proper logging system
             GD.Print($"[GameCommandProcessor] INFO: {message}");
         }
 
         private void LogWarning(string message)
         {
-            // TODO: Use proper logging system
             GD.Print($"[GameCommandProcessor] WARNING: {message}");
         }
 
         private void LogError(string message)
         {
-            // TODO: Use proper logging system
             GD.Print($"[GameCommandProcessor] ERROR: {message}");
         }
     }
@@ -212,5 +163,4 @@ namespace Scripts.Commands
         public IGameStateData NewState { get; set; }
         public IGameCommand ExecutedCommand { get; set; }
     }
-
 }

@@ -2,12 +2,12 @@ using System;
 using Scripts.State;
 using System.Linq;
 using Godot;
-using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Card
 {
     /// <summary>
-    /// Command to select a card in the player's hand
+    /// PURE COMMAND SYSTEM: Command to select a card in the player's hand
+    /// Updates only GameState - visual sync happens automatically
     /// </summary>
     public class SelectCardCommand : IGameCommand
     {
@@ -46,41 +46,20 @@ namespace Scripts.Commands.Card
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine($"[SelectCardCommand] Execute() called for card {_cardId}!");
+            GD.Print($"[SelectCardCommand] Selecting card {_cardId} in GameState");
             
-            // Get HandManager to access the Hand properly
-            var handManager = ServiceLocator.GetService<IHandManager>();
-            if (handManager?.Hand == null)
-            {
-                Console.WriteLine("[SelectCardCommand] ERROR: HandManager.Hand is null!");
-                return currentState;
-            }
-
-            // Find the real card by ID
-            var realCard = handManager.Hand.Cards.FirstOrDefault(c => c.GetInstanceId().ToString() == _cardId);
-            if (realCard == null)
-            {
-                Console.WriteLine($"[SelectCardCommand] ERROR: Card {_cardId} not found in hand!");
-                return currentState;
-            }
-
-            // Select the real card by simulating a click
-            if (!realCard.IsSelected)
-            {
-                var mouseEvent = new InputEventMouseButton();
-                mouseEvent.ButtonIndex = MouseButton.Left;
-                mouseEvent.Pressed = false; // Release event triggers the click
-                realCard.Logic.OnGuiInput(mouseEvent);
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} selected successfully");
-            }
-            else
-            {
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} was already selected");
-            }
-
-            // Update GameState to keep it in sync
+            // PURE COMMAND SYSTEM: Update only GameState
+            // CardLogic.SyncWithGameState() will handle visual updates automatically
             var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
-            return currentState.WithHand(newHandState);
+            var newState = currentState.WithHand(newHandState);
+            
+            GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
+            return newState;
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new DeselectCardCommand(_cardId);
         }
 
         public string GetDescription()

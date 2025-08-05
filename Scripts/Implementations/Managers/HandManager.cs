@@ -44,12 +44,15 @@ namespace Maximagus.Scripts.Managers
 
         private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
         {
-            // Simple discard handling - the new command system will handle card replacement
+            // PURE COMMAND SYSTEM: Use instance methods on Hand, not static calls
             if (Hand != null && Hand.SelectedCards.Length > 0)
             {
                 var selectedCards = Hand.SelectedCards.ToArray();
+                
+                // Call instance methods on the Hand object
                 Hand.Discard(selectedCards);
                 Hand.DrawAndAppend(selectedCards.Length);
+                
                 RemainingDiscards--;
                 _logger?.LogInfo($"[HandManager] Discarded {selectedCards.Length} cards, {RemainingDiscards} discards remaining");
             }

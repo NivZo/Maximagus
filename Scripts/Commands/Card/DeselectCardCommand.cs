@@ -1,10 +1,13 @@
 using System;
 using Scripts.State;
+using System.Linq;
+using Godot;
 
 namespace Scripts.Commands.Card
 {
     /// <summary>
-    /// Command to deselect a card in the player's hand
+    /// PURE COMMAND SYSTEM: Command to deselect a card in the player's hand
+    /// Updates only GameState - visual sync happens automatically
     /// </summary>
     public class DeselectCardCommand : IGameCommand
     {
@@ -30,7 +33,7 @@ namespace Scripts.Commands.Card
             {
                 if (card.CardId == _cardId)
                 {
-                    return card.IsSelected;
+                    return card.IsSelected; // Can only deselect if currently selected
                 }
             }
 
@@ -39,14 +42,20 @@ namespace Scripts.Commands.Card
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException($"Cannot execute DeselectCardCommand for card {_cardId}");
-
-            // Update hand state to deselect the card
+            GD.Print($"[DeselectCardCommand] Deselecting card {_cardId} in GameState");
+            
+            // PURE COMMAND SYSTEM: Update only GameState
+            // CardLogic.SyncWithGameState() will handle visual updates automatically
             var newHandState = currentState.Hand.WithCardSelection(_cardId, false);
+            var newState = currentState.WithHand(newHandState);
+            
+            GD.Print($"[DeselectCardCommand] Card {_cardId} deselected in GameState successfully");
+            return newState;
+        }
 
-            // Return new game state with updated hand
-            return currentState.WithHand(newHandState);
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new SelectCardCommand(_cardId);
         }
 
         public string GetDescription()

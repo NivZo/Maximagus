@@ -5,7 +5,7 @@ using Scripts.State;
 namespace Scripts.Commands.Game
 {
     /// <summary>
-    /// Command to start the game (Menu -> CardSelection directly, since cards are already created)
+    /// Command to start the game (Menu -> CardSelection, or no-op if already in gameplay)
     /// </summary>
     public class StartGameCommand : IGameCommand
     {
@@ -13,8 +13,9 @@ namespace Scripts.Commands.Game
 
         public bool CanExecute(IGameStateData currentState)
         {
-            // Only allow starting if we're in Menu phase
-            return currentState.Phase.CurrentPhase == GamePhase.Menu;
+            // Allow starting from Menu phase, or if already in CardSelection (game already started)
+            return currentState.Phase.CurrentPhase == GamePhase.Menu || 
+                   currentState.Phase.CurrentPhase == GamePhase.CardSelection;
         }
 
         public IGameStateData Execute(IGameStateData currentState)
@@ -22,20 +23,32 @@ namespace Scripts.Commands.Game
             GD.Print("[StartGameCommand] Execute() called!");
             GD.Print($"[StartGameCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
-            // Only transition from Menu to CardSelection (since cards are already created in Hand)
-            if (currentState.Phase.CurrentPhase != GamePhase.Menu)
+            // If we're in Menu, transition to CardSelection
+            if (currentState.Phase.CurrentPhase == GamePhase.Menu)
             {
-                GD.Print("[StartGameCommand] Game already started!");
-                return currentState;
+                var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
+                var newState = currentState.WithPhase(newPhaseState);
+                
+                GD.Print("[StartGameCommand] Game started - transitioned to CardSelection phase");
+                return newState;
             }
             
-            // Go directly to CardSelection phase since cards are already created
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
-            var newState = currentState.WithPhase(newPhaseState);
+            // If we're already in CardSelection, the game is already started - no change needed
+            if (currentState.Phase.CurrentPhase == GamePhase.CardSelection)
+            {
+                GD.Print("[StartGameCommand] Game already started and in CardSelection phase");
+                return currentState; // No state change needed
+            }
             
-            GD.Print($"[StartGameCommand] Game started - new phase: {newState.Phase.CurrentPhase}");
-            
-            return newState;
+            // For other phases, no action (shouldn't happen due to CanExecute check)
+            GD.Print("[StartGameCommand] No action needed for current phase");
+            return currentState;
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            // For now, starting game is not undoable
+            return null;
         }
     }
 }

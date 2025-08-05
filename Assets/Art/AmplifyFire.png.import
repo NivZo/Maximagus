@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dalcl6uugs8r5"
-path="res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"
+path="res://.godot/imported/AmplifyFire.png-867be5d1f0f8357d1d197a20734e766a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/AmplifyFIre.png"
-dest_files=["res://.godot/imported/AmplifyFIre.png-2b3c529bcac003d4752e207613eabcd7.ctex"]
+source_file="res://Assets/Art/AmplifyFire.png"
+dest_files=["res://.godot/imported/AmplifyFire.png-867be5d1f0f8357d1d197a20734e766a.ctex"]
 
 [params]
 

@@ -3,6 +3,7 @@ using System;
 using Scripts.Commands;
 using Scripts.Input;
 using Scripts.State;
+using Scripts.Validation;
 using System.Linq;
 
 public partial class Main : Control
@@ -60,6 +61,9 @@ public partial class Main : Control
             // Initialize command processor with initial game state
             _commandProcessor = new GameCommandProcessor(eventBus);
             
+            // CRITICAL: Register the GameCommandProcessor with ServiceLocator so CardLogic can find it
+            ServiceLocator.RegisterService(_commandProcessor);
+            
             // Initialize input mapper
             _inputMapper = new InputToCommandMapper(_commandProcessor);
             
@@ -76,6 +80,9 @@ public partial class Main : Control
             
             // Notify existing cards that input system is ready
             NotifyCardsInputSystemReady();
+            
+            // CRITICAL: Initialize GameState with real card data from the Hand
+            InitializeGameStateWithRealHandData();
             
             _logger?.LogInfo("New command system initialized successfully");
             _logger?.LogInfo("LEGACY SYSTEMS DISABLED - Using only new command architecture");
@@ -144,17 +151,19 @@ public partial class Main : Control
     }
 
     /// <summary>
-    /// Initializes the GameState with actual card data from the real Hand
+    /// CRITICAL: Initializes the GameState with actual card data from the real Hand
     /// </summary>
     private void InitializeGameStateWithRealHandData()
     {
         try
         {
-            Console.WriteLine("[Main] Initializing GameState with real Hand data");
+            GD.Print("[Main] Initializing GameState with real Hand data");
             
             // Get actual cards from the real Hand
             var realCards = _hand.Cards;
             var realSelectedCards = _hand.SelectedCards;
+            
+            GD.Print($"[Main] Found {realCards.Length} real cards, {realSelectedCards.Length} selected");
             
             // Convert real cards to CardState objects
             var cardStates = realCards.Select(card => new CardState(
@@ -167,6 +176,8 @@ public partial class Main : Control
             // Get selected card IDs
             var selectedCardIds = realSelectedCards.Select(card => card.GetInstanceId().ToString()).ToList();
             
+            GD.Print($"[Main] Creating HandState with {cardStates.Count} cards, {selectedCardIds.Count} selected");
+            
             // Create HandState with real data
             var handState = new HandState(
                 cards: cardStates,
@@ -175,23 +186,79 @@ public partial class Main : Control
                 isLocked: false
             );
             
+            // DEBUG: Check if HandState is valid
+            if (!handState.IsValid())
+            {
+                GD.PrintErr("[Main] ERROR: HandState is invalid!");
+                return;
+            }
+            
+            GD.Print("[Main] HandState created successfully and is valid");
+            
+            // FIXED: Create GamePhaseState with proper parameters to pass validation
+            var gamePhaseState = new GamePhaseState(
+                currentPhase: GamePhase.CardSelection,    // Start in card selection phase
+                turnNumber: 1,                            // Turn 1
+                phaseTimer: 0f,                          // Fresh phase
+                canPlayerAct: true,                      // Player can act during card selection
+                phaseDescription: "Select cards for your spell"  // CRITICAL: Non-empty description
+            );
+            
+            // DEBUG: Check if GamePhaseState is valid
+            if (!gamePhaseState.IsValid())
+            {
+                GD.PrintErr("[Main] ERROR: GamePhaseState is invalid!");
+                GD.PrintErr($"[Main] TurnNumber: {gamePhaseState.TurnNumber}");
+                GD.PrintErr($"[Main] PhaseTimer: {gamePhaseState.PhaseTimer}");
+                GD.PrintErr($"[Main] PhaseDescription: '{gamePhaseState.PhaseDescription}'");
+                return;
+            }
+            
+            GD.Print("[Main] GamePhaseState created successfully and is valid");
+            
             // Create complete GameState with real hand data
             var gameState = GameState.Create(
                 hand: handState,
                 player: new PlayerState(),
-                phase: new GamePhaseState()
+                phase: gamePhaseState
             );
+            
+            // DEBUG: Detailed state validation
+            var validator = new StateValidator();
+            var validationResult = validator.ValidateState(gameState);
+            
+            if (!validationResult.IsValid)
+            {
+                GD.PrintErr($"[Main] ERROR: GameState validation failed!");
+                foreach (var error in validationResult.Errors)
+                {
+                    GD.PrintErr($"[Main] Validation Error: {error}");
+                }
+                foreach (var warning in validationResult.Warnings)
+                {
+                    GD.Print($"[Main] Validation Warning: {warning}");
+                }
+                return;
+            }
+            
+            GD.Print("[Main] GameState validation passed, setting state...");
             
             // Set the GameState in the command processor
             _commandProcessor.SetState(gameState);
             
-            Console.WriteLine($"[Main] GameState initialized with {cardStates.Count} cards, {selectedCardIds.Count} selected");
+            GD.Print($"[Main] GameState initialized successfully with {cardStates.Count} cards, {selectedCardIds.Count} selected");
+            foreach (var cardState in cardStates)
+            {
+                GD.Print($"[Main] Card ID: {cardState.CardId}, Selected: {cardState.IsSelected}");
+            }
+            
             _logger?.LogInfo($"GameState initialized with real Hand data: {cardStates.Count} cards");
         }
         catch (Exception ex)
         {
             _logger?.LogError("Failed to initialize GameState with real Hand data", ex);
-            Console.WriteLine($"[Main] ERROR initializing GameState: {ex.Message}");
+            GD.PrintErr($"[Main] ERROR initializing GameState: {ex.Message}");
+            GD.PrintErr($"[Main] Stack trace: {ex.StackTrace}");
         }
     }
 }
