@@ -170,12 +170,11 @@ namespace Scripts.Commands.Hand
                 }
             }
 
-            // STEP 3: Update GameState - clear selected cards after playing and update player
-            var newHandState = currentState.Hand.WithClearedSelection();
+            // STEP 3: Update GameState - update player's remaining hands without clearing selection
             var newPlayerState = currentState.Player.WithHandUsed();
-            var newState = currentState.WithHand(newHandState).WithPlayer(newPlayerState);
+            var newState = currentState.WithPlayer(newPlayerState);
             
-            _logger?.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}, selected cards cleared");
+            _logger?.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}, selections preserved");
             return newState;
         }
 
