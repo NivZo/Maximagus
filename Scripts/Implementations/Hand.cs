@@ -102,8 +102,13 @@ public partial class Hand : Control
 
             _eventBus?.Publish(new HandCardSlotsChangedEvent());
 
-            // Don't create initial cards - they will be drawn when the first turn starts
-            GD.Print("[Hand] Card slots initialized - no initial cards created");
+            // Create cards for each slot - keeping original behavior to avoid null reference errors
+            var rnd = new Random();
+            foreach (var slot in CardSlots)
+            {
+                var resource = _deck.GetNext();
+                Card.Create(_cardsNode, slot, resource);
+            }
         }
         catch (Exception ex)
         {
@@ -152,6 +157,9 @@ public partial class Hand : Control
             var slot = CardSlots[i];
             var card = slot.Card;
 
+            // Skip empty slots (when no cards are present)
+            if (card == null) continue;
+
             // Handle Z
             card.ZIndex = i;
             _cardsNode.MoveChild(card, i);
@@ -160,7 +168,6 @@ public partial class Hand : Control
             float normalizedPos = (count > 1) ? (2.0f * i / count - 1.0f) : 0;
             float yOffset = Mathf.Pow(normalizedPos, 2) * -CardsCurveMultiplier;
             slot.TargetPosition = new Vector2(slot.TargetPosition.X, baselineY - yOffset);
-
 
             // Handle rotation
             float rotation = normalizedPos * CardsRotationMultiplier;
