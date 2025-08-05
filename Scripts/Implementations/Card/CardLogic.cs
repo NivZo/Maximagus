@@ -2,7 +2,6 @@ using Godot;
 using System;
 using System.Linq;
 using Scripts.Commands;
-using Scripts.Commands.Card;
 
 public partial class CardLogic : Button
 {
@@ -12,11 +11,6 @@ public partial class CardLogic : Button
     private ILogger _logger;
     private GameCommandProcessor _commandProcessor;
     private bool _commandSystemReady = false;
-
-    private Vector2 _distanceFromMouse;
-    private Vector2 _initialMousePosition;
-    private bool _mousePressed = false;
-    private const float DRAG_THRESHOLD = 35.0f;
 
     public bool IsSelected { get; private set; } = false;
     public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
@@ -50,8 +44,7 @@ public partial class CardLogic : Button
         _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _dragManager = ServiceLocator.GetService<IDragManager>();
         
-        // DEFERRED: Don't require GameCommandProcessor during initialization
-        // It will be set up when the command system is ready
+        // DEFERRED: Set up command system when available
         TrySetupCommandSystem();
     }
 
@@ -75,7 +68,7 @@ public partial class CardLogic : Button
 
     private void SetupEventHandlers()
     {
-        GuiInput += OnGuiInput;
+        // REMOVED: No direct input handling - CardInputHandler handles all input
         MouseEntered += OnMouseEntered;
         MouseExited += OnMouseExited;
 
@@ -104,7 +97,6 @@ public partial class CardLogic : Button
             }
             
             UpdateVisualPosition((float)delta);
-            CheckDragThreshold();
             
             // Only sync with GameState if command system is ready
             if (_commandSystemReady)
@@ -142,21 +134,6 @@ public partial class CardLogic : Button
         }
     }
 
-    private void CheckDragThreshold()
-    {
-        if (!_mousePressed || IsDragging || _dragManager?.IsDraggingActive == true) 
-            return;
-
-        Vector2 currentMousePos = GetGlobalMousePosition();
-        float distance = _initialMousePosition.DistanceTo(currentMousePos);
-        
-        if (distance > DRAG_THRESHOLD)
-        {
-            _distanceFromMouse = currentMousePos - this.GetCenter();
-            StartDragging();
-        }
-    }
-
     public void SetCardSlot(CardSlot cardSlot)
     {
         CardSlot = cardSlot?.ValidateNotNull(nameof(cardSlot));
@@ -164,18 +141,12 @@ public partial class CardLogic : Button
         InvokePositionChanged();
     }
 
-    private void FollowMouse(float delta)
-    {
-        Vector2 mousePos = GetGlobalMousePosition();
-        this.SetCenter(mousePos - _distanceFromMouse);
-        InvokePositionChanged(delta, true);
-    }
-
     private void UpdateVisualPosition(float delta)
     {
         if (IsDragging)
         {
-            FollowMouse(delta);
+            // REMOVED: FollowMouse logic - CardInputHandler and commands handle drag
+            // Visual positioning during drag is handled by the drag system
         }
         else if (Card?.Visual != null && Card.Visual.GetCenter() != GetTargetSlottedCenter())
         {
@@ -183,126 +154,9 @@ public partial class CardLogic : Button
         }
     }
 
-    private void HandleMouseClick(InputEventMouseButton mouseButtonEvent)
-    {
-        if (mouseButtonEvent.ButtonIndex != MouseButton.Left) return;
-
-        if (mouseButtonEvent.IsPressed())
-        {
-            HandleMousePressed();
-        }
-        else
-        {
-            HandleMouseReleased();
-        }
-    }
-
-    private void HandleMousePressed()
-    {
-        if (_dragManager?.IsDraggingActive != true)
-        {
-            _mousePressed = true;
-            _initialMousePosition = GetGlobalMousePosition();
-        }
-    }
-
-    private void HandleMouseReleased()
-    {
-        if (IsDragging)
-        {
-            StopDragging();
-        }
-        else if (_mousePressed)
-        {
-            HandleClick();
-        }
-        
-        _mousePressed = false;
-    }
-
-    private void HandleClick()
-    {
-        // Check if command system is ready, otherwise use legacy behavior temporarily
-        if (!_commandSystemReady || Card == null || _commandProcessor == null)
-        {
-            // TEMPORARY FALLBACK: Direct toggle until command system is ready
-            IsSelected = !IsSelected;
-            this.SetCenter(GetTargetSlottedCenter());
-            InvokePositionChanged();
-            _logger?.LogWarning($"[CardLogic] Command system not ready, using temporary fallback for card {Card?.GetInstanceId()}");
-            return;
-        }
-        
-        try
-        {
-            var cardId = Card.GetInstanceId().ToString();
-            IGameCommand command;
-            
-            if (IsSelected)
-            {
-                command = new DeselectCardCommand(cardId);
-            }
-            else
-            {
-                command = new SelectCardCommand(cardId);
-            }
-            
-            var success = _commandProcessor.ExecuteCommand(command);
-            _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error handling card click: {ex.Message}", ex);
-        }
-        
-        // State will be synced automatically in next _Process call via SyncWithGameState()
-    }
-
-    private void StartDragging()
-    {
-        if (_dragManager?.StartDrag(Card) != true) return;
-
-        _collisionShape?.SetDeferred("disabled", false);
-        
-        _eventBus?.Publish(new CardDragStartedEvent(Card));
-    }
-
-    private void StopDragging()
-    {
-        if (Card == null) return;
-        
-        var card = Card;
-        
-        _dragManager?.EndDrag(card);
-        _collisionShape?.SetDeferred("disabled", true);
-
-        this.SetCenter(GetTargetSlottedCenter());
-        InvokePositionChanged();
-
-        // TODO: Future Phase - Implement ReorderCardsCommand here
-        // For now, keep legacy drag behavior
-        _eventBus?.Publish(new CardDragEndedEvent(card));
-    }
-
-    public void OnGuiInput(InputEvent @event)
-    {
-        try
-        {
-            if (@event is InputEventMouseButton mouseButtonEvent)
-            {
-                HandleMouseClick(mouseButtonEvent);
-            }
-
-            if (IsDragging) return;
-            if (@event is not InputEventMouseMotion mouseMotion) return;
-            
-            HandleMouseHover(mouseMotion);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error handling GUI input for {GetParent()?.Name}", ex);
-        }
-    }
+    // REMOVED: All mouse input handling - CardInputHandler handles input routing
+    // REMOVED: All drag threshold detection - CardInputHandler handles drag detection
+    // REMOVED: All click handling - InputToCommandMapper handles click to command conversion
 
     public void OnMouseEntered()
     {
@@ -319,14 +173,6 @@ public partial class CardLogic : Button
         _hoverManager?.EndHover(Card);
 
         _eventBus?.Publish(new CardHoverEndedEvent(Card));
-    }
-
-    private void HandleMouseHover(InputEventMouseMotion mouseMotion)
-    {
-        if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true || IsDragging) return;
-
-        var localPosition = mouseMotion.Position;
-        _eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
     }
 
     private Vector2 GetTargetCenter()
