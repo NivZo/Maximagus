@@ -64,76 +64,84 @@ namespace Scripts.Commands.Hand
                 Console.WriteLine("[PlayHandCommand] WARNING: SpellProcessingManager not available");
             }
 
-            // STEP 2: Queue discard and turn start actions
+            // STEP 2: Queue discard action with better error handling
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                Console.WriteLine("[PlayHandCommand] Queuing card discard and turn start actions...");
+                Console.WriteLine("[PlayHandCommand] Queuing card discard action...");
                 
-                // Store card names to avoid null reference when cards get freed
-                var cardNamesToDiscard = selectedCards.Select(card => card.Resource.CardName).ToArray();
+                // Store the card count to discard
                 var cardCount = selectedCards.Length;
                 
                 // Queue the discard to happen after the spell animations complete
                 queuedActionsManager.QueueAction(() =>
                 {
-                    Console.WriteLine("[PlayHandCommand] Executing queued discard...");
-                    
-                    // Get fresh references to avoid null reference errors
-                    var handManagerForDiscard = ServiceLocator.GetService<IHandManager>();
-                    if (handManagerForDiscard?.Hand != null)
+                    try
                     {
-                        // Find the first N selected cards to discard (since spell processing might have changed selection)
-                        var cardsToDiscard = handManagerForDiscard.Hand.SelectedCards.Take(cardCount).ToArray();
-                        if (cardsToDiscard.Length == 0)
-                        {
-                            // Fallback: discard the first N cards if none are selected
-                            cardsToDiscard = handManagerForDiscard.Hand.Cards.Take(cardCount).ToArray();
-                        }
+                        Console.WriteLine("[PlayHandCommand] Executing queued discard...");
                         
-                        if (cardsToDiscard.Length > 0)
+                        // Get fresh reference to HandManager
+                        var handManagerForDiscard = ServiceLocator.GetService<IHandManager>();
+                        if (handManagerForDiscard?.Hand == null)
                         {
+                            Console.WriteLine("[PlayHandCommand] ERROR: HandManager not available for discard");
+                            return;
+                        }
+
+                        // Get current cards to discard (first N cards since selection might be cleared)
+                        var currentCards = handManagerForDiscard.Hand.Cards;
+                        if (currentCards.Length >= cardCount)
+                        {
+                            var cardsToDiscard = currentCards.Take(cardCount).ToArray();
                             handManagerForDiscard.Hand.Discard(cardsToDiscard);
                             Console.WriteLine($"[PlayHandCommand] {cardsToDiscard.Length} cards discarded successfully");
-                        }
-                    }
-                    
-                    // After discard, queue turn start to draw new cards
-                    Console.WriteLine("[PlayHandCommand] Queuing turn start to draw new cards...");
-                    queuedActionsManager.QueueAction(() =>
-                    {
-                        var gameCommandProcessor = ServiceLocator.GetService<Scripts.Commands.GameCommandProcessor>();
-                        if (gameCommandProcessor != null)
-                        {
-                            var turnStartCommand = new TurnStartCommand();
-                            var success = gameCommandProcessor.ExecuteCommand(turnStartCommand);
-                            Console.WriteLine($"[PlayHandCommand] Turn start command executed: {success}");
+                            
+                            // Queue turn start after successful discard
+                            Console.WriteLine("[PlayHandCommand] Queuing turn start...");
+                            queuedActionsManager.QueueAction(() =>
+                            {
+                                try
+                                {
+                                    var gameCommandProcessor = ServiceLocator.GetService<Scripts.Commands.GameCommandProcessor>();
+                                    if (gameCommandProcessor != null)
+                                    {
+                                        var turnStartCommand = new TurnStartCommand();
+                                        var success = gameCommandProcessor.ExecuteCommand(turnStartCommand);
+                                        Console.WriteLine($"[PlayHandCommand] Turn start executed: {success}");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("[PlayHandCommand] ERROR: GameCommandProcessor not available");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[PlayHandCommand] ERROR in turn start: {ex.Message}");
+                                }
+                            });
                         }
                         else
                         {
-                            Console.WriteLine("[PlayHandCommand] ERROR: GameCommandProcessor not available for turn start");
+                            Console.WriteLine($"[PlayHandCommand] ERROR: Not enough cards to discard ({currentCards.Length} < {cardCount})");
                         }
-                    });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[PlayHandCommand] ERROR in queued discard: {ex.Message}");
+                    }
                 });
             }
             else
             {
-                Console.WriteLine("[PlayHandCommand] WARNING: QueuedActionsManager not available, executing immediately");
-                // Fallback to immediate execution if QueuedActionsManager is not available
-                handManager.Hand.Discard(selectedCards);
-                Console.WriteLine("[PlayHandCommand] Cards discarded successfully");
+                Console.WriteLine("[PlayHandCommand] WARNING: QueuedActionsManager not available");
             }
 
-            // STEP 3: Update GameState - transition to SpellCasting phase and update player
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellCasting);
+            // STEP 3: Update GameState - stay in CardSelection phase to avoid validation issues
+            // The phase will be managed by the turn start command later
             var newPlayerState = currentState.Player.WithHandUsed();
+            var newState = currentState.WithPlayer(newPlayerState);
             
-            // Create new state with updated phase and player
-            var newState = currentState
-                .WithPhase(newPhaseState)
-                .WithPlayer(newPlayerState);
-            
-            Console.WriteLine($"[PlayHandCommand] State updated: {newState.Phase.CurrentPhase} phase, hands remaining: {newState.Player.RemainingHands}");
+            Console.WriteLine($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}");
             return newState;
         }
 
