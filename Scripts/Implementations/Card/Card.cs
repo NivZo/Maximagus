@@ -49,6 +49,14 @@ public partial class Card : Control
         // New input system will be initialized via notification from Main
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        // Forward input events to CardInputHandler if available
+        if (_cardInputHandler != null)
+        {
+            _cardInputHandler._Input(@event);
+        }
+    }
 
     /// <summary>
     /// Called by Main when the input system becomes available
@@ -66,6 +74,13 @@ public partial class Card : Control
                 // Initialize with card ID and input mapper
                 var cardId = GetInstanceId().ToString();
                 _cardInputHandler.Initialize(cardId, inputMapper);
+                
+                // Connect mouse enter/exit events from CardLogic to CardInputHandler
+                if (Logic != null)
+                {
+                    Logic.MouseEntered += _cardInputHandler.OnMouseEntered;
+                    Logic.MouseExited += _cardInputHandler.OnMouseExited;
+                }
                 
                 _logger?.LogInfo($"Card input handler initialized for card {cardId} via notification");
             }
