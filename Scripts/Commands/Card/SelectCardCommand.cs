@@ -83,11 +83,6 @@ namespace Scripts.Commands.Card
             return currentState.WithHand(newHandState);
         }
 
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new DeselectCardCommand(_cardId);
-        }
-
         public string GetDescription()
         {
             return $"Select card: {_cardId}";

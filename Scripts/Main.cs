@@ -183,7 +183,7 @@ public partial class Main : Control
             );
             
             // Set the GameState in the command processor
-            _commandProcessor.SetState(gameState, clearHistory: true);
+            _commandProcessor.SetState(gameState);
             
             Console.WriteLine($"[Main] GameState initialized with {cardStates.Count} cards, {selectedCardIds.Count} selected");
             _logger?.LogInfo($"GameState initialized with real Hand data: {cardStates.Count} cards");

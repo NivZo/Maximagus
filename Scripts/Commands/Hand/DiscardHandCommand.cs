@@ -78,12 +78,6 @@ namespace Scripts.Commands.Hand
             return currentState.WithPhase(newPhaseState);
         }
 
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            // For undo, we need to restore the previous hand state
-            return new RestoreHandStateCommand(previousState.Hand);
-        }
-
         public string GetDescription()
         {
             return "Discard selected cards";
@@ -114,11 +108,6 @@ namespace Scripts.Commands.Hand
                 throw new InvalidOperationException("Cannot execute RestoreHandStateCommand - target hand state is invalid");
 
             return currentState.WithHand(_targetHandState);
-        }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new RestoreHandStateCommand(previousState.Hand);
         }
 
         public string GetDescription()

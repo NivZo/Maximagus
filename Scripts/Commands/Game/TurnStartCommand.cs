@@ -85,11 +85,5 @@ namespace Scripts.Commands.Game
             
             return newState;
         }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            // Turn start typically can't be undone
-            return null;
-        }
     }
 }

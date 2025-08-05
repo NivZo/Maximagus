@@ -131,7 +131,6 @@ namespace Scripts.Input
                 Key.Space => new PlayHandCommand(),
                 Key.Delete or Key.Backspace => new DiscardHandCommand(),
                 Key.Escape => CreateClearSelectionCommand(),
-                Key.Z when inputData.IsCtrlPressed => CreateUndoCommand(),
                 _ => null
             };
         }
@@ -174,17 +173,6 @@ namespace Scripts.Input
             // For now, create a command that deselects all cards
             // This could be optimized with a dedicated ClearSelectionCommand
             return new RestoreHandStateCommand(currentState.Hand.WithClearedSelection());
-        }
-
-        /// <summary>
-        /// Creates an undo command (delegates to command processor)
-        /// </summary>
-        private IGameCommand CreateUndoCommand()
-        {
-            // The undo is handled by the command processor directly
-            // We return null here and handle undo separately
-            _commandProcessor.UndoLastCommand();
-            return null;
         }
 
         /// <summary>

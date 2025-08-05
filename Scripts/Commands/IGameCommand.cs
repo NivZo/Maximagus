@@ -24,13 +24,6 @@ namespace Scripts.Commands
         IGameStateData Execute(IGameStateData currentState);
 
         /// <summary>
-        /// Creates an undo command that can reverse this command's effects.
-        /// </summary>
-        /// <param name="previousState">The state before this command was executed</param>
-        /// <returns>Command that can undo this command's effects</returns>
-        IGameCommand CreateUndoCommand(IGameStateData previousState);
-
-        /// <summary>
         /// Gets a human-readable description of this command for debugging.
         /// </summary>
         /// <returns>Description of the command</returns>

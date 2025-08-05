@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Maximagus.Scripts.Input;
 using Maximagus.Scripts.Managers;
 using Maximagus.Scripts.Spells.Implementations;
+using Scripts.State;
 
 public static class ServiceLocator
 {
@@ -24,15 +24,12 @@ public static class ServiceLocator
         RegisterService<IEventBus, SimpleEventBus>();
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IDragManager, DragManager>();
-        RegisterService<IHandManager, HandManager>(); // Re-enabled for Hand access
-        RegisterService<Scripts.State.IGameStateManager, Scripts.State.GameStateManager>(); // Single source of truth
+        RegisterService<IHandManager, HandManager>();
+        RegisterService<IGameStateManager, GameStateManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
-        // RegisterService<IGameStateManager, GameStateManager>(); // DISABLED - using new command system
 
         // Node services
-        // GameInputManager disabled - using new input system
-        // RegisterNodeService<GameInputManager>(false);
         RegisterNodeService<QueuedActionsManager>(false);
     }
 

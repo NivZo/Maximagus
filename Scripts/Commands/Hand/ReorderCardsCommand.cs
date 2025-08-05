@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 using Scripts.State;
 
 namespace Scripts.Commands.Hand
@@ -54,13 +55,6 @@ namespace Scripts.Commands.Hand
 
             // Return new game state with reordered hand
             return currentState.WithHand(newHandState);
-        }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            // For undo, restore the original card order
-            var originalOrder = previousState.Hand.Cards.Select(c => c.CardId);
-            return new ReorderCardsCommand(originalOrder);
         }
 
         public string GetDescription()

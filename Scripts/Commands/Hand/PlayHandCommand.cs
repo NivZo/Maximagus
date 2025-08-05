@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using Scripts.State;
-using Scripts.Commands.Game;
-using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
 {
@@ -151,13 +149,6 @@ namespace Scripts.Commands.Hand
             return newState;
         }
 
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            // For undo, we need to restore the previous hand and player state
-            // This is a complex undo that requires restoring multiple components
-            return new RestoreGameStateCommand(previousState);
-        }
-
         public string GetDescription()
         {
             return "Play selected cards as spell";
@@ -188,11 +179,6 @@ namespace Scripts.Commands.Hand
                 throw new InvalidOperationException("Cannot execute RestoreGameStateCommand - target state is invalid");
 
             return _targetState;
-        }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new RestoreGameStateCommand(previousState);
         }
 
         public string GetDescription()
