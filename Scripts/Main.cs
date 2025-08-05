@@ -155,7 +155,7 @@ public partial class Main : Control
     {
         try
         {
-            _logger.LogInfo("[Main] Initializing GameState with real Hand data");            
+            _logger.LogInfo("[Main] Initializing GameState with real Hand data");
             _logger.LogInfo($"[Main] Found {_hand.Cards.Length} real cards, {_hand.SelectedCards.Length} selected");
             
             // Convert real cards to CardState objects

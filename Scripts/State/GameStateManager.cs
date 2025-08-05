@@ -36,21 +36,22 @@ namespace Scripts.State
             try
             {
                 // Get real game objects
-                var handManager = ServiceLocator.GetService<IHandManager>();
+                var handManager = ServiceLocator.GetService<IHandManager>() as HandManager;
                 if (handManager?.Hand == null) return;
 
-                var realHand = handManager.Hand;
-                
                 // Convert real cards to CardState objects
-                var cardStates = realHand.Cards.Select(card => new CardState(
+                var cardStates = handManager.Cards.Select(card => new CardState(
                     cardId: card.GetInstanceId().ToString(),
                     isSelected: card.IsSelected,
                     isDragging: card.IsDragging,
-                    position: 0
+                    position: 0,
+                    resourceId: card.Resource?.CardId,
+                    cardName: card.Resource?.CardName,
+                    cardDescription: card.Resource?.CardDescription
                 )).ToList();
 
                 // Get selected card IDs
-                var selectedCardIds = realHand.SelectedCards
+                var selectedCardIds = handManager.SelectedCards
                     .Select(card => card.GetInstanceId().ToString())
                     .ToList();
 

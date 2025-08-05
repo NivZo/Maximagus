@@ -25,17 +25,17 @@ public partial class Hand : Control
     private Node _cardSlotsNode;
     private HandLayoutCache _layoutCache;
 
-    public ImmutableArray<CardSlot> CardSlots => _cardSlotsContainer
+    private ImmutableArray<CardSlot> _cardSlots => _cardSlotsContainer
         ?.Where(n => n is CardSlot)
         .Cast<CardSlot>()
         .ToImmutableArray() ?? ImmutableArray<CardSlot>.Empty;
     
-    public ImmutableArray<Card> Cards => CardSlots
+    private ImmutableArray<Card> _cards => _cardSlots
         .Select(slot => slot.Card)
         .Where(card => card != null)
         .ToImmutableArray();
 
-    public ImmutableArray<Card> SelectedCards
+    private ImmutableArray<Card> _selectedCards
     {
         get
         {
@@ -43,13 +43,13 @@ public partial class Hand : Control
                 return ImmutableArray<Card>.Empty;
 
             var selectedCardIds = _commandProcessor.CurrentState.Hand.SelectedCardIds;
-            return Cards
+            return _cards
                 .Where(card => selectedCardIds.Contains(card.GetInstanceId().ToString()))
                 .ToImmutableArray();
         }
     }
 
-    public Card DraggingCard
+    private Card _draggingCard
     {
         get
         {
@@ -59,10 +59,15 @@ public partial class Hand : Control
             var draggingCardState = _commandProcessor.CurrentState.Hand.DraggingCard;
             if (draggingCardState == null) return null;
 
-            return Cards.FirstOrDefault(card => 
+            return _cards.FirstOrDefault(card => 
                 card.GetInstanceId().ToString() == draggingCardState.CardId);
         }
     }
+
+    public ImmutableArray<CardSlot> CardSlots => _cardSlots;
+    public ImmutableArray<Card> Cards => _cards;
+    public ImmutableArray<Card> SelectedCards => _selectedCards;
+    public Card DraggingCard => _draggingCard;
 
     public override void _Ready()
     {
@@ -163,7 +168,7 @@ public partial class Hand : Control
 
             // Create cards for each slot - keeping original behavior to avoid null reference errors
             var rnd = new Random();
-            foreach (var slot in CardSlots)
+            foreach (var slot in _cardSlots)
             {
                 var resource = _deck.GetNext();
                 Card.Create(_cardsNode, slot, resource);
@@ -182,7 +187,7 @@ public partial class Hand : Control
     {
         foreach (var card in cards)
         {
-            if (Cards.Contains(card))
+            if (_cards.Contains(card))
             {
                 var cardId = card.GetInstanceId().ToString();
                 GD.Print($"[Hand] Discarding card {card.Resource.CardName} (ID: {cardId}) from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot)+1}");
@@ -253,7 +258,7 @@ public partial class Hand : Control
         if (currentState.Hand.Count >= currentState.Hand.MaxHandSize)
         {
             GD.PrintErr($"[Hand] ERROR: GameState hand is full ({currentState.Hand.Count}/{currentState.Hand.MaxHandSize}) - cannot add more cards!");
-            GD.PrintErr($"[Hand] Visual cards: {Cards.Length}, GameState cards: {currentState.Hand.Count}");
+            GD.PrintErr($"[Hand] Visual cards: {_cards.Length}, GameState cards: {currentState.Hand.Count}");
             GD.PrintErr($"[Hand] This suggests cards were not properly removed from GameState when discarded!");
             return;
         }
@@ -346,7 +351,7 @@ public partial class Hand : Control
         if (currentState == null) return;
         
         // Find cards that exist visually but not in GameState
-        foreach (var card in Cards)
+        foreach (var card in _cards)
         {
             var cardId = card.GetInstanceId().ToString();
             var existsInGameState = currentState.Hand.Cards.Any(c => c.CardId == cardId);
@@ -392,7 +397,7 @@ public partial class Hand : Control
 
         for (int i = 0; i < count; i++)
         {
-            var slot = CardSlots[i];
+            var slot = _cardSlots[i];
             var card = slot.Card;
 
             // Skip empty slots (when no cards are present)
@@ -416,13 +421,13 @@ public partial class Hand : Control
         try
         {
             // Get dragging card from GameState instead of checking each card's IsDragging property
-            var draggingCard = DraggingCard;
+            var draggingCard = _draggingCard;
             if (draggingCard == null) return;
 
             var draggedCardSlot = draggingCard.Logic.CardSlot;
             if (draggedCardSlot == null) return;
 
-            var validSlots = CardSlots.Where(slot =>
+            var validSlots = _cardSlots.Where(slot =>
                 slot.GetCenter().DistanceTo(draggingCard.Logic.GetCenter()) <= draggedCardSlot.MaxValidDistance);
 
             if (!validSlots.Any())
@@ -457,8 +462,8 @@ public partial class Hand : Control
     /// </summary>
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
     {
-        var draggedIndex = CardSlots.IndexOf(draggedSlot);
-        var targetIndex = CardSlots.IndexOf(targetSlot);
+        var draggedIndex = _cardSlots.IndexOf(draggedSlot);
+        var targetIndex = _cardSlots.IndexOf(targetSlot);
         
         if (draggedIndex < 0 || targetIndex < 0 && draggedIndex != targetIndex)
             return;

@@ -32,14 +32,14 @@ namespace Scripts.Commands.Hand
             Console.WriteLine("[DiscardHandCommand] Execute() called!");
             
             // Get HandManager to access the Hand properly
-            var handManager = ServiceLocator.GetService<IHandManager>();
+            var handManager = ServiceLocator.GetService<IHandManager>() as HandManager;
             if (handManager?.Hand == null)
             {
                 Console.WriteLine("[DiscardHandCommand] ERROR: HandManager.Hand is null!");
                 return currentState;
             }
 
-            var selectedCards = handManager.Hand.SelectedCards;
+            var selectedCards = handManager.SelectedCards;
             Console.WriteLine($"[DiscardHandCommand] Discarding {selectedCards.Length} selected cards");
 
             if (selectedCards.Length == 0)

@@ -4,6 +4,7 @@ using Scripts.State;
 using Godot;
 using Maximagus.Scripts.Enums;
 using Maximagus.Scripts.Spells.Implementations;
+using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
 {
@@ -55,7 +56,7 @@ namespace Scripts.Commands.Hand
             }
 
             // Get HandManager to access the Hand for visual operations (spell processing, discard)
-            var handManager = ServiceLocator.GetService<IHandManager>();
+            var handManager = ServiceLocator.GetService<IHandManager>() as HandManager;
             if (handManager?.Hand == null)
             {
                 _logger?.LogError("[PlayHandCommand] ERROR: HandManager.Hand is null!");
@@ -63,7 +64,7 @@ namespace Scripts.Commands.Hand
             }
 
             // Get the actual Card objects by matching IDs from GameState to visual cards
-            var selectedVisualCards = handManager.Hand.Cards.Where(card => 
+            var selectedVisualCards = handManager.Cards.Where(card =>
                 selectedCardIds.Contains(card.GetInstanceId().ToString())).ToArray();
             
             _logger?.LogInfo($"[PlayHandCommand] Found {selectedVisualCards.Length} matching visual cards");
@@ -74,16 +75,23 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 1: Process the spell with the specific selected cards
+            // STEP 1: Process the spell with the selected cards
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
                 _logger?.LogInfo("[PlayHandCommand] Processing spell with selected cards...");
                 
-                // Process spell with specific cards instead of relying on visual state
-                ProcessSpellWithCards(selectedVisualCards);
-                
-                _logger?.LogInfo("[PlayHandCommand] Spell processing completed");
+                // Pass the visual cards directly to ensure spell processing works correctly
+                // This provides a smooth transition to state-driven processing
+                if (selectedVisualCards.Length > 0)
+                {
+                    ((SpellProcessingManager)spellProcessingManager).ProcessSpellWithCards(selectedVisualCards);
+                    _logger?.LogInfo("[PlayHandCommand] Spell processing completed");
+                }
+                else
+                {
+                    _logger?.LogWarning("[PlayHandCommand] No visual cards to process");
+                }
             }
             else
             {
@@ -107,11 +115,11 @@ namespace Scripts.Commands.Hand
                     {
                         _logger?.LogInfo("[PlayHandCommand] Executing delayed discard and replace...");
                         
-                        var handManagerForActions = ServiceLocator.GetService<IHandManager>();
+                        var handManagerForActions = ServiceLocator.GetService<IHandManager>() as HandManager;
                         if (handManagerForActions?.Hand != null)
                         {
                             // Check if cards still exist before discarding
-                            var existingCards = handManagerForActions.Hand.Cards;
+                            var existingCards = handManagerForActions.Cards;
                             var validCardsToDiscard = cardsToDiscard
                                 .Where(card => existingCards.Contains(card))
                                 .ToArray();
@@ -123,7 +131,7 @@ namespace Scripts.Commands.Hand
                             }
                             
                             // Draw replacement cards
-                            var currentCount = handManagerForActions.Hand.Cards.Length;
+                            var currentCount = handManagerForActions.Cards.Length;
                             var maxHandSize = 10;
                             var cardsToDraw = Math.Max(0, maxHandSize - currentCount);
                             
@@ -171,60 +179,7 @@ namespace Scripts.Commands.Hand
             return newState;
         }
 
-        /// <summary>
-        /// Process spell with specific cards (bypassing the visual state dependency)
-        /// </summary>
-        private void ProcessSpellWithCards(global::Card[] cards)
-        {
-            var statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
-            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
-            
-            GD.Print("--- Processing Spell (Command System) ---");
-            var context = new SpellContext();
-
-            statusEffectManager?.TriggerEffects(StatusEffectTrigger.OnSpellCast);
-
-            GD.Print($"Executing {cards.Length} cards in the following order: {string.Join(", ", cards.Select(c => c.Resource.CardName))}");
-
-            foreach (var card in cards)
-            {
-                GD.Print($"- Executing card: {card.Resource.CardName}");
-                
-                // Store card data to avoid accessing disposed objects in queued actions
-                var cardResource = card.Resource;
-                var cardVisual = card.Visual;
-                
-                queuedActionsManager?.QueueAction(() =>
-                {
-                    try
-                    {
-                        // Check if card visual is still valid before animating
-                        if (cardVisual != null && !cardVisual.IsQueuedForDeletion())
-                        {
-                            AnimationUtils.AnimateScale(cardVisual, 1.5f, 1f, Tween.TransitionType.Elastic);
-                        }
-                        
-                        // Execute the card resource (this should always be safe)
-                        if (cardResource != null)
-                        {
-                            cardResource.Execute(context);
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        GD.PrintErr($"Error executing card action: {ex.Message}");
-                        // Continue with spell execution even if one card fails
-                    }
-                },
-                delayAfter: .5f);
-            }
-
-            queuedActionsManager?.QueueAction(() =>
-            {
-                GD.Print($"Spell total damage dealt: {context.TotalDamageDealt}");
-                GD.Print("--- Spell Finished (Command System) ---");
-            });
-        }
+        // Removed ProcessSpellWithCards method - now using SpellProcessingManager which works with GameState directly
 
         public string GetDescription()
         {
