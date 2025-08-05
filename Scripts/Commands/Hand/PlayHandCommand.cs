@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using GlobalHand = Hand; // Alias to avoid namespace conflict
 
 namespace Scripts.Commands.Hand
 {
@@ -30,13 +31,16 @@ namespace Scripts.Commands.Hand
 
         public IGameStateData Execute(IGameStateData currentState)
         {
+            Console.WriteLine("[PlayHandCommand] Execute() called - updating GameState!");
+            
             if (!CanExecute(currentState))
                 throw new InvalidOperationException("Cannot execute PlayHandCommand");
 
             // Get selected cards before they're removed
             var selectedCards = currentState.Hand.SelectedCards.ToList();
+            Console.WriteLine($"[PlayHandCommand] Playing {selectedCards.Count} selected cards from GameState");
 
-            // Remove selected cards from hand
+            // Remove selected cards from hand state
             var newHandState = currentState.Hand;
             foreach (var card in selectedCards)
             {
@@ -48,6 +52,8 @@ namespace Scripts.Commands.Hand
 
             // Transition to spell resolution phase
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellResolution);
+            
+            Console.WriteLine("[PlayHandCommand] GameState updated successfully");
             
             // Return new game state by chaining the with methods
             return currentState

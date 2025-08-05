@@ -1,5 +1,8 @@
 using System;
 using Scripts.State;
+using System.Linq;
+using Godot;
+using GlobalHand = Hand; // Alias to avoid namespace conflict
 
 namespace Scripts.Commands.Card
 {
@@ -43,11 +46,15 @@ namespace Scripts.Commands.Card
 
         public IGameStateData Execute(IGameStateData currentState)
         {
+            Console.WriteLine($"[SelectCardCommand] Execute() called for card {_cardId} - updating GameState!");
+            
             if (!CanExecute(currentState))
                 throw new InvalidOperationException($"Cannot execute SelectCardCommand for card {_cardId}");
 
             // Update hand state to select the card
             var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
+            
+            Console.WriteLine($"[SelectCardCommand] Card {_cardId} selected in GameState");
 
             // Return new game state with updated hand
             return currentState.WithHand(newHandState);

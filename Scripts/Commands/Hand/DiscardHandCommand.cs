@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using GlobalHand = Hand; // Alias to avoid namespace conflict
 
 namespace Scripts.Commands.Hand
 {
@@ -28,18 +29,23 @@ namespace Scripts.Commands.Hand
 
         public IGameStateData Execute(IGameStateData currentState)
         {
+            Console.WriteLine("[DiscardHandCommand] Execute() called - updating GameState!");
+            
             if (!CanExecute(currentState))
                 throw new InvalidOperationException("Cannot execute DiscardHandCommand");
 
             // Get selected cards before they're removed
             var selectedCards = currentState.Hand.SelectedCards.ToList();
+            Console.WriteLine($"[DiscardHandCommand] Discarding {selectedCards.Count} selected cards from GameState");
 
-            // Remove selected cards from hand
+            // Remove selected cards from hand state
             var newHandState = currentState.Hand;
             foreach (var card in selectedCards)
             {
                 newHandState = newHandState.WithRemovedCard(card.CardId);
             }
+
+            Console.WriteLine("[DiscardHandCommand] GameState updated successfully");
 
             // Return new game state with updated hand
             return currentState.WithHand(newHandState);

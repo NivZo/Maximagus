@@ -36,6 +36,9 @@ public partial class Main : Control
             // Initialize new command system (replaces legacy systems)
             InitializeNewCommandSystem();
             
+            // Connect Hand as observer to GameState changes
+            _hand.SetGameCommandProcessor(_commandProcessor);
+            
         }
         catch (Exception ex)
         {
