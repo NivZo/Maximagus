@@ -10,6 +10,13 @@ namespace Scripts.Commands.Game
     /// </summary>
     public class TurnStartCommand : IGameCommand
     {
+        private readonly ILogger _logger;
+
+        public TurnStartCommand()
+        {
+            _logger = ServiceLocator.GetService<ILogger>();
+        }
+
         public string GetDescription() => "Start Turn";
 
         public bool CanExecute(IGameStateData currentState)
@@ -20,14 +27,14 @@ namespace Scripts.Commands.Game
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine("[TurnStartCommand] Execute() called!");
-            Console.WriteLine($"[TurnStartCommand] Current phase: {currentState.Phase.CurrentPhase}");
+            _logger?.LogInfo("[TurnStartCommand] Execute() called!");
+            _logger?.LogInfo($"[TurnStartCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
             // Get HandManager to access the Hand properly
             var handManager = ServiceLocator.GetService<IHandManager>();
             if (handManager?.Hand == null)
             {
-                Console.WriteLine("[TurnStartCommand] ERROR: HandManager.Hand is null!");
+                _logger?.LogError("[TurnStartCommand] ERROR: HandManager.Hand is null!");
                 return currentState;
             }
 
@@ -35,7 +42,7 @@ namespace Scripts.Commands.Game
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                Console.WriteLine("[TurnStartCommand] Queuing card draw to max hand size...");
+                _logger?.LogInfo("[TurnStartCommand] Queuing card draw to max hand size...");
                 
                 queuedActionsManager.QueueAction(() =>
                 {
@@ -45,19 +52,19 @@ namespace Scripts.Commands.Game
                     
                     if (cardsToDraw > 0)
                     {
-                        Console.WriteLine($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
+                        _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
                         handManager.Hand.DrawAndAppend(cardsToDraw);
-                        Console.WriteLine($"[TurnStartCommand] Hand now has {handManager.Hand.Cards.Length} cards");
+                        _logger?.LogInfo($"[TurnStartCommand] Hand now has {handManager.Hand.Cards.Length} cards");
                     }
                     else
                     {
-                        Console.WriteLine("[TurnStartCommand] Hand already at max size, no cards to draw");
+                        _logger?.LogInfo("[TurnStartCommand] Hand already at max size, no cards to draw");
                     }
                 });
             }
             else
             {
-                Console.WriteLine("[TurnStartCommand] WARNING: QueuedActionsManager not available, executing immediately");
+                _logger?.LogWarning("[TurnStartCommand] WARNING: QueuedActionsManager not available, executing immediately");
                 // Fallback to immediate execution
                 var currentCardCount = handManager.Hand.Cards.Length;
                 var maxHandSize = 10;
@@ -65,7 +72,7 @@ namespace Scripts.Commands.Game
                 
                 if (cardsToDraw > 0)
                 {
-                    Console.WriteLine($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
+                    _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
                     handManager.Hand.DrawAndAppend(cardsToDraw);
                 }
             }
@@ -74,7 +81,7 @@ namespace Scripts.Commands.Game
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
             var newState = currentState.WithPhase(newPhaseState);
             
-            Console.WriteLine($"[TurnStartCommand] Turn started - new phase: {newState.Phase.CurrentPhase}");
+            _logger?.LogInfo($"[TurnStartCommand] Turn started - new phase: {newState.Phase.CurrentPhase}");
             
             return newState;
         }
