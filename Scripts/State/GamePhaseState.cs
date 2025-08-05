@@ -12,7 +12,6 @@ namespace Scripts.State
         CardSelection,
         SpellCasting,
         SpellResolution,
-        EnemyTurn,
         TurnEnd,
         GameOver,
         Victory
@@ -26,7 +25,6 @@ namespace Scripts.State
         public GamePhase CurrentPhase { get; }
         public int TurnNumber { get; }
         public float PhaseTimer { get; }
-        public bool IsPlayerTurn { get; }
         public bool CanPlayerAct { get; }
         public string PhaseDescription { get; }
 
@@ -34,14 +32,12 @@ namespace Scripts.State
             GamePhase currentPhase = GamePhase.Menu,
             int turnNumber = 1,
             float phaseTimer = 0f,
-            bool isPlayerTurn = true,
             bool canPlayerAct = true,
             string phaseDescription = "")
         {
             CurrentPhase = currentPhase;
             TurnNumber = Math.Max(1, turnNumber);
             PhaseTimer = Math.Max(0f, phaseTimer);
-            IsPlayerTurn = isPlayerTurn;
             CanPlayerAct = canPlayerAct;
             PhaseDescription = phaseDescription ?? GetDefaultPhaseDescription(currentPhase);
         }
@@ -55,7 +51,6 @@ namespace Scripts.State
                 newPhase,
                 TurnNumber,
                 0f, // Reset timer when changing phases
-                GetDefaultIsPlayerTurn(newPhase),
                 GetDefaultCanPlayerAct(newPhase),
                 GetDefaultPhaseDescription(newPhase));
         }
@@ -65,7 +60,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithTimer(float newTimer)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, newTimer, IsPlayerTurn, CanPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber, newTimer, CanPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -73,7 +68,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithNextTurn()
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber + 1, PhaseTimer, IsPlayerTurn, CanPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber + 1, PhaseTimer, CanPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -81,7 +76,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithPlayerActionStatus(bool canPlayerAct)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, IsPlayerTurn, canPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, canPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -89,7 +84,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithDescription(string description)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, IsPlayerTurn, CanPlayerAct, description);
+            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, CanPlayerAct, description);
         }
 
         /// <summary>
@@ -100,7 +95,7 @@ namespace Scripts.State
         /// <summary>
         /// Checks if the current phase allows spell casting
         /// </summary>
-        public bool AllowsSpellCasting => CurrentPhase == GamePhase.SpellCasting && CanPlayerAct;
+        public bool AllowsSpellCasting => CurrentPhase == GamePhase.CardSelection && CanPlayerAct;
 
         /// <summary>
         /// Checks if the game is in an active gameplay phase
@@ -126,8 +121,7 @@ namespace Scripts.State
                 GamePhase.GameStart => GamePhase.CardSelection,
                 GamePhase.CardSelection => GamePhase.SpellCasting,
                 GamePhase.SpellCasting => GamePhase.SpellResolution,
-                GamePhase.SpellResolution => GamePhase.EnemyTurn,
-                GamePhase.EnemyTurn => GamePhase.TurnEnd,
+                GamePhase.SpellResolution => GamePhase.TurnEnd,
                 GamePhase.TurnEnd => GamePhase.CardSelection,
                 GamePhase.GameOver => GamePhase.Menu,
                 GamePhase.Victory => GamePhase.Menu,
@@ -144,22 +138,10 @@ namespace Scripts.State
                 GamePhase.CardSelection => "Select cards for your spell",
                 GamePhase.SpellCasting => "Cast your spell",
                 GamePhase.SpellResolution => "Resolving spell effects...",
-                GamePhase.EnemyTurn => "Enemy turn",
                 GamePhase.TurnEnd => "Turn ending...",
                 GamePhase.GameOver => "Game Over",
                 GamePhase.Victory => "Victory!",
                 _ => "Unknown Phase"
-            };
-        }
-
-        private static bool GetDefaultIsPlayerTurn(GamePhase phase)
-        {
-            return phase switch
-            {
-                GamePhase.CardSelection => true,
-                GamePhase.SpellCasting => true,
-                GamePhase.EnemyTurn => false,
-                _ => true
             };
         }
 
@@ -168,9 +150,8 @@ namespace Scripts.State
             return phase switch
             {
                 GamePhase.CardSelection => true,
-                GamePhase.SpellCasting => true,
+                GamePhase.SpellCasting => false,
                 GamePhase.SpellResolution => false,
-                GamePhase.EnemyTurn => false,
                 GamePhase.TurnEnd => false,
                 GamePhase.GameOver => false,
                 GamePhase.Victory => false,
@@ -195,7 +176,6 @@ namespace Scripts.State
                 return CurrentPhase == other.CurrentPhase &&
                        TurnNumber == other.TurnNumber &&
                        Math.Abs(PhaseTimer - other.PhaseTimer) < 0.001f &&
-                       IsPlayerTurn == other.IsPlayerTurn &&
                        CanPlayerAct == other.CanPlayerAct &&
                        PhaseDescription == other.PhaseDescription;
             }
@@ -204,7 +184,7 @@ namespace Scripts.State
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(CurrentPhase, TurnNumber, PhaseTimer, IsPlayerTurn, CanPlayerAct, PhaseDescription);
+            return HashCode.Combine(CurrentPhase, TurnNumber, PhaseTimer, CanPlayerAct, PhaseDescription);
         }
     }
 }

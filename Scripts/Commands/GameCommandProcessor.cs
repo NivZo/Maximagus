@@ -48,7 +48,7 @@ namespace Scripts.Commands
             // Validate command can be executed
             if (!command.CanExecute(_currentState))
             {
-                LogWarning($"Command rejected: {command.GetDescription()} - Cannot execute in current state");
+                LogWarning($"Command rejected: {command.GetDescription()} - Cannot execute in current state - {_currentState.Phase.PhaseDescription}");
                 return false;
             }
 

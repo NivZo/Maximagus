@@ -35,7 +35,6 @@ namespace Scripts.Validation
                     break;
 
                 case GamePhase.SpellResolution:
-                case GamePhase.EnemyTurn:
                 case GamePhase.TurnEnd:
                     errors.Add($"No player actions allowed during {currentState.Phase.CurrentPhase} phase");
                     break;
