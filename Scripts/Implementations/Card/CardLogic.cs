@@ -11,6 +11,7 @@ public partial class CardLogic : Button
     private IDragManager _dragManager;
     private ILogger _logger;
     private GameCommandProcessor _commandProcessor;
+    private bool _commandSystemReady = false;
 
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
@@ -48,11 +49,21 @@ public partial class CardLogic : Button
         _eventBus = ServiceLocator.GetService<IEventBus>();
         _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _dragManager = ServiceLocator.GetService<IDragManager>();
-        _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
         
-        if (_commandProcessor == null)
+        // DEFERRED: Don't require GameCommandProcessor during initialization
+        // It will be set up when the command system is ready
+        TrySetupCommandSystem();
+    }
+
+    private void TrySetupCommandSystem()
+    {
+        if (_commandSystemReady) return;
+        
+        _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+        if (_commandProcessor != null)
         {
-            throw new InvalidOperationException("GameCommandProcessor not available in ServiceLocator - this is required!");
+            _commandSystemReady = true;
+            _logger?.LogInfo($"[CardLogic] Command system ready for card {Card?.GetInstanceId()}");
         }
     }
 
@@ -86,9 +97,20 @@ public partial class CardLogic : Button
     {
         try
         {
+            // Try to set up command system if not ready yet
+            if (!_commandSystemReady)
+            {
+                TrySetupCommandSystem();
+            }
+            
             UpdateVisualPosition((float)delta);
             CheckDragThreshold();
-            SyncWithGameState(); // Sync selection state with GameState
+            
+            // Only sync with GameState if command system is ready
+            if (_commandSystemReady)
+            {
+                SyncWithGameState();
+            }
         }
         catch (Exception ex)
         {
@@ -200,8 +222,16 @@ public partial class CardLogic : Button
 
     private void HandleClick()
     {
-        // COMMAND SYSTEM ONLY - No fallbacks
-        if (Card == null || _commandProcessor == null) return;
+        // Check if command system is ready, otherwise use legacy behavior temporarily
+        if (!_commandSystemReady || Card == null || _commandProcessor == null)
+        {
+            // TEMPORARY FALLBACK: Direct toggle until command system is ready
+            IsSelected = !IsSelected;
+            this.SetCenter(GetTargetSlottedCenter());
+            InvokePositionChanged();
+            _logger?.LogWarning($"[CardLogic] Command system not ready, using temporary fallback for card {Card?.GetInstanceId()}");
+            return;
+        }
         
         try
         {
