@@ -58,68 +58,36 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 1: Immediately discard selected cards before spell processing
-            _logger?.LogInfo("[PlayHandCommand] Discarding selected cards immediately...");
-            try
-            {
-                handManager.Hand.Discard(selectedCards);
-                _logger?.LogInfo($"[PlayHandCommand] {selectedCards.Length} cards discarded successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError($"[PlayHandCommand] ERROR discarding cards: {ex.Message}", ex);
-                return currentState;
-            }
-
-            // STEP 2: Process the spell using SpellProcessingManager 
+            // STEP 1: Process the spell using SpellProcessingManager FIRST (needs cards to exist)
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
                 _logger?.LogInfo("[PlayHandCommand] Processing spell...");
-                spellProcessingManager.ProcessSpell(); // This queues spell animations and effects
+                spellProcessingManager.ProcessSpell(); // This needs cards to exist
                 _logger?.LogInfo("[PlayHandCommand] Spell queued for processing");
             }
             else
             {
                 _logger?.LogWarning("[PlayHandCommand] WARNING: SpellProcessingManager not available");
+                return currentState;
             }
 
-            // STEP 3: Queue card drawing to happen after spell processing
-            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
-            if (queuedActionsManager != null)
+            // STEP 2: Execute the discard and replace immediately (original working approach)
+            _logger?.LogInfo("[PlayHandCommand] Discarding and replacing cards...");
+            try
             {
                 var cardCount = selectedCards.Length;
-                _logger?.LogInfo($"[PlayHandCommand] Queuing {cardCount} replacement cards...");
-                
-                queuedActionsManager.QueueAction(() =>
-                {
-                    try
-                    {
-                        _logger?.LogInfo("[PlayHandCommand] Drawing replacement cards...");
-                        
-                        var handManagerForDraw = ServiceLocator.GetService<IHandManager>();
-                        if (handManagerForDraw?.Hand != null)
-                        {
-                            handManagerForDraw.Hand.DrawAndAppend(cardCount);
-                            _logger?.LogInfo($"[PlayHandCommand] {cardCount} replacement cards drawn successfully");
-                        }
-                        else
-                        {
-                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for drawing");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogError($"[PlayHandCommand] ERROR drawing replacement cards: {ex.Message}", ex);
-                    }
-                });
+                handManager.Hand.Discard(selectedCards);
+                handManager.Hand.DrawAndAppend(cardCount);
+                _logger?.LogInfo($"[PlayHandCommand] {cardCount} cards discarded and replaced successfully");
             }
-            else
+            catch (Exception ex)
             {
-                _logger?.LogWarning("[PlayHandCommand] WARNING: QueuedActionsManager not available");
+                _logger?.LogError($"[PlayHandCommand] ERROR in discard and replace: {ex.Message}", ex);
+                // Continue anyway - at least spell was processed
             }
 
-            // STEP 4: Update GameState - stay in CardSelection phase, just update player
+            // STEP 3: Update GameState - stay in CardSelection phase, just update player
             var newPlayerState = currentState.Player.WithHandUsed();
             var newState = currentState.WithPlayer(newPlayerState);
             
