@@ -10,7 +10,7 @@ public partial class CardLogic : Button
 	private IEventBus _eventBus;
 	private IHoverManager _hoverManager;
 	private ILogger _logger;
-	private GameCommandProcessor _commandProcessor;
+	private IGameCommandProcessor _commandProcessor;
 	private bool _commandSystemReady = false;
 
 	private Vector2 _distanceFromMouse;
@@ -60,7 +60,6 @@ public partial class CardLogic : Button
 		_eventBus = ServiceLocator.GetService<IEventBus>();
 		_hoverManager = ServiceLocator.GetService<IHoverManager>();
 		
-		// Try to get GameCommandProcessor
 		TrySetupCommandSystem();
 	}
 
@@ -68,7 +67,7 @@ public partial class CardLogic : Button
 	{
 		if (_commandSystemReady) return;
 		
-		_commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+		_commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
 		if (_commandProcessor != null)
 		{
 			_commandSystemReady = true;
@@ -105,21 +104,16 @@ public partial class CardLogic : Button
 	{
 		try
 		{
-			// PERFORMANCE FIX: Early return if card is not initialized
 			if (Card == null) return;
-			
-			// Try to set up command system if not ready yet
 			if (!_commandSystemReady)
 			{
+				GD.Print("[CardLogic] Command system not ready, trying to set it up...");
 				TrySetupCommandSystem();
-				// Early return if still not ready - avoid expensive operations
 				if (!_commandSystemReady) return;
 			}
 			
-			// PERFORMANCE FIX: Skip visual updates if not visible or off-screen
 			if (!Visible || Card.Visual == null) return;
 			
-			// PERFORMANCE FIX: Only update position if dragging or visual position differs
 			bool needsPositionUpdate = IsDragging ||
 				(Card.Visual.GetCenter() != GetTargetSlottedCenter());
 			
@@ -128,14 +122,11 @@ public partial class CardLogic : Button
 				UpdateVisualPosition((float)delta);
 			}
 			
-			// PERFORMANCE FIX: Only check drag threshold when mouse is pressed
 			if (_mousePressed && !IsDragging)
 			{
 				CheckDragThreshold();
 			}
 			
-			// PERFORMANCE FIX: Only sync with GameState when necessary
-			// (less frequent than every frame - could be optimized further with events)
 			if (_commandSystemReady)
 			{
 				SyncWithGameState();

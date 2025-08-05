@@ -18,7 +18,7 @@ public partial class Hand : Control
 
     private IEventBus _eventBus;
     private ILogger _logger;
-    private GameCommandProcessor _commandProcessor;
+    private IGameCommandProcessor _commandProcessor;
     private Deck _deck;
     private OrderedContainer _cardSlotsContainer;
     private Node _cardsNode;
@@ -29,7 +29,7 @@ public partial class Hand : Control
         ?.Where(n => n is CardSlot)
         .Cast<CardSlot>()
         .ToImmutableArray() ?? ImmutableArray<CardSlot>.Empty;
-    
+
     private ImmutableArray<Card> _cards => _cardSlots
         .Select(slot => slot.Card)
         .Where(card => card != null)
@@ -39,7 +39,7 @@ public partial class Hand : Control
     {
         get
         {
-            if (_commandProcessor?.CurrentState == null) 
+            if (_commandProcessor?.CurrentState == null)
                 return ImmutableArray<Card>.Empty;
 
             var selectedCardIds = _commandProcessor.CurrentState.Hand.SelectedCardIds;
@@ -53,13 +53,13 @@ public partial class Hand : Control
     {
         get
         {
-            if (_commandProcessor?.CurrentState == null) 
+            if (_commandProcessor?.CurrentState == null)
                 return null;
 
             var draggingCardState = _commandProcessor.CurrentState.Hand.DraggingCard;
             if (draggingCardState == null) return null;
 
-            return _cards.FirstOrDefault(card => 
+            return _cards.FirstOrDefault(card =>
                 card.GetInstanceId().ToString() == draggingCardState.CardId);
         }
     }
@@ -76,7 +76,7 @@ public partial class Hand : Control
             Instance = this;
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
-            
+
             // TIMING FIX: Don't get CommandProcessor here - it might not be registered yet
             // We'll get it when we need it in DrawAndAppend()
             _deck = new();
@@ -86,6 +86,7 @@ public partial class Hand : Control
             InitializeComponents();
             SetupEventHandlers();
             InitializeCardSlots();
+            TryGetCommandProcessor();
         }
         catch (Exception ex)
         {
@@ -100,14 +101,14 @@ public partial class Hand : Control
     private bool TryGetCommandProcessor()
     {
         if (_commandProcessor != null) return true;
-        
-        _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+
+        _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         if (_commandProcessor != null)
         {
             GD.Print("[Hand] CommandProcessor obtained from ServiceLocator");
             return true;
         }
-        
+
         GD.PrintErr("[Hand] CommandProcessor still not available in ServiceLocator");
         return false;
     }
@@ -135,13 +136,13 @@ public partial class Hand : Control
         try
         {
             base._Process(delta);
-            
+
             // Try to get CommandProcessor if we don't have it yet
             if (_commandProcessor == null)
             {
-                TryGetCommandProcessor();
+                // TryGetCommandProcessor();
             }
-            
+
             HandleDrag(); // PURE COMMAND SYSTEM: Now uses GameState for drag detection
         }
         catch (Exception ex)
@@ -190,14 +191,14 @@ public partial class Hand : Control
             if (_cards.Contains(card))
             {
                 var cardId = card.GetInstanceId().ToString();
-                GD.Print($"[Hand] Discarding card {card.Resource.CardName} (ID: {cardId}) from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot)+1}");
-                
+                GD.Print($"[Hand] Discarding card {card.Resource.CardName} (ID: {cardId}) from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot) + 1}");
+
                 // CRITICAL: Remove card from GameState first
                 if (_commandProcessor != null)
                 {
                     var removeCardCommand = new RemoveCardCommand(cardId);
                     var success = _commandProcessor.ExecuteCommand(removeCardCommand);
-                    
+
                     if (success)
                     {
                         GD.Print($"[Hand] SUCCESS: Removed card {cardId} from GameState");
@@ -211,7 +212,7 @@ public partial class Hand : Control
                 {
                     GD.PrintErr($"[Hand] CommandProcessor not available - card {cardId} removed visually but still in GameState!");
                 }
-                
+
                 // Remove visual card
                 _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
                 card.Logic.CardSlot.QueueFree();
@@ -223,34 +224,10 @@ public partial class Hand : Control
     public void DrawAndAppend(int amount)
     {
         GD.Print($"[Hand] DrawAndAppend called for {amount} cards");
-        
-        // TIMING FIX: Try to get CommandProcessor if we don't have it
-        if (!TryGetCommandProcessor())
-        {
-            GD.PrintErr($"[Hand] CommandProcessor not available - drawing cards visually only (they won't be selectable until GameState sync)");
-            
-            // Create visual cards but queue them for GameState sync later
-            for (int i = 0; i < amount; i++)
-            {
-                var resource = _deck.GetNext();
-                var slot = CardSlot.Create(_cardSlotsNode);
-                var card = Card.Create(_cardsNode, slot, resource);
-                card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
-                _cardSlotsContainer.InsertElement(slot);
-                
-                GD.Print($"[Hand] Created visual card {card.Resource.CardName} - will sync to GameState when CommandProcessor available");
-            }
-            return;
-        }
-        
-        // Check current GameState
+
         var currentState = _commandProcessor.CurrentState;
-        if (currentState == null)
-        {
-            GD.PrintErr($"[Hand] GameState is NULL - cannot add cards!");
-            return;
-        }
-        
+        if (currentState == null) return;
+
         GD.Print($"[Hand] Current hand size in GameState: {currentState.Hand.Count}/{currentState.Hand.MaxHandSize}");
         GD.Print($"[Hand] Hand locked: {currentState.Hand.IsLocked}");
 
@@ -259,19 +236,17 @@ public partial class Hand : Control
         {
             GD.PrintErr($"[Hand] ERROR: GameState hand is full ({currentState.Hand.Count}/{currentState.Hand.MaxHandSize}) - cannot add more cards!");
             GD.PrintErr($"[Hand] Visual cards: {_cards.Length}, GameState cards: {currentState.Hand.Count}");
-            GD.PrintErr($"[Hand] This suggests cards were not properly removed from GameState when discarded!");
             return;
         }
 
         for (int i = 0; i < amount; i++)
         {
-            // Check space for each card
             if (currentState.Hand.Count >= currentState.Hand.MaxHandSize)
             {
                 GD.PrintErr($"[Hand] Hand full after adding {i} cards - stopping");
                 break;
             }
-            
+
             var resource = _deck.GetNext();
             var slot = CardSlot.Create(_cardSlotsNode);
             var card = Card.Create(_cardsNode, slot, resource);
@@ -283,13 +258,13 @@ public partial class Hand : Control
 
             // CRITICAL: Add card to GameState so it's available for commands
             var addCardCommand = new AddCardCommand(cardId);
-            
+
             // Check if command can execute
             if (!addCardCommand.CanExecute(currentState))
             {
                 GD.PrintErr($"[Hand] AddCardCommand.CanExecute FAILED for card {cardId}!");
                 GD.PrintErr($"[Hand] Current state: Hand={currentState.Hand.Count}/{currentState.Hand.MaxHandSize}, Locked={currentState.Hand.IsLocked}");
-                
+
                 // Check specific failure reasons
                 if (currentState.Hand.IsLocked)
                 {
@@ -299,7 +274,7 @@ public partial class Hand : Control
                 {
                     GD.PrintErr($"[Hand] REASON: Hand size limit reached ({currentState.Hand.Count}/{currentState.Hand.MaxHandSize})");
                 }
-                
+
                 // Check if card already exists (shouldn't happen with new cards)
                 var cardExists = false;
                 foreach (var existingCard in currentState.Hand.Cards)
@@ -314,16 +289,16 @@ public partial class Hand : Control
                 {
                     GD.PrintErr($"[Hand] REASON: Card {cardId} already exists in GameState");
                 }
-                
+
                 continue; // Skip this card
             }
-            
+
             var success = _commandProcessor.ExecuteCommand(addCardCommand);
-            
+
             if (success)
             {
-                GD.Print($"[Hand] SUCCESS: Added card {card.Resource.CardName} (ID: {cardId}) to GameState and slot {_cardSlotsContainer.IndexOf(slot)+1}");
-                
+                GD.Print($"[Hand] SUCCESS: Added card {card.Resource.CardName} (ID: {cardId}) to GameState and slot {_cardSlotsContainer.IndexOf(slot) + 1}");
+
                 // Update current state reference for next iteration
                 currentState = _commandProcessor.CurrentState;
             }
@@ -332,7 +307,7 @@ public partial class Hand : Control
                 GD.PrintErr($"[Hand] FAILED: ExecuteCommand returned false for card {cardId} - card will not be selectable!");
             }
         }
-        
+
         // Final state check
         var finalState = _commandProcessor.CurrentState;
         GD.Print($"[Hand] DrawAndAppend complete. Final hand size: {finalState?.Hand.Count}/{finalState?.Hand.MaxHandSize}");
@@ -344,22 +319,22 @@ public partial class Hand : Control
     public void SyncVisualCardsToGameState()
     {
         if (_commandProcessor == null) return;
-        
+
         GD.Print("[Hand] Syncing visual cards to GameState...");
-        
+
         var currentState = _commandProcessor.CurrentState;
         if (currentState == null) return;
-        
+
         // Find cards that exist visually but not in GameState
         foreach (var card in _cards)
         {
             var cardId = card.GetInstanceId().ToString();
             var existsInGameState = currentState.Hand.Cards.Any(c => c.CardId == cardId);
-            
+
             if (!existsInGameState)
             {
                 GD.Print($"[Hand] Found visual card {cardId} not in GameState - adding it");
-                
+
                 var addCardCommand = new AddCardCommand(cardId);
                 if (addCardCommand.CanExecute(currentState))
                 {
@@ -386,7 +361,7 @@ public partial class Hand : Control
     {
         float baselineY = GlobalPosition.Y;
         var count = _cardSlotsContainer.Count;
-        
+
         // PERFORMANCE OPTIMIZATION: Use cached layout calculations
         var (positions, rotations) = _layoutCache.GetLayout(
             count,
@@ -464,7 +439,7 @@ public partial class Hand : Control
     {
         var draggedIndex = _cardSlots.IndexOf(draggedSlot);
         var targetIndex = _cardSlots.IndexOf(targetSlot);
-        
+
         if (draggedIndex < 0 || targetIndex < 0 && draggedIndex != targetIndex)
             return;
 
@@ -493,7 +468,7 @@ public partial class Hand : Control
         try
         {
             AdjustFanEffect();
-            
+
             // TIMING FIX: Try to sync any unsynced cards when elements change
             if (_commandProcessor != null)
             {

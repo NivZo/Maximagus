@@ -1,24 +1,19 @@
 using Godot;
-using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Enums;
-using Scripts.Interfaces;
 using Scripts.State;
 
 namespace Maximagus.Scripts.Managers
 {
-    public class HandManager : IHandManager, IHandOperations
+    public class HandManager : IHandManager
     {
         public int MaxCardsPerSubmission { get; set; } = 4;
         
         private ILogger _logger;
         private Hand _hand;
-        
-        public IHandOperations HandOperations => this;
         
         public ImmutableArray<Card> Cards => _hand?.Cards ?? ImmutableArray<Card>.Empty;
         public ImmutableArray<Card> SelectedCards => _hand?.SelectedCards ?? ImmutableArray<Card>.Empty;

@@ -12,12 +12,12 @@ namespace Scripts.Commands.Game
     public class TurnStartCommand : IGameCommand
     {
         private readonly ILogger _logger;
-        private readonly GameCommandProcessor _commandProcessor;
+        private readonly IGameCommandProcessor _commandProcessor;
 
         public TurnStartCommand()
         {
             _logger = ServiceLocator.GetService<ILogger>();
-            _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         }
 
         public string GetDescription() => "Start Turn";
@@ -25,12 +25,14 @@ namespace Scripts.Commands.Game
         public bool CanExecute(IGameStateData currentState)
         {
             // Can only start turn from TurnStart phase
-            return currentState.Phase.CurrentPhase == GamePhase.TurnStart;
+            return currentState.Phase.CurrentPhase == GamePhase.Menu || currentState.Phase.CurrentPhase == GamePhase.TurnEnd;
         }
 
         public IGameStateData Execute(IGameStateData currentState)
         {
             _logger?.LogInfo("[TurnStartCommand] Execute() called!");
+            _commandProcessor.SetState(currentState.WithPhase(currentState.Phase.WithPhase(GamePhase.TurnStart)));
+
             _logger?.LogInfo($"[TurnStartCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
             // Get HandManager to access the Hand properly
@@ -80,12 +82,11 @@ namespace Scripts.Commands.Game
                 }
             }
 
-            // Transition to CardSelection phase (where player can select cards)
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
             var newState = currentState.WithPhase(newPhaseState);
             
             _logger?.LogInfo($"[TurnStartCommand] Turn started - new phase: {newState.Phase.CurrentPhase}");
-            
+
             return newState;
         }
     }

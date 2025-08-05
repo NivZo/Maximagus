@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=3 uid="uid://n84dju5wqbyj"]
+[gd_scene load_steps=3 format=3 uid="uid://n84dju5wqbyj"]
 
-[ext_resource type="PackedScene" uid="uid://cg3eemcq3p0ll" path="res://Scenes/Card/CardSlot.tscn" id="1_0xaq6"]
 [ext_resource type="Script" uid="uid://074arghf3h7f" path="res://Scripts/Implementations/Hand.cs" id="1_3p1lq"]
 [ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="3_fkehq"]
 
@@ -16,46 +15,6 @@ mouse_filter = 2
 script = ExtResource("1_3p1lq")
 
 [node name="CardSlots" type="Node" parent="."]
-
-[node name="CardSlot" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot2" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot3" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot4" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot5" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot6" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot7" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot8" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot9" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="CardSlot10" parent="CardSlots" instance=ExtResource("1_0xaq6")]
-grow_horizontal = 1
-grow_vertical = 1
 
 [node name="Cards" type="Node" parent="."]
 

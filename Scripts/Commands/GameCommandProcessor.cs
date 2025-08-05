@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using Scripts.State;
 using Maximagus.Scripts.Managers;
+using Scripts.Commands.Game;
 
 namespace Scripts.Commands
 {
@@ -11,14 +12,14 @@ namespace Scripts.Commands
     /// Central processor for all game commands.
     /// Validates, executes, and tracks command history.
     /// </summary>
-    public class GameCommandProcessor
+    public class GameCommandProcessor : IGameCommandProcessor
     {
         private readonly IEventBus _eventBus;
         private IGameStateData _currentState;
 
-        public GameCommandProcessor(IEventBus eventBus = null)
+        public GameCommandProcessor()
         {
-            _eventBus = eventBus;
+            _eventBus = ServiceLocator.GetService<IEventBus>();
             _currentState = GameState.CreateInitial();
         }
 
@@ -91,6 +92,12 @@ namespace Scripts.Commands
                 });
 
                 LogInfo($"Command executed successfully: {command.GetDescription()}");
+
+                if (_currentState.Phase != previousState.Phase)
+                {
+                    LogInfo($"Phase changed from {previousState.Phase.CurrentPhase} to {_currentState.Phase.CurrentPhase} - executing phase command");
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -152,15 +159,5 @@ namespace Scripts.Commands
         {
             GD.Print($"[GameCommandProcessor] ERROR: {message}");
         }
-    }
-
-    /// <summary>
-    /// Event data for game state changes
-    /// </summary>
-    public class GameStateChangedEventData
-    {
-        public IGameStateData PreviousState { get; set; }
-        public IGameStateData NewState { get; set; }
-        public IGameCommand ExecutedCommand { get; set; }
     }
 }

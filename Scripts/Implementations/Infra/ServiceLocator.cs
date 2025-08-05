@@ -28,6 +28,7 @@ public static class ServiceLocator
         RegisterService<IGameStateManager, GameStateManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
+        RegisterService<IGameCommandProcessor, GameCommandProcessor>();
 
 
         // Node services
