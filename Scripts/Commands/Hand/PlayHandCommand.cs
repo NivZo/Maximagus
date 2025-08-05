@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using Godot;
+using Maximagus.Scripts.Enums;
+using Maximagus.Scripts.Spells.Implementations;
 
 namespace Scripts.Commands.Hand
 {
@@ -39,7 +42,19 @@ namespace Scripts.Commands.Hand
         {
             _logger?.LogInfo("[PlayHandCommand] Execute() called!");
             
-            // Get HandManager to access the Hand properly
+            // PURE COMMAND SYSTEM: Get selected cards from GameState, not visual components
+            var selectedCardIds = currentState.Hand.SelectedCardIds.ToList();
+            var selectedCardStates = currentState.Hand.Cards.Where(card => selectedCardIds.Contains(card.CardId)).ToList();
+            
+            _logger?.LogInfo($"[PlayHandCommand] Playing {selectedCardStates.Count} selected cards from GameState");
+
+            if (selectedCardStates.Count == 0)
+            {
+                _logger?.LogWarning("[PlayHandCommand] No cards selected in GameState!");
+                return currentState;
+            }
+
+            // Get HandManager to access the Hand for visual operations (spell processing, discard)
             var handManager = ServiceLocator.GetService<IHandManager>();
             if (handManager?.Hand == null)
             {
@@ -47,22 +62,28 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            var selectedCards = handManager.Hand.SelectedCards;
-            _logger?.LogInfo($"[PlayHandCommand] Playing {selectedCards.Length} selected cards");
+            // Get the actual Card objects by matching IDs from GameState to visual cards
+            var selectedVisualCards = handManager.Hand.Cards.Where(card => 
+                selectedCardIds.Contains(card.GetInstanceId().ToString())).ToArray();
+            
+            _logger?.LogInfo($"[PlayHandCommand] Found {selectedVisualCards.Length} matching visual cards");
 
-            if (selectedCards.Length == 0)
+            if (selectedVisualCards.Length == 0)
             {
-                _logger?.LogWarning("[PlayHandCommand] No cards selected!");
+                _logger?.LogWarning("[PlayHandCommand] No matching visual cards found!");
                 return currentState;
             }
 
-            // STEP 1: Process the spell using SpellProcessingManager (this queues animations)
+            // STEP 1: Process the spell with the specific selected cards
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
-                _logger?.LogInfo("[PlayHandCommand] Processing spell...");
-                spellProcessingManager.ProcessSpell(); // This queues spell animations
-                _logger?.LogInfo("[PlayHandCommand] Spell queued for processing");
+                _logger?.LogInfo("[PlayHandCommand] Processing spell with selected cards...");
+                
+                // Process spell with specific cards instead of relying on visual state
+                ProcessSpellWithCards(selectedVisualCards);
+                
+                _logger?.LogInfo("[PlayHandCommand] Spell processing completed");
             }
             else
             {
@@ -74,8 +95,8 @@ namespace Scripts.Commands.Hand
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                var cardCount = selectedCards.Length;
-                var cardsToDiscard = selectedCards.ToArray(); // Store reference
+                var cardCount = selectedVisualCards.Length;
+                var cardsToDiscard = selectedVisualCards.ToArray(); // Store reference
                 
                 _logger?.LogInfo("[PlayHandCommand] Queuing discard and replace after spell animations...");
                 
@@ -131,8 +152,8 @@ namespace Scripts.Commands.Hand
                 // Fallback: immediate execution (will cause visual issues but spell will work)
                 try
                 {
-                    handManager.Hand.Discard(selectedCards);
-                    handManager.Hand.DrawAndAppend(selectedCards.Length);
+                    handManager.Hand.Discard(selectedVisualCards);
+                    handManager.Hand.DrawAndAppend(selectedVisualCards.Length);
                     _logger?.LogInfo("[PlayHandCommand] Immediate discard and replace completed");
                 }
                 catch (Exception ex)
@@ -141,12 +162,73 @@ namespace Scripts.Commands.Hand
                 }
             }
 
-            // STEP 3: Update GameState - stay in CardSelection phase, just update player
+            // STEP 3: Update GameState - clear selected cards after playing and update player
+            var newHandState = currentState.Hand.WithClearedSelection();
             var newPlayerState = currentState.Player.WithHandUsed();
-            var newState = currentState.WithPlayer(newPlayerState);
+            var newState = currentState.WithHand(newHandState).WithPlayer(newPlayerState);
             
-            _logger?.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}");
+            _logger?.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}, selected cards cleared");
             return newState;
+        }
+
+        /// <summary>
+        /// Process spell with specific cards (bypassing the visual state dependency)
+        /// </summary>
+        private void ProcessSpellWithCards(global::Card[] cards)
+        {
+            var statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
+            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
+            
+            GD.Print("--- Processing Spell (Command System) ---");
+            var context = new SpellContext();
+
+            statusEffectManager?.TriggerEffects(StatusEffectTrigger.OnSpellCast);
+
+            GD.Print($"Executing {cards.Length} cards in the following order: {string.Join(", ", cards.Select(c => c.Resource.CardName))}");
+
+            foreach (var card in cards)
+            {
+                GD.Print($"- Executing card: {card.Resource.CardName}");
+                
+                // Store card data to avoid accessing disposed objects in queued actions
+                var cardResource = card.Resource;
+                var cardVisual = card.Visual;
+                
+                queuedActionsManager?.QueueAction(() =>
+                {
+                    try
+                    {
+                        // Check if card visual is still valid before animating
+                        if (cardVisual != null && !cardVisual.IsQueuedForDeletion())
+                        {
+                            AnimationUtils.AnimateScale(cardVisual, 1.5f, 1f, Tween.TransitionType.Elastic);
+                        }
+                        
+                        // Execute the card resource (this should always be safe)
+                        if (cardResource != null)
+                        {
+                            cardResource.Execute(context);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        GD.PrintErr($"Error executing card action: {ex.Message}");
+                        // Continue with spell execution even if one card fails
+                    }
+                },
+                delayAfter: .5f);
+            }
+
+            queuedActionsManager?.QueueAction(() =>
+            {
+                GD.Print($"Spell total damage dealt: {context.TotalDamageDealt}");
+                GD.Print("--- Spell Finished (Command System) ---");
+            });
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new RestoreGameStateCommand(previousState);
         }
 
         public string GetDescription()
@@ -179,6 +261,11 @@ namespace Scripts.Commands.Hand
                 throw new InvalidOperationException("Cannot execute RestoreGameStateCommand - target state is invalid");
 
             return _targetState;
+        }
+
+        public IGameCommand CreateUndoCommand(IGameStateData previousState)
+        {
+            return new RestoreGameStateCommand(previousState);
         }
 
         public string GetDescription()
