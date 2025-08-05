@@ -48,14 +48,34 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // Execute the real game action through HandManager's Hand
-            handManager.Hand.Discard(selectedCards);
-            handManager.Hand.DrawAndAppend(selectedCards.Length);
-            
-            Console.WriteLine("[DiscardHandCommand] Cards discarded and replaced successfully");
+            // Queue only the discard action - cards will be drawn at turn start
+            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
+            if (queuedActionsManager != null)
+            {
+                Console.WriteLine("[DiscardHandCommand] Queuing card discard action...");
+                
+                // Store selected cards for the queued action (to avoid stale references)
+                var cardsToDiscard = selectedCards.ToArray();
+                
+                // Queue only the discard
+                queuedActionsManager.QueueAction(() =>
+                {
+                    Console.WriteLine("[DiscardHandCommand] Executing queued discard...");
+                    handManager.Hand.Discard(cardsToDiscard);
+                    Console.WriteLine("[DiscardHandCommand] Cards discarded successfully (will draw at turn start)");
+                });
+            }
+            else
+            {
+                Console.WriteLine("[DiscardHandCommand] WARNING: QueuedActionsManager not available, executing immediately");
+                // Fallback to immediate execution if QueuedActionsManager is not available
+                handManager.Hand.Discard(selectedCards);
+                Console.WriteLine("[DiscardHandCommand] Cards discarded successfully");
+            }
 
-            // GameState remains unchanged for discard (just removes and replaces cards)
-            return currentState;
+            // Discard loops back to CardSelection phase (following the turn loop)
+            var newPhaseState = currentState.Phase.WithPhase(currentState.Phase.GetDiscardPhase());
+            return currentState.WithPhase(newPhaseState);
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)
@@ -85,7 +105,7 @@ namespace Scripts.Commands.Hand
         public bool CanExecute(IGameStateData currentState)
         {
             // Can always restore to a valid hand state
-            return _targetHandState.IsValid();
+            return _targetHandState?.IsValid() == true;
         }
 
         public IGameStateData Execute(IGameStateData currentState)
@@ -103,7 +123,7 @@ namespace Scripts.Commands.Hand
 
         public string GetDescription()
         {
-            return $"Restore hand state ({_targetHandState.Count} cards, {_targetHandState.SelectedCount} selected)";
+            return $"Restore hand state";
         }
     }
 }

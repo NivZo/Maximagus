@@ -63,23 +63,21 @@ namespace Scripts.Commands.Hand
                 Console.WriteLine("[PlayHandCommand] WARNING: SpellProcessingManager not available");
             }
 
-            // STEP 2: Queue the discard and draw actions to happen after spell processing
+            // STEP 2: Queue only the discard action - cards will be drawn at turn start
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                Console.WriteLine("[PlayHandCommand] Queuing card discard and draw actions...");
+                Console.WriteLine("[PlayHandCommand] Queuing card discard action...");
                 
                 // Store selected cards for the queued action (to avoid stale references)
                 var cardsToDiscard = selectedCards.ToArray();
-                var cardCount = cardsToDiscard.Length;
                 
-                // Queue the discard and draw to happen after the spell animations complete
+                // Queue only the discard to happen after the spell animations complete
                 queuedActionsManager.QueueAction(() =>
                 {
-                    Console.WriteLine("[PlayHandCommand] Executing queued discard and draw...");
+                    Console.WriteLine("[PlayHandCommand] Executing queued discard...");
                     handManager.Hand.Discard(cardsToDiscard);
-                    handManager.Hand.DrawAndAppend(cardCount);
-                    Console.WriteLine("[PlayHandCommand] Cards discarded and replaced successfully");
+                    Console.WriteLine("[PlayHandCommand] Cards discarded successfully (will draw at turn start)");
                 });
             }
             else
@@ -87,8 +85,7 @@ namespace Scripts.Commands.Hand
                 Console.WriteLine("[PlayHandCommand] WARNING: QueuedActionsManager not available, executing immediately");
                 // Fallback to immediate execution if QueuedActionsManager is not available
                 handManager.Hand.Discard(selectedCards);
-                handManager.Hand.DrawAndAppend(selectedCards.Length);
-                Console.WriteLine("[PlayHandCommand] Cards played and replaced successfully");
+                Console.WriteLine("[PlayHandCommand] Cards discarded successfully");
             }
 
             // STEP 3: Update GameState - transition to SpellCasting phase and update player
