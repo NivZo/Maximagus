@@ -226,51 +226,9 @@ namespace Scripts.Commands.Hand
             });
         }
 
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new RestoreGameStateCommand(previousState);
-        }
-
         public string GetDescription()
         {
             return "Play selected cards as spell";
-        }
-    }
-
-    /// <summary>
-    /// Command to restore the complete game state (used for complex undos)
-    /// </summary>
-    public class RestoreGameStateCommand : IGameCommand
-    {
-        private readonly IGameStateData _targetState;
-
-        public RestoreGameStateCommand(IGameStateData targetState)
-        {
-            _targetState = targetState ?? throw new ArgumentNullException(nameof(targetState));
-        }
-
-        public bool CanExecute(IGameStateData currentState)
-        {
-            // Can always restore to a valid previous state
-            return _targetState?.IsValid() == true;
-        }
-
-        public IGameStateData Execute(IGameStateData currentState)
-        {
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException("Cannot execute RestoreGameStateCommand - target state is invalid");
-
-            return _targetState;
-        }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new RestoreGameStateCommand(previousState);
-        }
-
-        public string GetDescription()
-        {
-            return $"Restore game state to: {_targetState?.Phase?.CurrentPhase}";
         }
     }
 }

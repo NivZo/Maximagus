@@ -130,7 +130,6 @@ namespace Scripts.Input
                 Key.Enter => new StartGameCommand(),
                 Key.Space => new PlayHandCommand(),
                 Key.Delete or Key.Backspace => new DiscardHandCommand(),
-                Key.Escape => CreateClearSelectionCommand(),
                 _ => null
             };
         }
@@ -161,20 +160,7 @@ namespace Scripts.Input
             }
             return null;
         }
-
-        /// <summary>
-        /// Creates a command to clear all card selections
-        /// </summary>
-        private IGameCommand CreateClearSelectionCommand()
-        {
-            var currentState = _commandProcessor.CurrentState;
-            if (currentState.Hand.SelectedCount == 0) return null;
-
-            // For now, create a command that deselects all cards
-            // This could be optimized with a dedicated ClearSelectionCommand
-            return new RestoreHandStateCommand(currentState.Hand.WithClearedSelection());
-        }
-
+        
         /// <summary>
         /// Initializes the input mapping dictionary
         /// </summary>
@@ -182,10 +168,10 @@ namespace Scripts.Input
         {
             // Add specific input mappings that don't require complex logic
             // Most mappings are handled in HandleGenericInput for flexibility
-            
+
             _inputMappings["System_Quit"] = _ => null; // System events don't map to game commands
             _inputMappings["System_Pause"] = _ => null;
-            
+
             // Add more specific mappings as needed
         }
 

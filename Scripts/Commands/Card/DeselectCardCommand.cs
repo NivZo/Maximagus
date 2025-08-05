@@ -53,11 +53,6 @@ namespace Scripts.Commands.Card
             return newState;
         }
 
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            return new SelectCardCommand(_cardId);
-        }
-
         public string GetDescription()
         {
             return $"Deselect card: {_cardId}";

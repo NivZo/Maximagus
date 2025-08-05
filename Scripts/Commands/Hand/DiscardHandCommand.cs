@@ -83,36 +83,4 @@ namespace Scripts.Commands.Hand
             return "Discard selected cards";
         }
     }
-
-    /// <summary>
-    /// Command to restore a specific hand state (used for hand-related undos)
-    /// </summary>
-    public class RestoreHandStateCommand : IGameCommand
-    {
-        private readonly HandState _targetHandState;
-
-        public RestoreHandStateCommand(HandState targetHandState)
-        {
-            _targetHandState = targetHandState ?? throw new ArgumentNullException(nameof(targetHandState));
-        }
-
-        public bool CanExecute(IGameStateData currentState)
-        {
-            // Can always restore to a valid hand state
-            return _targetHandState?.IsValid() == true;
-        }
-
-        public IGameStateData Execute(IGameStateData currentState)
-        {
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException("Cannot execute RestoreHandStateCommand - target hand state is invalid");
-
-            return currentState.WithHand(_targetHandState);
-        }
-
-        public string GetDescription()
-        {
-            return $"Restore hand state";
-        }
-    }
 }

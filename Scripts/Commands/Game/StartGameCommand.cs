@@ -44,11 +44,5 @@ namespace Scripts.Commands.Game
             GD.Print("[StartGameCommand] No action needed for current phase");
             return currentState;
         }
-
-        public IGameCommand CreateUndoCommand(IGameStateData previousState)
-        {
-            // For now, starting game is not undoable
-            return null;
-        }
     }
 }
