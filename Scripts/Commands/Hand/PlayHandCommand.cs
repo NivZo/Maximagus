@@ -58,12 +58,12 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 1: Process the spell using SpellProcessingManager FIRST (needs cards to exist)
+            // STEP 1: Process the spell using SpellProcessingManager (this queues animations)
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
                 _logger?.LogInfo("[PlayHandCommand] Processing spell...");
-                spellProcessingManager.ProcessSpell(); // This needs cards to exist
+                spellProcessingManager.ProcessSpell(); // This queues spell animations
                 _logger?.LogInfo("[PlayHandCommand] Spell queued for processing");
             }
             else
@@ -72,19 +72,75 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 2: Execute the discard and replace immediately (original working approach)
-            _logger?.LogInfo("[PlayHandCommand] Discarding and replacing cards...");
-            try
+            // STEP 2: Queue discard and replace to happen AFTER spell animations
+            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
+            if (queuedActionsManager != null)
             {
                 var cardCount = selectedCards.Length;
-                handManager.Hand.Discard(selectedCards);
-                handManager.Hand.DrawAndAppend(cardCount);
-                _logger?.LogInfo($"[PlayHandCommand] {cardCount} cards discarded and replaced successfully");
+                var cardsToDiscard = selectedCards.ToArray(); // Store reference
+                
+                _logger?.LogInfo("[PlayHandCommand] Queuing discard and replace after spell animations...");
+                
+                // Queue with delay to happen after spell processing completes
+                queuedActionsManager.QueueAction(() =>
+                {
+                    try
+                    {
+                        _logger?.LogInfo("[PlayHandCommand] Executing delayed discard and replace...");
+                        
+                        var handManagerForActions = ServiceLocator.GetService<IHandManager>();
+                        if (handManagerForActions?.Hand != null)
+                        {
+                            // Check if cards still exist before discarding
+                            var existingCards = handManagerForActions.Hand.Cards;
+                            var validCardsToDiscard = cardsToDiscard
+                                .Where(card => existingCards.Contains(card))
+                                .ToArray();
+                            
+                            if (validCardsToDiscard.Length > 0)
+                            {
+                                handManagerForActions.Hand.Discard(validCardsToDiscard);
+                                _logger?.LogInfo($"[PlayHandCommand] {validCardsToDiscard.Length} cards discarded");
+                            }
+                            
+                            // Draw replacement cards
+                            var currentCount = handManagerForActions.Hand.Cards.Length;
+                            var maxHandSize = 10;
+                            var cardsToDraw = Math.Max(0, maxHandSize - currentCount);
+                            
+                            if (cardsToDraw > 0)
+                            {
+                                handManagerForActions.Hand.DrawAndAppend(cardsToDraw);
+                                _logger?.LogInfo($"[PlayHandCommand] {cardsToDraw} replacement cards drawn");
+                            }
+                            
+                            _logger?.LogInfo("[PlayHandCommand] Discard and replace completed successfully");
+                        }
+                        else
+                        {
+                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for actions");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogError($"[PlayHandCommand] ERROR in delayed discard and replace: {ex.Message}", ex);
+                    }
+                });
             }
-            catch (Exception ex)
+            else
             {
-                _logger?.LogError($"[PlayHandCommand] ERROR in discard and replace: {ex.Message}", ex);
-                // Continue anyway - at least spell was processed
+                _logger?.LogWarning("[PlayHandCommand] WARNING: QueuedActionsManager not available - executing immediately");
+                // Fallback: immediate execution (will cause visual issues but spell will work)
+                try
+                {
+                    handManager.Hand.Discard(selectedCards);
+                    handManager.Hand.DrawAndAppend(selectedCards.Length);
+                    _logger?.LogInfo("[PlayHandCommand] Immediate discard and replace completed");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError($"[PlayHandCommand] ERROR in immediate discard and replace: {ex.Message}", ex);
+                }
             }
 
             // STEP 3: Update GameState - stay in CardSelection phase, just update player
