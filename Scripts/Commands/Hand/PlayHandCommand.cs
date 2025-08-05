@@ -58,11 +58,11 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // Store the specific cards to discard by their names (safer than instance IDs)
-            var cardNamesToDiscard = selectedCards.Select(card => card.Resource.CardName).ToArray();
+            // Store card count for replacement later
             var cardCount = selectedCards.Length;
 
             // STEP 1: Process the spell using SpellProcessingManager 
+            // NOTE: SpellProcessingManager might handle discard internally, so we need to check after
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
@@ -76,62 +76,49 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 2: Queue discard and replacement after spell processing
+            // STEP 2: Queue card replacement to happen after spell processing
+            // We'll check if cards still exist before trying to discard them
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                _logger?.LogInfo("[PlayHandCommand] Queuing discard and replacement after spell...");
+                _logger?.LogInfo("[PlayHandCommand] Queuing card replacement after spell...");
                 
-                // Queue the discard and replacement to happen after spell processing
+                // Queue the replacement logic to happen after spell processing
                 queuedActionsManager.QueueAction(() =>
                 {
                     try
                     {
-                        _logger?.LogInfo("[PlayHandCommand] Executing discard and replacement...");
+                        _logger?.LogInfo("[PlayHandCommand] Executing card replacement...");
                         
                         // Get fresh reference to HandManager
-                        var handManagerForActions = ServiceLocator.GetService<IHandManager>();
-                        if (handManagerForActions?.Hand == null)
+                        var handManagerForReplacement = ServiceLocator.GetService<IHandManager>();
+                        if (handManagerForReplacement?.Hand == null)
                         {
-                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for actions");
+                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for replacement");
                             return;
                         }
 
-                        // Find cards to discard by matching names (safer approach)
-                        var currentCards = handManagerForActions.Hand.Cards;
-                        var cardsToDiscard = currentCards
-                            .Where(card => cardNamesToDiscard.Contains(card.Resource.CardName))
-                            .Take(cardCount) // Only take the exact number we need
-                            .ToArray();
-
-                        if (cardsToDiscard.Length > 0)
-                        {
-                            _logger?.LogInfo($"[PlayHandCommand] Discarding {cardsToDiscard.Length} cards");
-                            handManagerForActions.Hand.Discard(cardsToDiscard);
-                            _logger?.LogInfo("[PlayHandCommand] Cards discarded successfully");
-                        }
-                        else
-                        {
-                            _logger?.LogWarning("[PlayHandCommand] WARNING: No matching cards found to discard");
-                        }
-                        
-                        // Draw replacement cards
-                        var currentCardCount = handManagerForActions.Hand.Cards.Length;
+                        // Check current hand size to see if we need to draw cards
+                        var currentCardCount = handManagerForReplacement.Hand.Cards.Length;
                         var maxHandSize = 10;
                         var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
                         
                         if (cardsToDraw > 0)
                         {
-                            _logger?.LogInfo($"[PlayHandCommand] Drawing {cardsToDraw} replacement cards");
-                            handManagerForActions.Hand.DrawAndAppend(cardsToDraw);
-                            _logger?.LogInfo($"[PlayHandCommand] Hand now has {handManagerForActions.Hand.Cards.Length} cards");
+                            _logger?.LogInfo($"[PlayHandCommand] Drawing {cardsToDraw} cards to replace discarded ones");
+                            handManagerForReplacement.Hand.DrawAndAppend(cardsToDraw);
+                            _logger?.LogInfo($"[PlayHandCommand] Hand now has {handManagerForReplacement.Hand.Cards.Length} cards");
+                        }
+                        else
+                        {
+                            _logger?.LogInfo("[PlayHandCommand] Hand already at max size, no replacement needed");
                         }
                         
-                        _logger?.LogInfo("[PlayHandCommand] Discard and replacement completed successfully");
+                        _logger?.LogInfo("[PlayHandCommand] Card replacement completed successfully");
                     }
                     catch (Exception ex)
                     {
-                        _logger?.LogError($"[PlayHandCommand] ERROR in discard and replacement: {ex.Message}", ex);
+                        _logger?.LogError($"[PlayHandCommand] ERROR in card replacement: {ex.Message}", ex);
                     }
                 });
             }
