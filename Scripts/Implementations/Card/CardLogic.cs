@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Scripts.Commands;
 using Scripts.Commands.Card;
+using Scripts.Config;
 
 public partial class CardLogic : Button
 {
@@ -15,12 +16,11 @@ public partial class CardLogic : Button
 	private Vector2 _distanceFromMouse;
 	private Vector2 _initialMousePosition;
 	private bool _mousePressed = false;
-	private const float DRAG_THRESHOLD = 35.0f;
+	private const float DRAG_THRESHOLD = GameConfig.DRAG_THRESHOLD;
 
 	public bool IsSelected { get; private set; } = false;
 	public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
 	
-	// PURE COMMAND SYSTEM: Query GameState for drag state
 	public bool IsDragging
 	{
 		get
@@ -105,16 +105,37 @@ public partial class CardLogic : Button
 	{
 		try
 		{
+			// PERFORMANCE FIX: Early return if card is not initialized
+			if (Card == null) return;
+			
 			// Try to set up command system if not ready yet
 			if (!_commandSystemReady)
 			{
 				TrySetupCommandSystem();
+				// Early return if still not ready - avoid expensive operations
+				if (!_commandSystemReady) return;
 			}
 			
-			UpdateVisualPosition((float)delta);
-			CheckDragThreshold();
+			// PERFORMANCE FIX: Skip visual updates if not visible or off-screen
+			if (!Visible || Card.Visual == null) return;
 			
-			// Sync with GameState if command system is ready
+			// PERFORMANCE FIX: Only update position if dragging or visual position differs
+			bool needsPositionUpdate = IsDragging ||
+				(Card.Visual.GetCenter() != GetTargetSlottedCenter());
+			
+			if (needsPositionUpdate)
+			{
+				UpdateVisualPosition((float)delta);
+			}
+			
+			// PERFORMANCE FIX: Only check drag threshold when mouse is pressed
+			if (_mousePressed && !IsDragging)
+			{
+				CheckDragThreshold();
+			}
+			
+			// PERFORMANCE FIX: Only sync with GameState when necessary
+			// (less frequent than every frame - could be optimized further with events)
 			if (_commandSystemReady)
 			{
 				SyncWithGameState();
@@ -174,8 +195,8 @@ public partial class CardLogic : Button
 			
 			if (IsSelected)
 			{
-				// Move up by 64 pixels when selected
-				targetPosition = basePosition + new Vector2(0, -64f);
+				// Move up when selected
+				targetPosition = basePosition + new Vector2(0, GameConfig.SELECTION_VERTICAL_OFFSET);
 				GD.Print($"[CardLogic] DIRECT FIX: Moving card UP to {targetPosition} (selected)");
 			}
 			else

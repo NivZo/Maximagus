@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using Scripts.Config;
 using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Game
@@ -11,10 +12,12 @@ namespace Scripts.Commands.Game
     public class TurnStartCommand : IGameCommand
     {
         private readonly ILogger _logger;
+        private readonly GameCommandProcessor _commandProcessor;
 
         public TurnStartCommand()
         {
             _logger = ServiceLocator.GetService<ILogger>();
+            _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
         }
 
         public string GetDescription() => "Start Turn";
@@ -46,15 +49,15 @@ namespace Scripts.Commands.Game
                 
                 queuedActionsManager.QueueAction(() =>
                 {
-                    var currentCardCount = handManager.Hand.Cards.Length;
-                    var maxHandSize = 10; // TODO: Get this from HandState or configuration
+                    var currentCardCount = _commandProcessor?.CurrentState?.Hand.Cards.Count ?? 0;
+                    var maxHandSize = GameConfig.DEFAULT_MAX_HAND_SIZE;
                     var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
                     
                     if (cardsToDraw > 0)
                     {
                         _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
                         handManager.Hand.DrawAndAppend(cardsToDraw);
-                        _logger?.LogInfo($"[TurnStartCommand] Hand now has {handManager.Hand.Cards.Length} cards");
+                        _logger?.LogInfo($"[TurnStartCommand] Hand now has {_commandProcessor?.CurrentState?.Hand.Cards.Count} cards");
                     }
                     else
                     {
@@ -66,7 +69,7 @@ namespace Scripts.Commands.Game
             {
                 _logger?.LogWarning("[TurnStartCommand] WARNING: QueuedActionsManager not available, executing immediately");
                 // Fallback to immediate execution
-                var currentCardCount = handManager.Hand.Cards.Length;
+                var currentCardCount = _commandProcessor?.CurrentState?.Hand.Cards.Count ?? 0;
                 var maxHandSize = 10;
                 var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
                 

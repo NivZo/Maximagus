@@ -4,7 +4,6 @@ using System.Linq;
 using Maximagus.Scripts.Enums;
 using Maximagus.Scripts.StatusEffects;
 using Maximagus.Resources.Definitions.StatusEffects;
-using Maximagus.Scripts.Events;
 
 namespace Maximagus.Scripts.Managers
 {

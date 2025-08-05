@@ -4,16 +4,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Maximagus.Scripts.Spells.Abstractions;
-using Maximagus.Scripts.Events;
 using Scripts.Commands;
 using Scripts.Commands.Hand;
+using Scripts.Config;
+using Scripts.Utils;
 
 public partial class Hand : Control
 {
     public static Hand Instance { get; private set; }
 
-    [Export] float CardsCurveMultiplier = 20;
-    [Export] float CardsRotationMultiplier = 5;
+    [Export] float CardsCurveMultiplier = GameConfig.DEFAULT_CARDS_CURVE_MULTIPLIER;
+    [Export] float CardsRotationMultiplier = GameConfig.DEFAULT_CARDS_ROTATION_MULTIPLIER;
 
     private IEventBus _eventBus;
     private ILogger _logger;
@@ -22,6 +23,7 @@ public partial class Hand : Control
     private OrderedContainer _cardSlotsContainer;
     private Node _cardsNode;
     private Node _cardSlotsNode;
+    private HandLayoutCache _layoutCache;
 
     public ImmutableArray<CardSlot> CardSlots => _cardSlotsContainer
         ?.Where(n => n is CardSlot)
@@ -33,9 +35,6 @@ public partial class Hand : Control
         .Where(card => card != null)
         .ToImmutableArray();
 
-    /// <summary>
-    /// PURE COMMAND SYSTEM: Query GameState instead of individual card states
-    /// </summary>
     public ImmutableArray<Card> SelectedCards
     {
         get
@@ -50,9 +49,6 @@ public partial class Hand : Control
         }
     }
 
-    /// <summary>
-    /// PURE COMMAND SYSTEM: Get dragging card from GameState
-    /// </summary>
     public Card DraggingCard
     {
         get
@@ -79,6 +75,7 @@ public partial class Hand : Control
             // TIMING FIX: Don't get CommandProcessor here - it might not be registered yet
             // We'll get it when we need it in DrawAndAppend()
             _deck = new();
+            _layoutCache = new HandLayoutCache();
 
             SubscribeToEvents();
             InitializeComponents();
@@ -383,8 +380,16 @@ public partial class Hand : Control
     private void AdjustFanEffect()
     {
         float baselineY = GlobalPosition.Y;
-
         var count = _cardSlotsContainer.Count;
+        
+        // PERFORMANCE OPTIMIZATION: Use cached layout calculations
+        var (positions, rotations) = _layoutCache.GetLayout(
+            count,
+            CardsCurveMultiplier,
+            CardsRotationMultiplier,
+            baselineY
+        );
+
         for (int i = 0; i < count; i++)
         {
             var slot = CardSlots[i];
@@ -393,18 +398,13 @@ public partial class Hand : Control
             // Skip empty slots (when no cards are present)
             if (card == null) continue;
 
-            // Handle Z
+            // Handle Z-index ordering
             card.ZIndex = i;
             _cardsNode.MoveChild(card, i);
 
-            // Handle curve
-            float normalizedPos = (count > 1) ? (2.0f * i / count - 1.0f) : 0;
-            float yOffset = Mathf.Pow(normalizedPos, 2) * -CardsCurveMultiplier;
-            slot.TargetPosition = new Vector2(slot.TargetPosition.X, baselineY - yOffset);
-
-            // Handle rotation
-            float rotation = normalizedPos * CardsRotationMultiplier;
-            card.Visual.RotationDegrees = rotation;
+            // PERFORMANCE OPTIMIZATION: Use cached position and rotation
+            slot.TargetPosition = new Vector2(slot.TargetPosition.X, positions[i].Y);
+            card.Visual.RotationDegrees = rotations[i];
         }
     }
 

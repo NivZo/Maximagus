@@ -2,7 +2,6 @@ using Godot;
 using Godot.Collections;
 using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Events;
 using System.Linq;
 
 namespace Maximagus.Scripts.Managers
@@ -22,30 +21,18 @@ namespace Maximagus.Scripts.Managers
         public int RemainingDiscards { get; private set; }
 
         private ILogger _logger;
-        private IEventBus _eventBus;
         public Hand Hand { get; private set; }
 
         public HandManager()
         {
             _logger = ServiceLocator.GetService<ILogger>();
-            _eventBus = ServiceLocator.GetService<IEventBus>();
             ResetForNewEncounter();
-
-            // REMOVED: Legacy event subscriptions - replaced by pure command system
-            // _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
-            // _eventBus.Subscribe<DiscardCardsRequestedEvent>(HandleDiscardCardsRequested);
-            
-            _logger?.LogInfo("HandManager initialized without legacy event subscriptions");
         }
 
         public void SetupHandNode(Hand hand)
         {
             Hand = hand;
         }
-
-        // REMOVED: Legacy event handlers - replaced by pure command system
-        // private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
-        // private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
 
         public void ResetForNewEncounter()
         {

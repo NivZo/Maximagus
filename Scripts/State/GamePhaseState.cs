@@ -24,20 +24,17 @@ namespace Scripts.State
     {
         public GamePhase CurrentPhase { get; }
         public int TurnNumber { get; }
-        public float PhaseTimer { get; }
         public bool CanPlayerAct { get; }
         public string PhaseDescription { get; }
 
         public GamePhaseState(
             GamePhase currentPhase = GamePhase.Menu,
             int turnNumber = 1,
-            float phaseTimer = 0f,
             bool canPlayerAct = true,
             string phaseDescription = "")
         {
             CurrentPhase = currentPhase;
             TurnNumber = Math.Max(1, turnNumber);
-            PhaseTimer = Math.Max(0f, phaseTimer);
             CanPlayerAct = canPlayerAct;
             PhaseDescription = phaseDescription ?? GetDefaultPhaseDescription(currentPhase);
         }
@@ -50,17 +47,8 @@ namespace Scripts.State
             return new GamePhaseState(
                 newPhase,
                 TurnNumber,
-                0f, // Reset timer when changing phases
                 GetDefaultCanPlayerAct(newPhase),
                 GetDefaultPhaseDescription(newPhase));
-        }
-
-        /// <summary>
-        /// Creates a new GamePhaseState with updated timer
-        /// </summary>
-        public GamePhaseState WithTimer(float newTimer)
-        {
-            return new GamePhaseState(CurrentPhase, TurnNumber, newTimer, CanPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -68,7 +56,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithNextTurn()
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber + 1, PhaseTimer, CanPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber + 1, CanPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -76,7 +64,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithPlayerActionStatus(bool canPlayerAct)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, canPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber, canPlayerAct, PhaseDescription);
         }
 
         /// <summary>
@@ -84,7 +72,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithDescription(string description)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, PhaseTimer, CanPlayerAct, description);
+            return new GamePhaseState(CurrentPhase, TurnNumber, CanPlayerAct, description);
         }
 
         /// <summary>
@@ -170,7 +158,6 @@ namespace Scripts.State
         public bool IsValid()
         {
             return TurnNumber >= 1 && 
-                   PhaseTimer >= 0f &&
                    !string.IsNullOrEmpty(PhaseDescription);
         }
 
@@ -180,7 +167,6 @@ namespace Scripts.State
             {
                 return CurrentPhase == other.CurrentPhase &&
                        TurnNumber == other.TurnNumber &&
-                       Math.Abs(PhaseTimer - other.PhaseTimer) < 0.001f &&
                        CanPlayerAct == other.CanPlayerAct &&
                        PhaseDescription == other.PhaseDescription;
             }
@@ -189,7 +175,7 @@ namespace Scripts.State
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(CurrentPhase, TurnNumber, PhaseTimer, CanPlayerAct, PhaseDescription);
+            return HashCode.Combine(CurrentPhase, TurnNumber, CanPlayerAct, PhaseDescription);
         }
     }
 }
