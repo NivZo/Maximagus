@@ -2,7 +2,6 @@ using System;
 using Scripts.State;
 using System.Linq;
 using Godot;
-using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Card
 {
@@ -46,38 +45,14 @@ namespace Scripts.Commands.Card
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine($"[SelectCardCommand] Execute() called for card {_cardId}!");
+            GD.Print($"[SelectCardCommand] Execute() called for card {_cardId}!");
             
-            // Get HandManager to access the Hand properly
-            var handManager = ServiceLocator.GetService<IHandManager>();
-            if (handManager?.Hand == null)
-            {
-                Console.WriteLine("[SelectCardCommand] ERROR: HandManager.Hand is null!");
-                return currentState;
-            }
-
-            // Find the real card by ID
-            var realCard = handManager.Hand.Cards.FirstOrDefault(c => c.GetInstanceId().ToString() == _cardId);
-            if (realCard == null)
-            {
-                Console.WriteLine($"[SelectCardCommand] ERROR: Card {_cardId} not found in hand!");
-                return currentState;
-            }
-
-            // NEW SYSTEM: Directly call the CardLogic SetSelected method
-            if (!realCard.IsSelected && realCard.Logic != null)
-            {
-                realCard.Logic.SetSelected(true);
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} selected successfully via command system");
-            }
-            else
-            {
-                Console.WriteLine($"[SelectCardCommand] Card {_cardId} was already selected or Logic is null");
-            }
-
-            // Update GameState to keep it in sync
+            // COMMAND SYSTEM: Update only GameState - CardLogic will sync with this
             var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
-            return currentState.WithHand(newHandState);
+            var newState = currentState.WithHand(newHandState);
+            
+            GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState");
+            return newState;
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)

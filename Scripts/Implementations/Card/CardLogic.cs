@@ -49,6 +49,11 @@ public partial class CardLogic : Button
         _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _dragManager = ServiceLocator.GetService<IDragManager>();
         _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+        
+        if (_commandProcessor == null)
+        {
+            throw new InvalidOperationException("GameCommandProcessor not available in ServiceLocator - this is required!");
+        }
     }
 
     private void InitializeComponents()
@@ -83,10 +88,26 @@ public partial class CardLogic : Button
         {
             UpdateVisualPosition((float)delta);
             CheckDragThreshold();
+            SyncWithGameState(); // Sync selection state with GameState
         }
         catch (Exception ex)
         {
             _logger?.LogError($"Error in CardLogic process for {GetParent()?.Name}", ex);
+        }
+    }
+
+    private void SyncWithGameState()
+    {
+        // Keep CardLogic selection state in sync with GameState
+        var currentState = _commandProcessor.CurrentState;
+        var cardId = Card.GetInstanceId().ToString();
+        var shouldBeSelected = currentState.Hand.SelectedCardIds.Any(id => id == cardId);
+        
+        if (IsSelected != shouldBeSelected)
+        {
+            IsSelected = shouldBeSelected;
+            this.SetCenter(GetTargetSlottedCenter());
+            InvokePositionChanged();
         }
     }
 
@@ -170,49 +191,23 @@ public partial class CardLogic : Button
 
     private void HandleClick()
     {
-        // NEW COMMAND SYSTEM: Use SelectCardCommand/DeselectCardCommand instead of direct manipulation
-        if (_commandProcessor != null)
+        // COMMAND SYSTEM ONLY - No fallbacks
+        var cardId = Card.GetInstanceId().ToString();
+        IGameCommand command;
+        
+        if (IsSelected)
         {
-            var cardId = Card.GetInstanceId().ToString();
-            IGameCommand command;
-            
-            if (IsSelected)
-            {
-                command = new DeselectCardCommand(cardId);
-            }
-            else
-            {
-                command = new SelectCardCommand(cardId);
-            }
-            
-            var success = _commandProcessor.ExecuteCommand(command);
-            _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
-            
-            if (success)
-            {
-                // Update local state to match command result
-                var newState = _commandProcessor.CurrentState;
-                var wasSelected = IsSelected;
-                var selectedIds = newState.Hand.SelectedCardIds;
-                IsSelected = selectedIds.Any(id => id == cardId);
-                
-                if (wasSelected != IsSelected)
-                {
-                    this.SetCenter(GetTargetSlottedCenter());
-                    InvokePositionChanged();
-                    _eventBus?.Publish(new CardClickedEvent(Card));
-                }
-            }
+            command = new DeselectCardCommand(cardId);
         }
         else
         {
-            // FALLBACK: Legacy system if command processor not available
-            _logger?.LogWarning("[CardLogic] CommandProcessor not available, using legacy selection");
-            IsSelected = !IsSelected;
-            this.SetCenter(GetTargetSlottedCenter());
-            InvokePositionChanged();
-            _eventBus?.Publish(new CardClickedEvent(Card));
+            command = new SelectCardCommand(cardId);
         }
+        
+        var success = _commandProcessor.ExecuteCommand(command);
+        _logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
+        
+        // State will be synced automatically in next _Process call via SyncWithGameState()
     }
 
     private void StartDragging()
@@ -237,19 +232,6 @@ public partial class CardLogic : Button
         // TODO: Future Phase - Implement ReorderCardsCommand here
         // For now, keep legacy drag behavior
         _eventBus?.Publish(new CardDragEndedEvent(card));
-    }
-
-    /// <summary>
-    /// Called by command system to update selection state
-    /// </summary>
-    public void SetSelected(bool selected)
-    {
-        if (IsSelected != selected)
-        {
-            IsSelected = selected;
-            this.SetCenter(GetTargetSlottedCenter());
-            InvokePositionChanged();
-        }
     }
 
     public void OnGuiInput(InputEvent @event)

@@ -4,6 +4,7 @@ using Godot;
 using Maximagus.Scripts.Managers;
 using Maximagus.Scripts.Spells.Implementations;
 using Scripts.State;
+using Scripts.Commands;
 
 public static class ServiceLocator
 {
@@ -25,9 +26,12 @@ public static class ServiceLocator
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IDragManager, DragManager>();
         RegisterService<IHandManager, HandManager>();
-        RegisterService<IGameStateManager, GameStateManager>();
+        RegisterService<Scripts.State.IGameStateManager, Scripts.State.GameStateManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
+
+        // COMMAND SYSTEM - Get GameCommandProcessor from Main
+        RegisterMainService<GameCommandProcessor>(() => main.GetCommandProcessor());
 
         // Node services
         RegisterNodeService<QueuedActionsManager>(false);
@@ -38,6 +42,12 @@ public static class ServiceLocator
     {
         var lazyImplementation = new Lazy<object>(() => new TImplementation());
         _services[typeof(TInterface)] = lazyImplementation;
+    }
+
+    private static void RegisterMainService<T>(Func<T> factory)
+    {
+        var lazyService = new Lazy<object>(() => factory());
+        _services[typeof(T)] = lazyService;
     }
 
     private static void RegisterNodeService<TNode>(bool lazy = true)
