@@ -58,11 +58,11 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // Store the specific cards to discard by their instance IDs (to avoid issues with selection changes)
-            var cardIdsToDiscard = selectedCards.Select(card => card.GetInstanceId()).ToArray();
+            // Store card count for replacement later
             var cardCount = selectedCards.Length;
 
             // STEP 1: Process the spell using SpellProcessingManager 
+            // NOTE: SpellProcessingManager might handle discard internally, so we need to check after
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
@@ -76,84 +76,49 @@ namespace Scripts.Commands.Hand
                 return currentState;
             }
 
-            // STEP 2: Queue discard of the originally selected cards after spell completes
+            // STEP 2: Queue card replacement to happen after spell processing
+            // We'll check if cards still exist before trying to discard them
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                _logger?.LogInfo("[PlayHandCommand] Queuing discard of originally selected cards...");
+                _logger?.LogInfo("[PlayHandCommand] Queuing card replacement after spell...");
                 
-                // Queue the discard to happen after spell processing
+                // Queue the replacement logic to happen after spell processing
                 queuedActionsManager.QueueAction(() =>
                 {
                     try
                     {
-                        _logger?.LogInfo("[PlayHandCommand] Executing discard of originally selected cards...");
+                        _logger?.LogInfo("[PlayHandCommand] Executing card replacement...");
                         
                         // Get fresh reference to HandManager
-                        var handManagerForDiscard = ServiceLocator.GetService<IHandManager>();
-                        if (handManagerForDiscard?.Hand == null)
+                        var handManagerForReplacement = ServiceLocator.GetService<IHandManager>();
+                        if (handManagerForReplacement?.Hand == null)
                         {
-                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for discard");
+                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for replacement");
                             return;
                         }
 
-                        // Find the originally selected cards by their instance IDs
-                        var currentCards = handManagerForDiscard.Hand.Cards;
-                        var cardsToDiscard = currentCards
-                            .Where(card => cardIdsToDiscard.Contains(card.GetInstanceId()))
-                            .ToArray();
-
-                        if (cardsToDiscard.Length > 0)
+                        // Check current hand size to see if we need to draw cards
+                        var currentCardCount = handManagerForReplacement.Hand.Cards.Length;
+                        var maxHandSize = 10;
+                        var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
+                        
+                        if (cardsToDraw > 0)
                         {
-                            _logger?.LogInfo($"[PlayHandCommand] Discarding {cardsToDiscard.Length} originally selected cards");
-                            handManagerForDiscard.Hand.Discard(cardsToDiscard);
-                            _logger?.LogInfo("[PlayHandCommand] Cards discarded successfully");
+                            _logger?.LogInfo($"[PlayHandCommand] Drawing {cardsToDraw} cards to replace discarded ones");
+                            handManagerForReplacement.Hand.DrawAndAppend(cardsToDraw);
+                            _logger?.LogInfo($"[PlayHandCommand] Hand now has {handManagerForReplacement.Hand.Cards.Length} cards");
                         }
                         else
                         {
-                            _logger?.LogWarning("[PlayHandCommand] WARNING: No originally selected cards found to discard");
+                            _logger?.LogInfo("[PlayHandCommand] Hand already at max size, no replacement needed");
                         }
                         
-                        // STEP 3: Execute turn start directly (no need for GameCommandProcessor)
-                        _logger?.LogInfo("[PlayHandCommand] Executing turn start to draw new cards...");
-                        queuedActionsManager.QueueAction(() =>
-                        {
-                            try
-                            {
-                                // Get fresh HandManager reference for drawing cards
-                                var handManagerForDraw = ServiceLocator.GetService<IHandManager>();
-                                if (handManagerForDraw?.Hand != null)
-                                {
-                                    var currentCardCount = handManagerForDraw.Hand.Cards.Length;
-                                    var maxHandSize = 10;
-                                    var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
-                                    
-                                    if (cardsToDraw > 0)
-                                    {
-                                        _logger?.LogInfo($"[PlayHandCommand] Drawing {cardsToDraw} cards to reach max hand size");
-                                        handManagerForDraw.Hand.DrawAndAppend(cardsToDraw);
-                                        _logger?.LogInfo($"[PlayHandCommand] Hand now has {handManagerForDraw.Hand.Cards.Length} cards");
-                                        _logger?.LogInfo("[PlayHandCommand] Turn progression completed successfully");
-                                    }
-                                    else
-                                    {
-                                        _logger?.LogInfo("[PlayHandCommand] Hand already at max size, no cards to draw");
-                                    }
-                                }
-                                else
-                                {
-                                    _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for drawing");
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger?.LogError($"[PlayHandCommand] ERROR in turn start: {ex.Message}", ex);
-                            }
-                        });
+                        _logger?.LogInfo("[PlayHandCommand] Card replacement completed successfully");
                     }
                     catch (Exception ex)
                     {
-                        _logger?.LogError($"[PlayHandCommand] ERROR in discard: {ex.Message}", ex);
+                        _logger?.LogError($"[PlayHandCommand] ERROR in card replacement: {ex.Message}", ex);
                     }
                 });
             }
@@ -162,7 +127,7 @@ namespace Scripts.Commands.Hand
                 _logger?.LogWarning("[PlayHandCommand] WARNING: QueuedActionsManager not available");
             }
 
-            // STEP 4: Update GameState - stay in CardSelection phase, just update player
+            // STEP 3: Update GameState - stay in CardSelection phase, just update player
             var newPlayerState = currentState.Player.WithHandUsed();
             var newState = currentState.WithPlayer(newPlayerState);
             
