@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
-using GlobalHand = Hand; // Alias to avoid namespace conflict
+using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
 {
@@ -31,35 +31,38 @@ namespace Scripts.Commands.Hand
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine("[PlayHandCommand] Execute() called - updating GameState!");
+            Console.WriteLine("[PlayHandCommand] Execute() called!");
             
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException("Cannot execute PlayHandCommand");
-
-            // Get selected cards before they're removed
-            var selectedCards = currentState.Hand.SelectedCards.ToList();
-            Console.WriteLine($"[PlayHandCommand] Playing {selectedCards.Count} selected cards from GameState");
-
-            // Remove selected cards from hand state
-            var newHandState = currentState.Hand;
-            foreach (var card in selectedCards)
+            // Get HandManager to access the Hand properly
+            var handManager = ServiceLocator.GetService<IHandManager>();
+            if (handManager?.Hand == null)
             {
-                newHandState = newHandState.WithRemovedCard(card.CardId);
+                Console.WriteLine("[PlayHandCommand] ERROR: HandManager.Hand is null!");
+                return currentState;
             }
 
-            // Use up one hand from player
-            var newPlayerState = currentState.Player.WithHandUsed();
+            var selectedCards = handManager.Hand.SelectedCards;
+            Console.WriteLine($"[PlayHandCommand] Playing {selectedCards.Length} selected cards");
 
-            // Transition to spell resolution phase
+            if (selectedCards.Length == 0)
+            {
+                Console.WriteLine("[PlayHandCommand] No cards selected!");
+                return currentState;
+            }
+
+            // Execute the real game action through HandManager's Hand
+            handManager.Hand.Discard(selectedCards);
+            handManager.Hand.DrawAndAppend(selectedCards.Length);
+            
+            Console.WriteLine("[PlayHandCommand] Cards played and replaced successfully");
+
+            // Also update GameState to keep it in sync
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellResolution);
+            var newPlayerState = currentState.Player.WithHandUsed();
             
-            Console.WriteLine("[PlayHandCommand] GameState updated successfully");
-            
-            // Return new game state by chaining the with methods
             return currentState
-                .WithHand(newHandState)
-                .WithPlayer(newPlayerState)
-                .WithPhase(newPhaseState);
+                .WithPhase(newPhaseState)
+                .WithPlayer(newPlayerState);
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)

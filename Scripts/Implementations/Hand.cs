@@ -5,10 +5,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Maximagus.Scripts.Spells.Abstractions;
 using Maximagus.Scripts.Events;
-using Scripts.State;
-using Scripts.Commands;
 
-public partial class Hand : Control, IGameStateObserver
+public partial class Hand : Control
 {
     public static Hand Instance { get; private set; }
 
@@ -250,88 +248,6 @@ public partial class Hand : Control, IGameStateObserver
         catch (Exception ex)
         {
             _logger?.LogError("Error handling elements changed", ex);
-        }
-    }
-    /// <summary>
-    /// Called when the GameState changes - updates the Hand to match the new state
-    /// </summary>
-    public void OnGameStateChanged(IGameStateData previousState, IGameStateData newState)
-    {
-        Console.WriteLine("[Hand] GameState changed - syncing Hand with new state");
-        
-        try
-        {
-            // Sync card selections
-            SyncCardSelections(newState.Hand);
-            // Sync card count (now enabled since GameState is properly initialized)
-            SyncCardCount(newState.Hand);
-            
-            
-            Console.WriteLine($"[Hand] Synced with GameState: {newState.Hand.Count} cards, {newState.Hand.SelectedCount} selected");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error syncing Hand with GameState", ex);
-        }
-    }
-
-    /// <summary>
-    /// Sets the GameCommandProcessor and subscribes to state changes
-    /// </summary>
-    public void SetGameCommandProcessor(GameCommandProcessor commandProcessor)
-    {
-        if (commandProcessor != null)
-        {
-            commandProcessor.StateChanged += OnGameStateChanged;
-            Console.WriteLine("[Hand] Subscribed to GameState changes");
-        }
-    }
-
-    /// <summary>
-    /// Syncs the visual card selections with the GameState
-    /// </summary>
-    private void SyncCardSelections(HandState handState)
-    {
-        var gameStateSelectedIds = handState.SelectedCardIds;
-        var realCards = Cards;
-
-        foreach (var card in realCards)
-        {
-            var cardId = card.GetInstanceId().ToString();
-            var shouldBeSelected = gameStateSelectedIds.Contains(cardId);
-            var currentlySelected = card.IsSelected;
-
-            if (shouldBeSelected != currentlySelected)
-            {
-                // TODO: Need to find proper way to sync card selection with GameState
-                // For now, just log the difference
-                Console.WriteLine($"[Hand] Card {cardId} selection mismatch - GameState: {shouldBeSelected}, UI: {currentlySelected}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Syncs the card count with the GameState (adds/removes cards as needed)
-    /// </summary>
-    private void SyncCardCount(HandState handState)
-    {
-        var currentCardCount = Cards.Length;
-        var targetCardCount = handState.Count;
-
-        if (currentCardCount < targetCardCount)
-        {
-            // Add missing cards
-            var cardsToAdd = targetCardCount - currentCardCount;
-            DrawAndAppend(cardsToAdd);
-            Console.WriteLine($"[Hand] Added {cardsToAdd} cards to match GameState");
-        }
-        else if (currentCardCount > targetCardCount)
-        {
-            // Remove excess cards
-            var cardsToRemove = currentCardCount - targetCardCount;
-            var cardsToDiscard = Cards.Take(cardsToRemove).ToList();
-            Discard(cardsToDiscard);
-            Console.WriteLine($"[Hand] Removed {cardsToRemove} cards to match GameState");
         }
     }
 }

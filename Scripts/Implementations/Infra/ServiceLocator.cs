@@ -24,7 +24,7 @@ public static class ServiceLocator
         RegisterService<IEventBus, SimpleEventBus>();
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IDragManager, DragManager>();
-        // RegisterService<IHandManager, HandManager>(); // DISABLED - using new command system
+        RegisterService<IHandManager, HandManager>(); // Re-enabled for Hand access
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
         // RegisterService<IGameStateManager, GameStateManager>(); // DISABLED - using new command system

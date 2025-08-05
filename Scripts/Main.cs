@@ -32,17 +32,15 @@ public partial class Main : Control
             _logger = ServiceLocator.GetService<ILogger>();
             _logger?.LogInfo("Main scene initialized successfully");
 
-            // Get direct reference to Hand node (no legacy HandManager)
+            // Get direct reference to Hand node
             _hand = GetNode<Hand>("Hand");
             
-            // Initialize new command system (replaces legacy systems)
+            // Setup HandManager with Hand node for proper access
+            var handManager = ServiceLocator.GetService<IHandManager>();
+            handManager.SetupHandNode(_hand);
+            
+            // Initialize new command system
             InitializeNewCommandSystem();
-            
-            // Initialize GameState with actual Hand data
-            InitializeGameStateWithRealHandData();
-            
-            // Connect Hand as observer to GameState changes
-            _hand.SetGameCommandProcessor(_commandProcessor);
             
         }
         catch (Exception ex)

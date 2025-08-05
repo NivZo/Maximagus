@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Scripts.State;
-using GlobalHand = Hand; // Alias to avoid namespace conflict
+using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
 {
@@ -29,26 +29,33 @@ namespace Scripts.Commands.Hand
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine("[DiscardHandCommand] Execute() called - updating GameState!");
+            Console.WriteLine("[DiscardHandCommand] Execute() called!");
             
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException("Cannot execute DiscardHandCommand");
-
-            // Get selected cards before they're removed
-            var selectedCards = currentState.Hand.SelectedCards.ToList();
-            Console.WriteLine($"[DiscardHandCommand] Discarding {selectedCards.Count} selected cards from GameState");
-
-            // Remove selected cards from hand state
-            var newHandState = currentState.Hand;
-            foreach (var card in selectedCards)
+            // Get HandManager to access the Hand properly
+            var handManager = ServiceLocator.GetService<IHandManager>();
+            if (handManager?.Hand == null)
             {
-                newHandState = newHandState.WithRemovedCard(card.CardId);
+                Console.WriteLine("[DiscardHandCommand] ERROR: HandManager.Hand is null!");
+                return currentState;
             }
 
-            Console.WriteLine("[DiscardHandCommand] GameState updated successfully");
+            var selectedCards = handManager.Hand.SelectedCards;
+            Console.WriteLine($"[DiscardHandCommand] Discarding {selectedCards.Length} selected cards");
 
-            // Return new game state with updated hand
-            return currentState.WithHand(newHandState);
+            if (selectedCards.Length == 0)
+            {
+                Console.WriteLine("[DiscardHandCommand] No cards selected!");
+                return currentState;
+            }
+
+            // Execute the real game action through HandManager's Hand
+            handManager.Hand.Discard(selectedCards);
+            handManager.Hand.DrawAndAppend(selectedCards.Length);
+            
+            Console.WriteLine("[DiscardHandCommand] Cards discarded and replaced successfully");
+
+            // GameState remains unchanged for discard (just removes and replaces cards)
+            return currentState;
         }
 
         public IGameCommand CreateUndoCommand(IGameStateData previousState)
