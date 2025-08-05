@@ -1,6 +1,6 @@
 using Godot;
 
-// Existing events (assumed to already exist based on original code)
+// Card visual and interaction events (keep these - they're for visual effects only)
 public class CardDragStartedEvent
 {
     public Card Card { get; }
@@ -41,15 +41,7 @@ public class CardHoverEndedEvent
     }
 }
 
-public class CardClickedEvent
-{
-    public Card Card { get; }
-    
-    public CardClickedEvent(Card card)
-    {
-        Card = card;
-    }
-}
+// REMOVED: CardClickedEvent - was never published, only subscribed to (dead code)
 
 public class CardPositionChangedEvent
 {

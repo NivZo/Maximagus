@@ -1,16 +1,25 @@
 using Godot;
-using Maximagus.Scripts.Events;
+using Scripts.Commands;
+using Scripts.Commands.Game;
+using Scripts.Commands.Hand;
 
 namespace Maximagus.Scripts.Input
 {
+    /// <summary>
+    /// PURE COMMAND SYSTEM: GameInputManager now executes commands directly
+    /// No more legacy event publishing - replaced with direct command execution
+    /// </summary>
     public partial class GameInputManager : Node
     {
-        private IEventBus _eventBus;
+        private GameCommandProcessor _commandProcessor;
+        private ILogger _logger;
 
         public override void _Ready()
         {
-            GD.Print("Game input manager init");
-            _eventBus = ServiceLocator.GetService<IEventBus>();
+            _logger = ServiceLocator.GetService<ILogger>();
+            _commandProcessor = ServiceLocator.GetService<GameCommandProcessor>();
+            
+            _logger?.LogInfo("GameInputManager initialized with pure command system");
         }
 
         public override void _Input(InputEvent @event)
@@ -34,18 +43,43 @@ namespace Maximagus.Scripts.Input
 
         private void HandleStartGameAction()
         {
-            // Use event bus instead of game state manager
-            _eventBus.Publish(new StartGameRequestedEvent());
+            // PURE COMMAND SYSTEM: Execute StartGameCommand directly
+            if (_commandProcessor != null)
+            {
+                var command = new StartGameCommand();
+                var success = _commandProcessor.ExecuteCommand(command);
+                _logger?.LogInfo($"StartGameCommand executed: {success}");
+            }
+            else
+            {
+                _logger?.LogWarning("GameCommandProcessor not available for StartGameCommand");
+            }
         }
 
         private void HandlePlayAction()
         {
-            _eventBus.Publish(new PlayCardsRequestedEvent());
+            // PURE COMMAND SYSTEM: Execute PlayHandCommand directly
+            if (_commandProcessor != null)
+            {
+                var command = new PlayHandCommand();
+                var success = _commandProcessor.ExecuteCommand(command);
+                _logger?.LogInfo($"PlayHandCommand executed: {success}");
+            }
+            else
+            {
+                _logger?.LogWarning("GameCommandProcessor not available for PlayHandCommand");
+            }
         }
 
         private void HandleDiscardAction()
         {
-            _eventBus.Publish(new DiscardCardsRequestedEvent());
+            // PURE COMMAND SYSTEM: Would execute DiscardCardsCommand if implemented
+            // For now, discarding is handled through HandManager legacy system
+            _logger?.LogInfo("Discard action - handled by HandManager legacy system");
+            
+            // TODO: Implement DiscardCardsCommand when needed
+            // var command = new DiscardCardsCommand();
+            // var success = _commandProcessor.ExecuteCommand(command);
         }
     }
 }

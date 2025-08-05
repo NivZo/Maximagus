@@ -3,11 +3,14 @@ using Godot.Collections;
 using Maximagus.Scripts.Spells.Abstractions;
 using System.Linq;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Events;
 using Scripts.State;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
+    /// <summary>
+    /// CLEANED UP: SpellProcessingManager with legacy event system removed
+    /// No longer subscribes to CastSpellRequestedEvent - now called directly by PlayHandCommand
+    /// </summary>
     public partial class SpellProcessingManager : ISpellProcessingManager
     {
         private IStatusEffectManager _statusEffectManager;
@@ -22,13 +25,12 @@ namespace Maximagus.Scripts.Spells.Implementations
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
 
-            _eventBus.Subscribe<CastSpellRequestedEvent>(HandleCastSpellRequest);
+            // REMOVED: Legacy event subscription - replaced by direct method calls from PlayHandCommand
+            // _eventBus.Subscribe<CastSpellRequestedEvent>(HandleCastSpellRequest);
         }
 
-        private void HandleCastSpellRequest(CastSpellRequestedEvent _)
-        {
-            ProcessSpell();
-        }
+        // REMOVED: Legacy event handler - replaced by direct method calls
+        // private void HandleCastSpellRequest(CastSpellRequestedEvent _)
 
         public void ProcessSpell()
         {

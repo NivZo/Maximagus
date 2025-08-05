@@ -113,7 +113,7 @@ public partial class CardVisual : Control
         _eventBus?.Subscribe<CardDragEndedEvent>(OnCardDragEnded);
         _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Subscribe<CardClickedEvent>(OnCardClicked);
+        // REMOVED: CardClickedEvent subscription - event was never published (dead code)
         _eventBus?.Subscribe<CardPositionChangedEvent>(OnCardPositionChanged);
         _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
     }
@@ -124,9 +124,9 @@ public partial class CardVisual : Control
         _eventBus?.Unsubscribe<CardDragEndedEvent>(OnCardDragEnded);
         _eventBus?.Unsubscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Unsubscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        _eventBus?.Unsubscribe<CardClickedEvent>(OnCardClicked);
+        // REMOVED: CardClickedEvent unsubscription - event was never published (dead code)
         _eventBus?.Unsubscribe<CardPositionChangedEvent>(OnCardPositionChanged);
-        _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
+        _eventBus?.Unsubscribe<CardMouseMovedEvent>(OnCardMouseMoved); // Fixed: was Subscribe instead of Unsubscribe
     }
 
     public override void _Process(double delta)
@@ -188,11 +188,7 @@ public partial class CardVisual : Control
         OnHoverEnded();
     }
 
-    private void OnCardClicked(CardClickedEvent evt)
-    {
-        if (evt.Card != _parentCard) return;
-        OnClicked();
-    }
+    // REMOVED: OnCardClicked method - CardClickedEvent was never published (dead code)
 
     private void OnCardPositionChanged(CardPositionChangedEvent evt)
     {
@@ -206,11 +202,7 @@ public partial class CardVisual : Control
         OnMouseMoved(evt.LocalPosition);
     }
 
-    private void OnClicked()
-    {
-        Scale = Vector2.One;
-        AnimationUtils.AnimateScale(this, HoverScale, ClickAnimationDuration, Tween.TransitionType.Elastic);
-    }
+    // REMOVED: OnClicked method - was only called by dead CardClickedEvent
 
     private void OnDragStarted()
     {

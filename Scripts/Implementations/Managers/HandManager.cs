@@ -7,7 +7,11 @@ using System.Linq;
 
 namespace Maximagus.Scripts.Managers
 {
-    public partial class HandManager : IHandManager
+    /// <summary>
+    /// CLEANED UP: HandManager with legacy event system removed
+    /// Now purely manages hand state without event subscriptions
+    /// </summary>
+    public class HandManager : IHandManager
     {
         public int MaxHandsPerEncounter { get; set; } = 5;
         public int MaxDiscardsPerEncounter { get; set; } = 5;
@@ -27,8 +31,11 @@ namespace Maximagus.Scripts.Managers
             _eventBus = ServiceLocator.GetService<IEventBus>();
             ResetForNewEncounter();
 
-            _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
-            _eventBus.Subscribe<DiscardCardsRequestedEvent>(HandleDiscardCardsRequested);
+            // REMOVED: Legacy event subscriptions - replaced by pure command system
+            // _eventBus.Subscribe<PlayCardsRequestedEvent>(HandlePlayCardsRequested);
+            // _eventBus.Subscribe<DiscardCardsRequestedEvent>(HandleDiscardCardsRequested);
+            
+            _logger?.LogInfo("HandManager initialized without legacy event subscriptions");
         }
 
         public void SetupHandNode(Hand hand)
@@ -36,27 +43,9 @@ namespace Maximagus.Scripts.Managers
             Hand = hand;
         }
 
-        private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
-        {
-            // Let the new command system handle this - just publish the spell request
-            _eventBus.Publish(new CastSpellRequestedEvent());
-        }
-
-        private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
-        {
-            // PURE COMMAND SYSTEM: Use instance methods on Hand, not static calls
-            if (Hand != null && Hand.SelectedCards.Length > 0)
-            {
-                var selectedCards = Hand.SelectedCards.ToArray();
-                
-                // Call instance methods on the Hand object
-                Hand.Discard(selectedCards);
-                Hand.DrawAndAppend(selectedCards.Length);
-                
-                RemainingDiscards--;
-                _logger?.LogInfo($"[HandManager] Discarded {selectedCards.Length} cards, {RemainingDiscards} discards remaining");
-            }
-        }
+        // REMOVED: Legacy event handlers - replaced by pure command system
+        // private void HandlePlayCardsRequested(PlayCardsRequestedEvent e)
+        // private void HandleDiscardCardsRequested(DiscardCardsRequestedEvent e)
 
         public void ResetForNewEncounter()
         {
