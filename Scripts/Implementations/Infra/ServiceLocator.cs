@@ -24,14 +24,14 @@ public static class ServiceLocator
         RegisterService<ILogger, GodotLogger>();
         RegisterService<IEventBus, SimpleEventBus>();
         RegisterService<IHoverManager, HoverManager>();
-        RegisterService<IDragManager, DragManager>();
+        // REMOVED: RegisterService<IDragManager, DragManager>(); - replaced by command system
         RegisterService<IHandManager, HandManager>();
         RegisterService<IGameStateManager, GameStateManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
 
-        // COMMAND SYSTEM - Get GameCommandProcessor from Main when available
-        RegisterMainService<GameCommandProcessor>(() => main.GetCommandProcessor());
+        // REMOVED: RegisterMainService<GameCommandProcessor> - now registered directly by Main after creation
+        // The GameCommandProcessor will be registered by Main.cs after it's created and initialized
 
         // Node services
         RegisterNodeService<QueuedActionsManager>(false);

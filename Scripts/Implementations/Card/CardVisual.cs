@@ -113,7 +113,6 @@ public partial class CardVisual : Control
         _eventBus?.Subscribe<CardDragEndedEvent>(OnCardDragEnded);
         _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        // REMOVED: CardClickedEvent subscription - event was never published (dead code)
         _eventBus?.Subscribe<CardPositionChangedEvent>(OnCardPositionChanged);
         _eventBus?.Subscribe<CardMouseMovedEvent>(OnCardMouseMoved);
     }
@@ -124,9 +123,8 @@ public partial class CardVisual : Control
         _eventBus?.Unsubscribe<CardDragEndedEvent>(OnCardDragEnded);
         _eventBus?.Unsubscribe<CardHoverStartedEvent>(OnCardHoverStarted);
         _eventBus?.Unsubscribe<CardHoverEndedEvent>(OnCardHoverEnded);
-        // REMOVED: CardClickedEvent unsubscription - event was never published (dead code)
         _eventBus?.Unsubscribe<CardPositionChangedEvent>(OnCardPositionChanged);
-        _eventBus?.Unsubscribe<CardMouseMovedEvent>(OnCardMouseMoved); // Fixed: was Subscribe instead of Unsubscribe
+        _eventBus?.Unsubscribe<CardMouseMovedEvent>(OnCardMouseMoved);
     }
 
     public override void _Process(double delta)
@@ -188,8 +186,6 @@ public partial class CardVisual : Control
         OnHoverEnded();
     }
 
-    // REMOVED: OnCardClicked method - CardClickedEvent was never published (dead code)
-
     private void OnCardPositionChanged(CardPositionChangedEvent evt)
     {
         if (evt.Card != _parentCard) return;
@@ -201,8 +197,6 @@ public partial class CardVisual : Control
         if (evt.Card != _parentCard) return;
         OnMouseMoved(evt.LocalPosition);
     }
-
-    // REMOVED: OnClicked method - was only called by dead CardClickedEvent
 
     private void OnDragStarted()
     {
@@ -264,7 +258,9 @@ public partial class CardVisual : Control
     private void UpdatePosition(float delta)
     {
         var center = this.GetCenter();
-        var raw = center.Lerp(_lastPosition + GetPositionOffset(), delta * 10f);
+        var targetPosition = _lastPosition + GetPositionOffset();
+        
+        var raw = center.Lerp(targetPosition, delta * 10f);
         var clamped = raw.Clamp(center - Size / 2, center + Size / 2);
         this.SetCenter(clamped);
     }
@@ -314,12 +310,6 @@ public partial class CardVisual : Control
             shader.SetShaderParameter("y_rot", rotX);
             _idleAnimationTime += delta;
         }
-    }
-
-
-    private void SetScale(float targetScale)
-    {
-        Scale = new Vector2(targetScale, targetScale);
     }
 
     private void SetupPerspectiveRectSize()

@@ -57,7 +57,7 @@ namespace Scripts.Commands
 
             try
             {
-                // Store previous state for undo and events
+                // Store previous state for events
                 var previousState = _currentState;
 
                 // Execute command to get new state

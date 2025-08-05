@@ -8,7 +8,6 @@ public partial class CardLogic : Button
 {
 	private IEventBus _eventBus;
 	private IHoverManager _hoverManager;
-	private IDragManager _dragManager;
 	private ILogger _logger;
 	private GameCommandProcessor _commandProcessor;
 	private bool _commandSystemReady = false;
@@ -20,7 +19,19 @@ public partial class CardLogic : Button
 
 	public bool IsSelected { get; private set; } = false;
 	public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
-	public bool IsDragging => _dragManager != null ? _dragManager.CurrentlyDraggingCard == Card : false;
+	
+	// PURE COMMAND SYSTEM: Query GameState for drag state
+	public bool IsDragging
+	{
+		get
+		{
+			if (_commandProcessor?.CurrentState == null || Card == null) return false;
+			var cardId = Card.GetInstanceId().ToString();
+			var cardState = _commandProcessor.CurrentState.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
+			return cardState?.IsDragging == true;
+		}
+	}
+	
 	public Card Card { get; set; }
 	public CardSlot CardSlot { get; private set; }
 
@@ -48,9 +59,8 @@ public partial class CardLogic : Button
 		_logger = ServiceLocator.GetService<ILogger>();
 		_eventBus = ServiceLocator.GetService<IEventBus>();
 		_hoverManager = ServiceLocator.GetService<IHoverManager>();
-		_dragManager = ServiceLocator.GetService<IDragManager>();
 		
-		// DEFERRED: Try to get GameCommandProcessor, but don't fail if not available yet
+		// Try to get GameCommandProcessor
 		TrySetupCommandSystem();
 	}
 
@@ -62,7 +72,6 @@ public partial class CardLogic : Button
 		if (_commandProcessor != null)
 		{
 			_commandSystemReady = true;
-			_logger?.LogDebug($"[CardLogic] Command system ready for card {Card?.GetInstanceId()}");
 		}
 	}
 
@@ -105,7 +114,7 @@ public partial class CardLogic : Button
 			UpdateVisualPosition((float)delta);
 			CheckDragThreshold();
 			
-			// Only sync with GameState if command system is ready
+			// Sync with GameState if command system is ready
 			if (_commandSystemReady)
 			{
 				SyncWithGameState();
@@ -128,14 +137,21 @@ public partial class CardLogic : Button
 		{
 			var currentState = _commandProcessor.CurrentState;
 			var cardId = Card.GetInstanceId().ToString();
-			var shouldBeSelected = currentState.Hand.SelectedCardIds.Any(id => id == cardId);
+			var cardState = currentState.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
 			
-			if (IsSelected != shouldBeSelected)
+			if (cardState == null) 
 			{
-				IsSelected = shouldBeSelected;
-				this.SetCenter(GetTargetSlottedCenter());
-				InvokePositionChanged();
-				_logger?.LogDebug($"[CardLogic] Card {cardId} selection synced: {IsSelected}");
+				// Card not in GameState - expected for newly created cards
+				return;
+			}
+			
+			// Sync selection state
+			if (IsSelected != cardState.IsSelected)
+			{
+				IsSelected = cardState.IsSelected;
+				
+				// DIRECT FIX: Immediately move both visual and interaction areas when selection changes
+				ApplySelectionVisualFeedback();
 			}
 		}
 		catch (Exception ex)
@@ -144,9 +160,50 @@ public partial class CardLogic : Button
 		}
 	}
 
+	/// <summary>
+	/// DIRECT FIX: Apply selection visual feedback to both visual and interaction areas
+	/// </summary>
+	private void ApplySelectionVisualFeedback()
+	{
+		if (CardSlot == null || Card?.Visual == null) return;
+		
+		try
+		{
+			var basePosition = CardSlot.GetCenter();
+			Vector2 targetPosition;
+			
+			if (IsSelected)
+			{
+				// Move up by 64 pixels when selected
+				targetPosition = basePosition + new Vector2(0, -64f);
+				GD.Print($"[CardLogic] DIRECT FIX: Moving card UP to {targetPosition} (selected)");
+			}
+			else
+			{
+				// Return to base position when deselected
+				targetPosition = basePosition;
+				GD.Print($"[CardLogic] DIRECT FIX: Moving card to base position {targetPosition} (deselected)");
+			}
+			
+			// CRITICAL FIX: Move both visual AND interaction area together
+			Card.Visual.SetCenter(targetPosition);
+			this.SetCenter(targetPosition);
+			
+			GD.Print($"[CardLogic] DIRECT FIX: Both visual and interaction area moved to {targetPosition}");
+		}
+		catch (Exception ex)
+		{
+			GD.PrintErr($"[CardLogic] DIRECT FIX ERROR: {ex.Message}");
+		}
+	}
+
 	private void CheckDragThreshold()
 	{
-		if (!_mousePressed || IsDragging || _dragManager?.IsDraggingActive == true) 
+		if (!_mousePressed || IsDragging) 
+			return;
+		
+		// Check if any other card is dragging
+		if (_commandSystemReady && _commandProcessor?.CurrentState?.Hand?.HasDraggingCard == true)
 			return;
 
 		Vector2 currentMousePos = GetGlobalMousePosition();
@@ -201,11 +258,8 @@ public partial class CardLogic : Button
 
 	private void HandleMousePressed()
 	{
-		if (_dragManager?.IsDraggingActive != true)
-		{
-			_mousePressed = true;
-			_initialMousePosition = GetGlobalMousePosition();
-		}
+		_mousePressed = true;
+		_initialMousePosition = GetGlobalMousePosition();
 	}
 
 	private void HandleMouseReleased()
@@ -223,21 +277,20 @@ public partial class CardLogic : Button
 	}
 
 	/// <summary>
-	/// PURE COMMAND SYSTEM: Execute selection commands when ready
+	/// PURE COMMAND SYSTEM: Execute selection commands
 	/// </summary>
 	private void HandleClick()
 	{
-		// Wait for command system to be ready
-		if (!_commandSystemReady || _commandProcessor == null)
-		{
-			_logger?.LogWarning($"[CardLogic] Command system not ready yet for card {Card?.GetInstanceId()}, click ignored");
-			return;
-		}
+		if (!_commandSystemReady || _commandProcessor == null) return;
 		
 		var cardId = Card.GetInstanceId().ToString();
-		IGameCommand command;
+		var currentState = _commandProcessor.CurrentState;
+		var cardState = currentState?.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
 		
-		if (IsSelected)
+		if (cardState == null) return; // Card not in GameState
+		
+		IGameCommand command;
+		if (cardState.IsSelected)
 		{
 			command = new DeselectCardCommand(cardId);
 		}
@@ -247,32 +300,50 @@ public partial class CardLogic : Button
 		}
 		
 		var success = _commandProcessor.ExecuteCommand(command);
-		_logger?.LogInfo($"[CardLogic] Card {cardId} {(IsSelected ? "deselection" : "selection")} command executed: {success}");
 		
-		// NO LEGACY CODE: State sync happens automatically in SyncWithGameState()
-		// NO LEGACY EVENTS: No CardClickedEvent publishing
+		if (success)
+		{
+			// Force immediate sync to see the result
+			SyncWithGameState();
+		}
 	}
 
+	/// <summary>
+	/// PURE COMMAND SYSTEM: Start dragging through StartDragCommand
+	/// </summary>
 	private void StartDragging()
 	{
-		if (_dragManager?.StartDrag(Card) != true) return;
-
-		_collisionShape?.SetDeferred("disabled", false);
+		if (!_commandSystemReady || _commandProcessor == null) return;
 		
-		_eventBus?.Publish(new CardDragStartedEvent(Card));
+		var cardId = Card.GetInstanceId().ToString();
+		var command = new StartDragCommand(cardId, _distanceFromMouse);
+		var success = _commandProcessor.ExecuteCommand(command);
+		
+		if (success)
+		{
+			_collisionShape?.SetDeferred("disabled", false);
+			_eventBus?.Publish(new CardDragStartedEvent(Card));
+		}
 	}
 
+	/// <summary>
+	/// PURE COMMAND SYSTEM: End dragging through EndDragCommand
+	/// </summary>
 	private void StopDragging()
 	{
-		var card = Card;
+		if (!_commandSystemReady || _commandProcessor == null) return;
 		
-		_dragManager?.EndDrag(card);
-		_collisionShape?.SetDeferred("disabled", true);
-
-		this.SetCenter(GetTargetSlottedCenter());
-		InvokePositionChanged();
-
-		_eventBus?.Publish(new CardDragEndedEvent(card));
+		var cardId = Card.GetInstanceId().ToString();
+		var command = new EndDragCommand(cardId);
+		var success = _commandProcessor.ExecuteCommand(command);
+		
+		if (success)
+		{
+			_collisionShape?.SetDeferred("disabled", true);
+			this.SetCenter(GetTargetSlottedCenter());
+			InvokePositionChanged();
+			_eventBus?.Publish(new CardDragEndedEvent(Card));
+		}
 	}
 
 	public void OnGuiInput(InputEvent @event)
@@ -297,7 +368,9 @@ public partial class CardLogic : Button
 
 	public void OnMouseEntered()
 	{
-		if (_hoverManager?.IsHoveringActive == true || _dragManager?.IsDraggingActive == true) return;
+		var hasDraggingCard = _commandSystemReady && _commandProcessor?.CurrentState?.Hand?.HasDraggingCard == true;
+		
+		if (_hoverManager?.IsHoveringActive == true || hasDraggingCard) return;
 		if (_hoverManager?.StartHover(Card) != true) return;
 
 		_eventBus?.Publish(new CardHoverStartedEvent(Card));
@@ -305,7 +378,9 @@ public partial class CardLogic : Button
 
 	public void OnMouseExited()
 	{
-		if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true) return;
+		var hasDraggingCard = _commandSystemReady && _commandProcessor?.CurrentState?.Hand?.HasDraggingCard == true;
+		
+		if (_hoverManager?.CurrentlyHoveringCard != Card || hasDraggingCard) return;
 
 		_hoverManager?.EndHover(Card);
 
@@ -314,7 +389,9 @@ public partial class CardLogic : Button
 
 	private void HandleMouseHover(InputEventMouseMotion mouseMotion)
 	{
-		if (_hoverManager?.CurrentlyHoveringCard != Card || _dragManager?.IsDraggingActive == true || IsDragging) return;
+		var hasDraggingCard = _commandSystemReady && _commandProcessor?.CurrentState?.Hand?.HasDraggingCard == true;
+		
+		if (_hoverManager?.CurrentlyHoveringCard != Card || hasDraggingCard || IsDragging) return;
 
 		var localPosition = mouseMotion.Position;
 		_eventBus?.Publish(new CardMouseMovedEvent(Card, localPosition));
@@ -334,7 +411,8 @@ public partial class CardLogic : Button
 		{
 			try
 			{
-				offset = new Vector2(0, Card.Visual.SelectionVerticalOffset);
+				var selectionOffset = Card.Visual.SelectionVerticalOffset;
+				offset = new Vector2(0, selectionOffset);
 			}
 			catch (Exception ex)
 			{
@@ -342,7 +420,9 @@ public partial class CardLogic : Button
 			}
 		}
 		
-		return CardSlot.GetCenter() + offset;
+		var baseCenter = CardSlot.GetCenter();
+		var targetCenter = baseCenter + offset;
+		return targetCenter;
 	}
 
 	private Vector2 GetTargetFollowMouseCenter()

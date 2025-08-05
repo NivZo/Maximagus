@@ -43,6 +43,16 @@ namespace Scripts.State
         public int Count => Cards.Count;
 
         /// <summary>
+        /// Gets the currently dragging card (if any)
+        /// </summary>
+        public CardState DraggingCard => Cards.FirstOrDefault(card => card.IsDragging);
+
+        /// <summary>
+        /// Gets whether any card is currently being dragged
+        /// </summary>
+        public bool HasDraggingCard => Cards.Any(card => card.IsDragging);
+
+        /// <summary>
         /// Creates a new HandState with an added card
         /// </summary>
         public HandState WithAddedCard(CardState card)
@@ -81,6 +91,7 @@ namespace Scripts.State
 
         /// <summary>
         /// Creates a new HandState with a card selected/deselected
+        /// FIXED: Updates both SelectedCardIds AND individual CardState.IsSelected properties
         /// </summary>
         public HandState WithCardSelection(string cardId, bool isSelected)
         {
@@ -98,15 +109,56 @@ namespace Scripts.State
                 newSelectedIds.Remove(cardId);
             }
 
-            return new HandState(Cards, newSelectedIds, MaxHandSize, IsLocked);
+            // CRITICAL FIX: Update individual CardState objects to match the selection
+            var newCards = Cards.Select(card =>
+            {
+                if (card.CardId == cardId)
+                {
+                    // Update the target card's IsSelected property
+                    return new CardState(card.CardId, isSelected, card.IsDragging, card.Position);
+                }
+                return card;
+            }).ToList();
+
+            return new HandState(newCards, newSelectedIds, MaxHandSize, IsLocked);
+        }
+
+        /// <summary>
+        /// Creates a new HandState with a card's dragging status updated
+        /// </summary>
+        public HandState WithCardDragging(string cardId, bool isDragging)
+        {
+            if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
+
+            var newCards = Cards.Select(card =>
+            {
+                if (card.CardId == cardId)
+                {
+                    // Update the target card's dragging status
+                    return new CardState(card.CardId, card.IsSelected, isDragging, card.Position);
+                }
+                else if (isDragging && card.IsDragging)
+                {
+                    // If setting a card to dragging, clear any other dragging cards
+                    return new CardState(card.CardId, card.IsSelected, false, card.Position);
+                }
+                return card;
+            }).ToList();
+
+            return new HandState(newCards, SelectedCardIds, MaxHandSize, IsLocked);
         }
 
         /// <summary>
         /// Creates a new HandState with all cards deselected
+        /// FIXED: Updates both SelectedCardIds AND individual CardState.IsSelected properties
         /// </summary>
         public HandState WithClearedSelection()
         {
-            return new HandState(Cards, Enumerable.Empty<string>(), MaxHandSize, IsLocked);
+            // Update all CardState objects to have IsSelected = false
+            var newCards = Cards.Select(card => 
+                new CardState(card.CardId, false, card.IsDragging, card.Position)).ToList();
+            
+            return new HandState(newCards, Enumerable.Empty<string>(), MaxHandSize, IsLocked);
         }
 
         /// <summary>
@@ -139,13 +191,32 @@ namespace Scripts.State
 
         /// <summary>
         /// Validates that the hand state is consistent
+        /// ENHANCED: Also validates that SelectedCardIds matches individual CardState.IsSelected properties
         /// </summary>
         public bool IsValid()
         {
             // Check that all selected card IDs exist in the hand
-            return SelectedCardIds.All(id => Cards.Any(card => card.CardId == id)) &&
+            var basicValid = SelectedCardIds.All(id => Cards.Any(card => card.CardId == id)) &&
                    Cards.Count <= MaxHandSize &&
                    Cards.Select(c => c.CardId).Distinct().Count() == Cards.Count; // No duplicate card IDs
+
+            // Check that only one card can be dragging at a time
+            var draggingCount = Cards.Count(card => card.IsDragging);
+            var draggingValid = draggingCount <= 1;
+
+            // CRITICAL: Check that SelectedCardIds matches individual CardState.IsSelected properties
+            var selectionConsistent = true;
+            foreach (var card in Cards)
+            {
+                var isInSelectedList = SelectedCardIds.Contains(card.CardId);
+                if (card.IsSelected != isInSelectedList)
+                {
+                    selectionConsistent = false;
+                    break;
+                }
+            }
+
+            return basicValid && draggingValid && selectionConsistent;
         }
 
         public override bool Equals(object obj)

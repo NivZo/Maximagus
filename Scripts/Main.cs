@@ -40,8 +40,12 @@ public partial class Main : Control
             var handManager = ServiceLocator.GetService<IHandManager>();
             handManager.SetupHandNode(_hand);
             
-            // Initialize new command system
+            // Initialize new command system FIRST
             InitializeNewCommandSystem();
+            
+            // CRITICAL: Register the initialized GameCommandProcessor with ServiceLocator
+            // This must happen AFTER we create it, so cards can access it immediately
+            ServiceLocator.RegisterService(_commandProcessor);
             
         }
         catch (Exception ex)
@@ -61,9 +65,6 @@ public partial class Main : Control
             // Initialize command processor with initial game state
             _commandProcessor = new GameCommandProcessor(eventBus);
             
-            // CRITICAL: Register the GameCommandProcessor with ServiceLocator so CardLogic can find it
-            ServiceLocator.RegisterService(_commandProcessor);
-            
             // Initialize input mapper
             _inputMapper = new InputToCommandMapper(_commandProcessor);
             
@@ -78,11 +79,11 @@ public partial class Main : Control
             _keyboardHandler.Initialize(_inputMapper);
             _mouseHandler.Initialize(_inputMapper);
             
-            // Notify existing cards that input system is ready
-            NotifyCardsInputSystemReady();
-            
             // CRITICAL: Initialize GameState with real card data from the Hand
             InitializeGameStateWithRealHandData();
+            
+            // Notify existing cards that input system is ready (AFTER GameState is set)
+            NotifyCardsInputSystemReady();
             
             _logger?.LogInfo("New command system initialized successfully");
             _logger?.LogInfo("LEGACY SYSTEMS DISABLED - Using only new command architecture");
