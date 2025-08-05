@@ -22,15 +22,15 @@ namespace Scripts.Commands.Game
             GD.Print("[StartGameCommand] Execute() called!");
             GD.Print($"[StartGameCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
-            // Only transition from Menu to CardSelection (following the turn loop)
+            // Only transition from Menu to TurnStart (following the turn loop)
             if (currentState.Phase.CurrentPhase != GamePhase.Menu)
             {
                 GD.Print("[StartGameCommand] Game already started!");
                 return currentState;
             }
             
-            // Go directly to CardSelection phase (where player can select cards)
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
+            // Go to TurnStart phase first (which will draw cards and then transition to CardSelection)
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnStart);
             var newState = currentState.WithPhase(newPhaseState);
             
             GD.Print($"[StartGameCommand] Game started - new phase: {newState.Phase.CurrentPhase}");

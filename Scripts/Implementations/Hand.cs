@@ -102,13 +102,8 @@ public partial class Hand : Control
 
             _eventBus?.Publish(new HandCardSlotsChangedEvent());
 
-            // Create cards for each slot
-            var rnd = new Random();
-            foreach (var slot in CardSlots)
-            {
-                var resource = _deck.GetNext();
-                Card.Create(_cardsNode, slot, resource);
-            }
+            // Don't create initial cards - they will be drawn when the first turn starts
+            GD.Print("[Hand] Card slots initialized - no initial cards created");
         }
         catch (Exception ex)
         {
