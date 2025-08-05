@@ -11,6 +11,13 @@ namespace Scripts.Commands.Hand
     /// </summary>
     public class PlayHandCommand : IGameCommand
     {
+        private readonly ILogger _logger;
+
+        public PlayHandCommand()
+        {
+            _logger = ServiceLocator.GetService<ILogger>();
+        }
+
         public bool CanExecute(IGameStateData currentState)
         {
             if (currentState == null) return false;
@@ -32,22 +39,22 @@ namespace Scripts.Commands.Hand
 
         public IGameStateData Execute(IGameStateData currentState)
         {
-            Console.WriteLine("[PlayHandCommand] Execute() called!");
+            _logger?.LogInfo("[PlayHandCommand] Execute() called!");
             
             // Get HandManager to access the Hand properly
             var handManager = ServiceLocator.GetService<IHandManager>();
             if (handManager?.Hand == null)
             {
-                Console.WriteLine("[PlayHandCommand] ERROR: HandManager.Hand is null!");
+                _logger?.LogError("[PlayHandCommand] ERROR: HandManager.Hand is null!");
                 return currentState;
             }
 
             var selectedCards = handManager.Hand.SelectedCards;
-            Console.WriteLine($"[PlayHandCommand] Playing {selectedCards.Length} selected cards");
+            _logger?.LogInfo($"[PlayHandCommand] Playing {selectedCards.Length} selected cards");
 
             if (selectedCards.Length == 0)
             {
-                Console.WriteLine("[PlayHandCommand] No cards selected!");
+                _logger?.LogWarning("[PlayHandCommand] No cards selected!");
                 return currentState;
             }
 
@@ -59,13 +66,13 @@ namespace Scripts.Commands.Hand
             var spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
             if (spellProcessingManager != null)
             {
-                Console.WriteLine("[PlayHandCommand] Processing spell...");
+                _logger?.LogInfo("[PlayHandCommand] Processing spell...");
                 spellProcessingManager.ProcessSpell(); // This queues spell animations and effects
-                Console.WriteLine("[PlayHandCommand] Spell queued for processing");
+                _logger?.LogInfo("[PlayHandCommand] Spell queued for processing");
             }
             else
             {
-                Console.WriteLine("[PlayHandCommand] WARNING: SpellProcessingManager not available");
+                _logger?.LogWarning("[PlayHandCommand] WARNING: SpellProcessingManager not available");
                 return currentState;
             }
 
@@ -73,20 +80,20 @@ namespace Scripts.Commands.Hand
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                Console.WriteLine("[PlayHandCommand] Queuing discard of originally selected cards...");
+                _logger?.LogInfo("[PlayHandCommand] Queuing discard of originally selected cards...");
                 
                 // Queue the discard to happen after spell processing
                 queuedActionsManager.QueueAction(() =>
                 {
                     try
                     {
-                        Console.WriteLine("[PlayHandCommand] Executing discard of originally selected cards...");
+                        _logger?.LogInfo("[PlayHandCommand] Executing discard of originally selected cards...");
                         
                         // Get fresh reference to HandManager
                         var handManagerForDiscard = ServiceLocator.GetService<IHandManager>();
                         if (handManagerForDiscard?.Hand == null)
                         {
-                            Console.WriteLine("[PlayHandCommand] ERROR: HandManager not available for discard");
+                            _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for discard");
                             return;
                         }
 
@@ -98,55 +105,68 @@ namespace Scripts.Commands.Hand
 
                         if (cardsToDiscard.Length > 0)
                         {
-                            Console.WriteLine($"[PlayHandCommand] Discarding {cardsToDiscard.Length} originally selected cards");
+                            _logger?.LogInfo($"[PlayHandCommand] Discarding {cardsToDiscard.Length} originally selected cards");
                             handManagerForDiscard.Hand.Discard(cardsToDiscard);
-                            Console.WriteLine("[PlayHandCommand] Cards discarded successfully");
+                            _logger?.LogInfo("[PlayHandCommand] Cards discarded successfully");
                         }
                         else
                         {
-                            Console.WriteLine("[PlayHandCommand] WARNING: No originally selected cards found to discard");
+                            _logger?.LogWarning("[PlayHandCommand] WARNING: No originally selected cards found to discard");
                         }
                         
-                        // Queue turn start after successful discard
-                        Console.WriteLine("[PlayHandCommand] Queuing turn start...");
+                        // STEP 3: Execute turn start directly (no need for GameCommandProcessor)
+                        _logger?.LogInfo("[PlayHandCommand] Executing turn start to draw new cards...");
                         queuedActionsManager.QueueAction(() =>
                         {
                             try
                             {
-                                var gameCommandProcessor = ServiceLocator.GetService<Scripts.Commands.GameCommandProcessor>();
-                                if (gameCommandProcessor != null)
+                                // Get fresh HandManager reference for drawing cards
+                                var handManagerForDraw = ServiceLocator.GetService<IHandManager>();
+                                if (handManagerForDraw?.Hand != null)
                                 {
-                                    var turnStartCommand = new TurnStartCommand();
-                                    var success = gameCommandProcessor.ExecuteCommand(turnStartCommand);
-                                    Console.WriteLine($"[PlayHandCommand] Turn start executed: {success}");
+                                    var currentCardCount = handManagerForDraw.Hand.Cards.Length;
+                                    var maxHandSize = 10;
+                                    var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
+                                    
+                                    if (cardsToDraw > 0)
+                                    {
+                                        _logger?.LogInfo($"[PlayHandCommand] Drawing {cardsToDraw} cards to reach max hand size");
+                                        handManagerForDraw.Hand.DrawAndAppend(cardsToDraw);
+                                        _logger?.LogInfo($"[PlayHandCommand] Hand now has {handManagerForDraw.Hand.Cards.Length} cards");
+                                        _logger?.LogInfo("[PlayHandCommand] Turn progression completed successfully");
+                                    }
+                                    else
+                                    {
+                                        _logger?.LogInfo("[PlayHandCommand] Hand already at max size, no cards to draw");
+                                    }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("[PlayHandCommand] ERROR: GameCommandProcessor not available");
+                                    _logger?.LogError("[PlayHandCommand] ERROR: HandManager not available for drawing");
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"[PlayHandCommand] ERROR in turn start: {ex.Message}");
+                                _logger?.LogError($"[PlayHandCommand] ERROR in turn start: {ex.Message}", ex);
                             }
                         });
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[PlayHandCommand] ERROR in discard: {ex.Message}");
+                        _logger?.LogError($"[PlayHandCommand] ERROR in discard: {ex.Message}", ex);
                     }
                 });
             }
             else
             {
-                Console.WriteLine("[PlayHandCommand] WARNING: QueuedActionsManager not available");
+                _logger?.LogWarning("[PlayHandCommand] WARNING: QueuedActionsManager not available");
             }
 
-            // STEP 3: Update GameState - stay in CardSelection phase, just update player
+            // STEP 4: Update GameState - stay in CardSelection phase, just update player
             var newPlayerState = currentState.Player.WithHandUsed();
             var newState = currentState.WithPlayer(newPlayerState);
             
-            Console.WriteLine($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}");
+            _logger?.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}");
             return newState;
         }
 
