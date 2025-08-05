@@ -4,13 +4,13 @@ using Maximagus.Scripts.Spells.Abstractions;
 using System.Linq;
 using Maximagus.Scripts.Enums;
 using Maximagus.Scripts.Events;
+using Scripts.State;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
     public partial class SpellProcessingManager : ISpellProcessingManager
     {
         private IStatusEffectManager _statusEffectManager;
-        private IGameStateManager _gameStateManager;
         private IHandManager _handManager;
         private IEventBus _eventBus;
         private QueuedActionsManager _queuedActionsManager;
@@ -18,7 +18,6 @@ namespace Maximagus.Scripts.Spells.Implementations
         public SpellProcessingManager()
         {
             _statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
-            _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
             _handManager = ServiceLocator.GetService<IHandManager>();
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
@@ -78,8 +77,8 @@ namespace Maximagus.Scripts.Spells.Implementations
             {
                 GD.Print($"Spell total damage dealt: {context.TotalDamageDealt}");
                 GD.Print("--- Spell Finished ---");
-
-                _gameStateManager.TriggerEvent(GameStateEvent.SpellsComplete);
+                
+                // No need to trigger game state event - spell processing is self-contained
             });
         }
     }

@@ -5,13 +5,11 @@ namespace Maximagus.Scripts.Input
 {
     public partial class GameInputManager : Node
     {
-        private IGameStateManager _gameStateManager;
         private IEventBus _eventBus;
 
         public override void _Ready()
         {
             GD.Print("Game input manager init");
-            _gameStateManager = ServiceLocator.GetService<IGameStateManager>();
             _eventBus = ServiceLocator.GetService<IEventBus>();
         }
 
@@ -36,7 +34,8 @@ namespace Maximagus.Scripts.Input
 
         private void HandleStartGameAction()
         {
-            _gameStateManager.TriggerEvent(GameStateEvent.StartGame);
+            // Use event bus instead of game state manager
+            _eventBus.Publish(new StartGameRequestedEvent());
         }
 
         private void HandlePlayAction()
