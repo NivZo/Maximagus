@@ -1,4 +1,3 @@
-
 using Godot;
 using Godot.Collections;
 using Maximagus.Scripts.Spells.Abstractions;
@@ -45,10 +44,32 @@ namespace Maximagus.Scripts.Spells.Implementations
             foreach (var card in cards)
             {
                 GD.Print($"- Executing card: {card.Resource.CardName}");
+                
+                // Store card data to avoid accessing disposed objects in queued actions
+                var cardResource = card.Resource;
+                var cardVisual = card.Visual;
+                
                 _queuedActionsManager.QueueAction(() =>
                 {
-                    AnimationUtils.AnimateScale(card.Visual, 1.5f, 1f, Tween.TransitionType.Elastic);
-                    card.Resource.Execute(context);
+                    try
+                    {
+                        // Check if card visual is still valid before animating
+                        if (cardVisual != null && !cardVisual.IsQueuedForDeletion())
+                        {
+                            AnimationUtils.AnimateScale(cardVisual, 1.5f, 1f, Tween.TransitionType.Elastic);
+                        }
+                        
+                        // Execute the card resource (this should always be safe)
+                        if (cardResource != null)
+                        {
+                            cardResource.Execute(context);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        GD.PrintErr($"Error executing card action: {ex.Message}");
+                        // Continue with spell execution even if one card fails
+                    }
                 },
                 delayAfter: .5f);
             }
