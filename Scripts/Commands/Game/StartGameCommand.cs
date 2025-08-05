@@ -5,7 +5,7 @@ using Scripts.State;
 namespace Scripts.Commands.Game
 {
     /// <summary>
-    /// Command to start the game (Menu -> TurnStart -> CardSelection)
+    /// Command to start the game (Menu -> CardSelection directly, since cards are already created)
     /// </summary>
     public class StartGameCommand : IGameCommand
     {
@@ -22,15 +22,15 @@ namespace Scripts.Commands.Game
             GD.Print("[StartGameCommand] Execute() called!");
             GD.Print($"[StartGameCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
-            // Only transition from Menu to TurnStart (following the turn loop)
+            // Only transition from Menu to CardSelection (since cards are already created in Hand)
             if (currentState.Phase.CurrentPhase != GamePhase.Menu)
             {
                 GD.Print("[StartGameCommand] Game already started!");
                 return currentState;
             }
             
-            // Go to TurnStart phase first (which will draw cards and then transition to CardSelection)
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnStart);
+            // Go directly to CardSelection phase since cards are already created
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
             var newState = currentState.WithPhase(newPhaseState);
             
             GD.Print($"[StartGameCommand] Game started - new phase: {newState.Phase.CurrentPhase}");
