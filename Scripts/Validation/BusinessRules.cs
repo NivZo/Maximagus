@@ -34,7 +34,6 @@ namespace Scripts.Validation
                     // All commands allowed during spell casting
                     break;
 
-                case GamePhase.SpellResolution:
                 case GamePhase.TurnEnd:
                     errors.Add($"No player actions allowed during {currentState.Phase.CurrentPhase} phase");
                     break;

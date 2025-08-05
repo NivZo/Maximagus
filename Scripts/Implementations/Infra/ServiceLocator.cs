@@ -25,6 +25,7 @@ public static class ServiceLocator
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IDragManager, DragManager>();
         RegisterService<IHandManager, HandManager>(); // Re-enabled for Hand access
+        RegisterService<Scripts.State.IGameStateManager, Scripts.State.GameStateManager>(); // Single source of truth
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
         // RegisterService<IGameStateManager, GameStateManager>(); // DISABLED - using new command system

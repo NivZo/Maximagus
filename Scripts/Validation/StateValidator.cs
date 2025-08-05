@@ -206,12 +206,6 @@ namespace Scripts.Validation
                 warnings.Add("Hand is locked during a phase that typically allows card selection");
             }
 
-            // No hands remaining vs phase
-            if (!gameState.Player.HasHandsRemaining && gameState.Phase.AllowsSpellCasting)
-            {
-                errors.Add("No hands remaining but phase allows spell casting");
-            }
-
             // Turn consistency
             if (gameState.Phase.TurnNumber > 100)
             {

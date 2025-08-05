@@ -3,16 +3,16 @@ using System;
 namespace Scripts.State
 {
     /// <summary>
-    /// Represents the different phases of the game
+    /// Represents the different phases of the game following the exact turn loop
     /// </summary>
     public enum GamePhase
     {
         Menu,
         GameStart,
-        CardSelection,
-        SpellCasting,
-        SpellResolution,
-        TurnEnd,
+        TurnStart,        // Turn start effects trigger and finish
+        CardSelection,    // Player selects cards
+        SpellCasting,     // Player input blocked, animations and calculations
+        TurnEnd,         // End turn effects trigger and finish
         GameOver,
         Victory
     }
@@ -88,14 +88,9 @@ namespace Scripts.State
         }
 
         /// <summary>
-        /// Checks if the current phase allows card selection
+        /// Checks if the current phase allows card selection (only during CardSelection phase)
         /// </summary>
         public bool AllowsCardSelection => CurrentPhase == GamePhase.CardSelection && CanPlayerAct;
-
-        /// <summary>
-        /// Checks if the current phase allows spell casting
-        /// </summary>
-        public bool AllowsSpellCasting => CurrentPhase == GamePhase.CardSelection && CanPlayerAct;
 
         /// <summary>
         /// Checks if the game is in an active gameplay phase
@@ -111,22 +106,32 @@ namespace Scripts.State
         public bool IsGameEnded => CurrentPhase == GamePhase.GameOver || CurrentPhase == GamePhase.Victory;
 
         /// <summary>
-        /// Gets the next logical phase based on current phase
+        /// Gets the next logical phase based on current phase following the turn loop:
+        /// TurnStart -> CardSelection -> SpellCasting -> TurnEnd -> TurnStart (next turn)
+        /// Discard loops back to CardSelection
         /// </summary>
         public GamePhase GetNextPhase()
         {
             return CurrentPhase switch
             {
                 GamePhase.Menu => GamePhase.GameStart,
-                GamePhase.GameStart => GamePhase.CardSelection,
-                GamePhase.CardSelection => GamePhase.SpellCasting,
-                GamePhase.SpellCasting => GamePhase.SpellResolution,
-                GamePhase.SpellResolution => GamePhase.TurnEnd,
-                GamePhase.TurnEnd => GamePhase.CardSelection,
+                GamePhase.GameStart => GamePhase.TurnStart,
+                GamePhase.TurnStart => GamePhase.CardSelection,
+                GamePhase.CardSelection => GamePhase.SpellCasting, // When playing cards
+                GamePhase.SpellCasting => GamePhase.TurnEnd,
+                GamePhase.TurnEnd => GamePhase.TurnStart, // Next turn
                 GamePhase.GameOver => GamePhase.Menu,
                 GamePhase.Victory => GamePhase.Menu,
                 _ => CurrentPhase
             };
+        }
+
+        /// <summary>
+        /// Gets the phase to go to when discarding (loops back to CardSelection)
+        /// </summary>
+        public GamePhase GetDiscardPhase()
+        {
+            return GamePhase.CardSelection;
         }
 
         private static string GetDefaultPhaseDescription(GamePhase phase)
@@ -135,9 +140,9 @@ namespace Scripts.State
             {
                 GamePhase.Menu => "Main Menu",
                 GamePhase.GameStart => "Starting Game...",
+                GamePhase.TurnStart => "Turn starting...",
                 GamePhase.CardSelection => "Select cards for your spell",
-                GamePhase.SpellCasting => "Cast your spell",
-                GamePhase.SpellResolution => "Resolving spell effects...",
+                GamePhase.SpellCasting => "Casting spell...",
                 GamePhase.TurnEnd => "Turn ending...",
                 GamePhase.GameOver => "Game Over",
                 GamePhase.Victory => "Victory!",
@@ -149,10 +154,10 @@ namespace Scripts.State
         {
             return phase switch
             {
-                GamePhase.CardSelection => true,
-                GamePhase.SpellCasting => false,
-                GamePhase.SpellResolution => false,
-                GamePhase.TurnEnd => false,
+                GamePhase.CardSelection => true,    // Player can select cards, play, or discard
+                GamePhase.SpellCasting => false,    // Player input blocked during animations
+                GamePhase.TurnStart => false,       // Automatic turn start effects
+                GamePhase.TurnEnd => false,         // Automatic turn end effects
                 GamePhase.GameOver => false,
                 GamePhase.Victory => false,
                 _ => true

@@ -14,8 +14,8 @@ namespace Scripts.Commands.Hand
         {
             if (currentState == null) return false;
 
-            // Can discard during card selection or spell casting phases
-            if (!currentState.Phase.AllowsCardSelection && !currentState.Phase.AllowsSpellCasting) 
+            // Can discard during card selection phase
+            if (!currentState.Phase.AllowsCardSelection)
                 return false;
 
             // Must have at least one card selected

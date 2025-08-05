@@ -5,7 +5,7 @@ using Scripts.State;
 namespace Scripts.Commands.Game
 {
     /// <summary>
-    /// Command to start the game or advance to the next phase
+    /// Command to start the game (Menu -> TurnStart -> CardSelection)
     /// </summary>
     public class StartGameCommand : IGameCommand
     {
@@ -13,9 +13,8 @@ namespace Scripts.Commands.Game
 
         public bool CanExecute(IGameStateData currentState)
         {
-            // For now, always allow starting the game
-            // This could be enhanced to check specific conditions
-            return true;
+            // Only allow starting if we're in Menu phase
+            return currentState.Phase.CurrentPhase == GamePhase.Menu;
         }
 
         public IGameStateData Execute(IGameStateData currentState)
@@ -23,14 +22,18 @@ namespace Scripts.Commands.Game
             GD.Print("[StartGameCommand] Execute() called!");
             GD.Print($"[StartGameCommand] Current phase: {currentState.Phase.CurrentPhase}");
             
-            // Start the game by transitioning from Menu to the first gameplay phase
-            var nextPhase = currentState.Phase.GetNextPhase();
-            GD.Print($"[StartGameCommand] Next phase: {nextPhase}");
+            // Only transition from Menu to CardSelection (following the turn loop)
+            if (currentState.Phase.CurrentPhase != GamePhase.Menu)
+            {
+                GD.Print("[StartGameCommand] Game already started!");
+                return currentState;
+            }
             
-            var newPhaseState = currentState.Phase.WithPhase(nextPhase);
+            // Go directly to CardSelection phase (where player can select cards)
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
             var newState = currentState.WithPhase(newPhaseState);
             
-            GD.Print($"[StartGameCommand] Execute() completed - new phase: {newState.Phase.CurrentPhase}");
+            GD.Print($"[StartGameCommand] Game started - new phase: {newState.Phase.CurrentPhase}");
             
             return newState;
         }
