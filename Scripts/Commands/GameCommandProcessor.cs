@@ -14,11 +14,13 @@ namespace Scripts.Commands
     /// </summary>
     public class GameCommandProcessor : IGameCommandProcessor
     {
+        private readonly ILogger _logger;
         private readonly IEventBus _eventBus;
         private IGameStateData _currentState;
 
         public GameCommandProcessor()
         {
+            _logger = ServiceLocator.GetService<ILogger>();
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _currentState = GameState.CreateInitial();
         }
@@ -38,21 +40,18 @@ namespace Scripts.Commands
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <returns>True if command was executed successfully</returns>
-        public bool ExecuteCommand(IGameCommand command)
+        public bool ExecuteCommand(GameCommand command)
         {
             if (command == null)
             {
-                LogError("Cannot execute null command");
+                _logger.LogError("Cannot execute null command");
                 return false;
             }
 
-            // REMOVED: SyncGameStateWithRealGame() - GameState is the single source of truth
-            // The visual components should sync FROM GameState, not TO GameState
-
             // Validate command can be executed
-            if (!command.CanExecute(_currentState))
+            if (!command.CanExecute())
             {
-                LogWarning($"Command rejected: {command.GetDescription()} - Cannot execute in current state - {_currentState.Phase.PhaseDescription}");
+                _logger.LogWarning($"Command rejected: {command.GetDescription()} - Cannot execute in current state - {_currentState.Phase.PhaseDescription}");
                 return false;
             }
 
@@ -62,18 +61,19 @@ namespace Scripts.Commands
                 var previousState = _currentState;
 
                 // Execute command to get new state
-                var newState = command.Execute(_currentState);
+                _logger.LogInfo($"Executing command: {command.GetType()}");
+                var newState = command.Execute();
 
                 // Validate the new state
                 if (newState == null)
                 {
-                    LogError($"Command {command.GetDescription()} returned null state");
+                    _logger.LogError($"Command {command.GetDescription()} returned null state");
                     return false;
                 }
 
                 if (!newState.IsValid())
                 {
-                    LogError($"Command {command.GetDescription()} resulted in invalid state");
+                    _logger.LogError($"Command {command.GetDescription()} resulted in invalid state");
                     return false;
                 }
 
@@ -91,18 +91,18 @@ namespace Scripts.Commands
                     ExecutedCommand = command
                 });
 
-                LogInfo($"Command executed successfully: {command.GetDescription()}");
+                _logger.LogInfo($"Command executed successfully: {command.GetDescription()}");
 
                 if (_currentState.Phase != previousState.Phase)
                 {
-                    LogInfo($"Phase changed from {previousState.Phase.CurrentPhase} to {_currentState.Phase.CurrentPhase} - executing phase command");
+                    _logger.LogInfo($"Phase changed from {previousState.Phase.CurrentPhase} to {_currentState.Phase.CurrentPhase} - executing phase command");
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                LogError($"Exception executing command {command.GetDescription()}: {ex.Message}");
+                _logger.LogError($"Exception executing command {command.GetDescription()}: {ex.Message}");
                 return false;
             }
         }
@@ -134,30 +134,7 @@ namespace Scripts.Commands
                 ExecutedCommand = null
             });
 
-            LogInfo("Game state set directly");
-        }
-
-        /// <summary>
-        /// Gets the current state summary for debugging
-        /// </summary>
-        public string GetStateSummary()
-        {
-            return _currentState.ToString();
-        }
-
-        private void LogInfo(string message)
-        {
-            GD.Print($"[GameCommandProcessor] INFO: {message}");
-        }
-
-        private void LogWarning(string message)
-        {
-            GD.Print($"[GameCommandProcessor] WARNING: {message}");
-        }
-
-        private void LogError(string message)
-        {
-            GD.Print($"[GameCommandProcessor] ERROR: {message}");
+            _logger.LogInfo("Game state set directly");
         }
     }
 }

@@ -41,8 +41,8 @@ namespace Maximagus.Scripts.Managers
                     var resource = ResourceLoader.Load<SpellCardResource>(path);
                     if (resource != null)
                     {
-                        _spellCardResources[resource.CardId] = resource;
-                        GD.Print($"[ResourceManager] Preloaded spell resource: {resource.CardName} (ID: {resource.CardId})");
+                        _spellCardResources[resource.CardResourceId] = resource;
+                        GD.Print($"[ResourceManager] Preloaded spell resource: {resource.CardName} (ID: {resource.CardResourceId})");
                     }
                     else
                     {

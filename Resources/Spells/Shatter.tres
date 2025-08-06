@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 
 [resource]
 script = ExtResource("3_euegq")
-CardId = "shatter"
+CardResourceId = "shatter"
 CardName = "Shatter"
 CardDescription = "Deal 2 [b]Frost[/b] damage for each [b]Chill[/b]
 Remove all [b]Chill[/b]"

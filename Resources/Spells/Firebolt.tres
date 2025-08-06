@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [resource]
 script = ExtResource("1_wosrl")
-CardId = "firebolt"
+CardResourceId = "firebolt"
 CardName = "Firebolt"
 CardDescription = "Deal 8 [b]Fire[/b] damage"
 CardArt = ExtResource("2_esx5s")

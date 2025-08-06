@@ -8,7 +8,7 @@ namespace Maximagus.Scripts.Spells.Abstractions
     [GlobalClass]
     public partial class SpellCardResource : Resource
     {
-        [Export] public string CardId { get; set; }
+        [Export] public string CardResourceId { get; set; }
         [Export] public string CardName { get; set; }
         [Export(PropertyHint.MultilineText)] public string CardDescription { get; set; }
         [Export] public Texture2D CardArt { get; set; }

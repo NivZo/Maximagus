@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 
 [resource]
 script = ExtResource("1_geg3t")
-CardId = "frostshards"
+CardResourceId = "frostshards"
 CardName = "Frost Shards"
 CardDescription = "Deal 3 [b]Frost[/b] damage twice
 Inflict 2 [b]Chill[/b]"

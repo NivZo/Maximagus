@@ -1,31 +1,25 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Maximagus.Scripts.Managers;
-using Maximagus.Scripts.Spells.Abstractions;
 using Scripts.Commands;
-using Scripts.Commands.Hand;
 using Scripts.Config;
 using Scripts.State;
 using Scripts.Utils;
 
 public partial class Hand : Control
 {
-    public static Hand Instance { get; private set; }
-
     [Export] float CardsCurveMultiplier = GameConfig.DEFAULT_CARDS_CURVE_MULTIPLIER;
     [Export] float CardsRotationMultiplier = GameConfig.DEFAULT_CARDS_ROTATION_MULTIPLIER;
 
     private IEventBus _eventBus;
     private ILogger _logger;
     private IGameCommandProcessor _commandProcessor;
-    private Deck _deck;
     private OrderedContainer _cardSlotsContainer;
     private Node _cardsNode;
     private Node _cardSlotsNode;
     private HandLayoutCache _layoutCache;
+    private HandState _lastHandState;
 
     private ImmutableArray<CardSlot> _cardSlots => _cardSlotsContainer
         ?.Where(n => n is CardSlot)
@@ -36,53 +30,17 @@ public partial class Hand : Control
         .Select(slot => slot.Card)
         .Where(card => card != null)
         .ToImmutableArray();
-
-    private ImmutableArray<Card> _selectedCards
-    {
-        get
-        {
-            if (_commandProcessor?.CurrentState == null)
-                return ImmutableArray<Card>.Empty;
-
-            var selectedCardIds = _commandProcessor.CurrentState.Hand.SelectedCardIds;
-            return _cards
-                .Where(card => selectedCardIds.Contains(card.GetInstanceId().ToString()))
-                .ToImmutableArray();
-        }
-    }
-
-    private Card _draggingCard
-    {
-        get
-        {
-            if (_commandProcessor?.CurrentState == null)
-                return null;
-
-            var draggingCardState = _commandProcessor.CurrentState.Hand.DraggingCard;
-            if (draggingCardState == null) return null;
-
-            return _cards.FirstOrDefault(card =>
-                card.GetInstanceId().ToString() == draggingCardState.CardId);
-        }
-    }
-
-    public ImmutableArray<CardSlot> CardSlots => _cardSlots;
-    public ImmutableArray<Card> Cards => _cards;
-    public ImmutableArray<Card> SelectedCards => _selectedCards;
-    public Card DraggingCard => _draggingCard;
     
-    // State change event handler - called when hand state changes
     private void OnHandStateChanged(IGameStateData oldState, IGameStateData newState)
     {
         try
         {
-            if (oldState?.Hand == null || newState?.Hand == null) return;
-            
-            // Check if cards were added
-            if (newState.Hand.Count > oldState.Hand.Count)
+            var currentState = _commandProcessor.CurrentState;
+            if (currentState.Hand.GetHashCode() != _lastHandState?.GetHashCode())
             {
-                _logger?.LogInfo($"[Hand] Detected cards added to state: {oldState.Hand.Count} -> {newState.Hand.Count}");
-                SyncVisualCardsWithState(newState);
+                _logger?.LogInfo($"[Hand] State changed: {currentState.GetHashCode()}");
+                _lastHandState = currentState.Hand;
+                SyncVisualCardsWithState(currentState);
             }
         }
         catch (Exception ex)
@@ -94,59 +52,35 @@ public partial class Hand : Control
     // Synchronize visual cards with state
     private void SyncVisualCardsWithState(IGameStateData currentState)
     {
-        if (currentState?.Hand == null) return;
-        
-        // Find card states that don't have visual representation yet
-        foreach (var cardState in currentState.Hand.Cards)
+        var toRemove = _cards.Where(card => !currentState.Hand.Cards.Any(c => c.CardId == card.CardId)).ToList();
+        var toAdd = currentState.Hand.Cards.Where(c => !_cards.Any(card => card.CardId == c.CardId)).ToList();
+
+        foreach (var card in toRemove)
         {
-            bool hasVisualCard = false;
-            
-            // Check if card already exists visually
-            foreach (var visualCard in _cards)
-            {
-                if (visualCard.GetInstanceId().ToString() == cardState.CardId)
-                {
-                    hasVisualCard = true;
-                    break;
-                }
-            }
-            
-            // Create new visual card if it doesn't exist
-            if (!hasVisualCard)
-            {
-                CreateVisualCardFromState(cardState);
-            }
+            _logger?.LogInfo($"[Hand] Removing visual card {card.CardId} from hand");
+            _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
+            card.QueueFree();
+        }
+
+        foreach (var cardState in toAdd)
+        {
+            _logger?.LogInfo($"[Hand] Adding visual card {cardState.CardId} to hand");
+            CreateVisualCardFromState(cardState);
         }
     }
     
-    // Create a new visual card from state
     private void CreateVisualCardFromState(CardState cardState)
     {
         try
         {
             _logger?.LogInfo($"[Hand] Creating visual card for state card {cardState.CardId}");
-            
-            // Get resource from the resource manager
-            var resourceManager = ServiceLocator.GetService<ResourceManager>();
-            var resource = resourceManager.GetSpellCardResource(cardState.CardId);
-            
-            if (resource == null)
-            {
-                _logger?.LogError($"[Hand] Failed to get resource for card ID {cardState.CardId}");
-                return;
-            }
-            
-            // Create card slot and card
             var slot = CardSlot.Create(_cardSlotsNode);
-            var card = Card.Create(_cardsNode, slot, resource);
+            var card = Card.Create(_cardsNode, slot, cardState.Resource, cardState.CardId);
             
-            // Position card offscreen initially, it will be animated into position
             card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
-            
-            // Add to container to trigger layout
+
             _cardSlotsContainer.InsertElement(slot);
-            
-            _logger?.LogInfo($"[Hand] Successfully created visual card for {resource.CardName} with ID {cardState.CardId}");
+            _logger?.LogInfo($"[Hand] Successfully created visual card for {cardState.Resource.CardName} with ID {cardState.CardId}");
         }
         catch (Exception ex)
         {
@@ -158,27 +92,14 @@ public partial class Hand : Control
     {
         try
         {
-            Instance = this;
             _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
-
-            // TIMING FIX: Don't get CommandProcessor here - it might not be registered yet
-            // We'll get it when we need it in DrawAndAppend()
-            _deck = new();
+            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
             _layoutCache = new HandLayoutCache();
 
-            SubscribeToEvents();
             InitializeComponents();
+            SubscribeToEvents();
             SetupEventHandlers();
-            InitializeCardSlots();
-            TryGetCommandProcessor();
-            
-            // Subscribe to state changes
-            if (_commandProcessor != null)
-            {
-                _commandProcessor.StateChanged += OnHandStateChanged;
-                _logger?.LogInfo("[Hand] Subscribed to state changes");
-            }
         }
         catch (Exception ex)
         {
@@ -187,33 +108,17 @@ public partial class Hand : Control
         }
     }
 
-    /// <summary>
-    /// Try to get the CommandProcessor if we don't have it yet
-    /// </summary>
-    private bool TryGetCommandProcessor()
+    public override void _Process(double delta)
     {
-        if (_commandProcessor != null) return true;
-
-        _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
-        if (_commandProcessor != null)
+        try
         {
-            GD.Print("[Hand] CommandProcessor obtained from ServiceLocator");
-            
-            // Subscribe to state changes if we just got the command processor
-            _commandProcessor.StateChanged += OnHandStateChanged;
-            _logger?.LogInfo("[Hand] Subscribed to state changes");
-            
-            return true;
+            base._Process(delta);
+            HandleDrag();
         }
-
-        GD.PrintErr("[Hand] CommandProcessor still not available in ServiceLocator");
-        return false;
-    }
-
-    private void SubscribeToEvents()
-    {
-        _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
-        _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
+        catch (Exception ex)
+        {
+            _logger?.LogError("Error in Hand process", ex);
+        }
     }
 
     private void InitializeComponents()
@@ -223,202 +128,16 @@ public partial class Hand : Control
         _cardSlotsContainer = GetNode<OrderedContainer>("CardSlotsContainer").ValidateNotNull("CardSlotsContainer");
     }
 
+    private void SubscribeToEvents()
+    {
+        _eventBus?.Subscribe<CardHoverStartedEvent>(OnCardHoverStarted);
+        _eventBus?.Subscribe<CardHoverEndedEvent>(OnCardHoverEnded);
+    }
+
     private void SetupEventHandlers()
     {
         _cardSlotsContainer.ElementsChanged += OnElementsChanged;
-    }
-
-    public override void _Process(double delta)
-    {
-        try
-        {
-            base._Process(delta);
-
-            // Try to get CommandProcessor if we don't have it yet
-            if (_commandProcessor == null)
-            {
-                // TryGetCommandProcessor();
-            }
-
-            HandleDrag(); // PURE COMMAND SYSTEM: Now uses GameState for drag detection
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error in Hand process", ex);
-        }
-    }
-
-    public void InitializeCardSlots()
-    {
-        try
-        {
-            var slots = _cardSlotsNode.GetChildren()
-                .OfType<CardSlot>()
-                .OrderBy(slot => slot.GlobalPosition.X)
-                .ToList();
-
-            for (int i = 0; i < slots.Count; i++)
-            {
-                _cardSlotsContainer[i] = slots[i];
-            }
-
-            _eventBus?.Publish(new HandCardSlotsChangedEvent());
-
-            // Create cards for each slot - keeping original behavior to avoid null reference errors
-            var rnd = new Random();
-            foreach (var slot in _cardSlots)
-            {
-                var resource = _deck.GetNext();
-                Card.Create(_cardsNode, slot, resource);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error initializing card slots", ex);
-            throw;
-        }
-    }
-
-    public void Discard(Card card) => Discard([card]);
-
-    public void Discard(IEnumerable<Card> cards)
-    {
-        foreach (var card in cards)
-        {
-            if (_cards.Contains(card))
-            {
-                var cardId = card.GetInstanceId().ToString();
-                GD.Print($"[Hand] Discarding card {card.Resource.CardName} (ID: {cardId}) from slot {_cardSlotsContainer.IndexOf(card.Logic.CardSlot) + 1}");
-
-                // CRITICAL: Remove card from GameState first
-                if (_commandProcessor != null)
-                {
-                    var removeCardCommand = new RemoveCardCommand(cardId);
-                    var success = _commandProcessor.ExecuteCommand(removeCardCommand);
-
-                    if (success)
-                    {
-                        GD.Print($"[Hand] SUCCESS: Removed card {cardId} from GameState");
-                    }
-                    else
-                    {
-                        GD.PrintErr($"[Hand] FAILED: Could not remove card {cardId} from GameState");
-                    }
-                }
-                else
-                {
-                    GD.PrintErr($"[Hand] CommandProcessor not available - card {cardId} removed visually but still in GameState!");
-                }
-
-                // Remove visual card
-                _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
-                card.Logic.CardSlot.QueueFree();
-                card.QueueFree();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Legacy method - should be removed once state-driven approach is fully implemented
-    /// </summary>
-    public void DrawAndAppend(int amount)
-    {
-        _logger?.LogInfo($"[Hand] DrawAndAppend called for {amount} cards - THIS IS LEGACY CODE AND SHOULD BE REMOVED");
-        _logger?.LogInfo($"[Hand] Use state-driven approach instead: update state with AddCardCommand and let Hand respond to state changes");
-        
-        var currentState = _commandProcessor.CurrentState;
-        if (currentState == null) return;
-
-        _logger?.LogInfo($"[Hand] Current hand size in GameState: {currentState.Hand.Count}/{currentState.Hand.MaxHandSize}");
-        
-        // Create a HandManager to get cards from the deck
-        var handManager = ServiceLocator.GetService<IHandManager>();
-        if (handManager == null)
-        {
-            _logger?.LogError("[Hand] HandManager not available");
-            return;
-        }
-        
-        // Add cards to state using the state-driven approach
-        for (int i = 0; i < amount; i++)
-        {
-            if (currentState.Hand.Count >= currentState.Hand.MaxHandSize)
-            {
-                _logger?.LogWarning($"[Hand] Hand full after adding {i} cards - stopping");
-                break;
-            }
-            
-            // Get card resource from deck
-            var cardResourceId = handManager.DrawCard();
-            if (string.IsNullOrEmpty(cardResourceId))
-            {
-                _logger?.LogError("[Hand] Failed to get card from deck!");
-                continue;
-            }
-            
-            // Create AddCardCommand to update state
-            var addCardCommand = new AddCardCommand(cardResourceId);
-            
-            // Execute command - this updates state, which will trigger UI updates via OnHandStateChanged
-            var success = _commandProcessor.ExecuteCommand(addCardCommand);
-            
-            if (!success)
-            {
-                _logger?.LogError($"[Hand] Failed to add card {cardResourceId} to hand state!");
-                break; // Stop if we can't add more cards
-            }
-            
-            // Update current state reference for next iteration
-            currentState = _commandProcessor.CurrentState;
-        }
-        
-        // Final state check
-        var finalState = _commandProcessor.CurrentState;
-        _logger?.LogInfo($"[Hand] DrawAndAppend complete. Final hand size: {finalState?.Hand.Count}/{finalState?.Hand.MaxHandSize}");
-    }
-
-    /// <summary>
-    /// Sync any visual cards that weren't added to GameState (called when CommandProcessor becomes available)
-    /// </summary>
-    public void SyncVisualCardsToGameState()
-    {
-        if (_commandProcessor == null) return;
-
-        GD.Print("[Hand] Syncing visual cards to GameState...");
-
-        var currentState = _commandProcessor.CurrentState;
-        if (currentState == null) return;
-
-        // Find cards that exist visually but not in GameState
-        foreach (var card in _cards)
-        {
-            var cardId = card.GetInstanceId().ToString();
-            var existsInGameState = currentState.Hand.Cards.Any(c => c.CardId == cardId);
-
-            if (!existsInGameState)
-            {
-                GD.Print($"[Hand] Found visual card {cardId} not in GameState - adding it");
-
-                var addCardCommand = new AddCardCommand(cardId);
-                if (addCardCommand.CanExecute(currentState))
-                {
-                    var success = _commandProcessor.ExecuteCommand(addCardCommand);
-                    if (success)
-                    {
-                        GD.Print($"[Hand] Successfully synced card {cardId} to GameState");
-                        currentState = _commandProcessor.CurrentState; // Update for next iteration
-                    }
-                    else
-                    {
-                        GD.PrintErr($"[Hand] Failed to sync card {cardId} to GameState");
-                    }
-                }
-                else
-                {
-                    GD.PrintErr($"[Hand] Cannot sync card {cardId} - hand may be full or locked");
-                }
-            }
-        }
+        _commandProcessor.StateChanged += OnHandStateChanged;
     }
 
     private void AdjustFanEffect()
@@ -426,7 +145,6 @@ public partial class Hand : Control
         float baselineY = GlobalPosition.Y;
         var count = _cardSlotsContainer.Count;
 
-        // PERFORMANCE OPTIMIZATION: Use cached layout calculations
         var (positions, rotations) = _layoutCache.GetLayout(
             count,
             CardsCurveMultiplier,
@@ -439,28 +157,20 @@ public partial class Hand : Control
             var slot = _cardSlots[i];
             var card = slot.Card;
 
-            // Skip empty slots (when no cards are present)
-            if (card == null) continue;
-
             // Handle Z-index ordering
             card.ZIndex = i;
-            _cardsNode.MoveChild(card, i);
+            MoveChildSafe(card, i);
 
-            // PERFORMANCE OPTIMIZATION: Use cached position and rotation
             slot.TargetPosition = new Vector2(slot.TargetPosition.X, positions[i].Y);
             card.Visual.RotationDegrees = rotations[i];
         }
     }
 
-    /// <summary>
-    /// PURE COMMAND SYSTEM: Handle drag using GameState instead of legacy IsDragging properties
-    /// </summary>
     private void HandleDrag()
     {
         try
         {
-            // Get dragging card from GameState instead of checking each card's IsDragging property
-            var draggingCard = _draggingCard;
+            var draggingCard = _cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
             if (draggingCard == null) return;
 
             var draggedCardSlot = draggingCard.Logic.CardSlot;
@@ -496,9 +206,6 @@ public partial class Hand : Control
         CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.Count);
     }
 
-    /// <summary>
-    /// KEEPING: Legacy slot reordering per instructions (to be replaced in future phase)
-    /// </summary>
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
     {
         var draggedIndex = _cardSlots.IndexOf(draggedSlot);
@@ -532,12 +239,6 @@ public partial class Hand : Control
         try
         {
             AdjustFanEffect();
-
-            // TIMING FIX: Try to sync any unsynced cards when elements change
-            if (_commandProcessor != null)
-            {
-                CallDeferred(MethodName.SyncVisualCardsToGameState);
-            }
         }
         catch (Exception ex)
         {

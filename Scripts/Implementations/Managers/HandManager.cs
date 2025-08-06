@@ -1,34 +1,30 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Maximagus.Scripts.Enums;
 using Scripts.State;
+using Scripts.Commands;
+using Maximagus.Scripts.Spells.Abstractions;
+using Scripts.Commands.Hand;
 
 namespace Maximagus.Scripts.Managers
 {
     public class HandManager : IHandManager
-    {
-        public int MaxCardsPerSubmission { get; set; } = 4;
-        
+    {        
         private ILogger _logger;
-        private Hand _hand;
+        private IGameCommandProcessor _commandProcessor;
         
-        public ImmutableArray<Card> Cards => _hand?.Cards ?? ImmutableArray<Card>.Empty;
-        public ImmutableArray<Card> SelectedCards => _hand?.SelectedCards ?? ImmutableArray<Card>.Empty;
-        public Card DraggingCard => _hand?.DraggingCard;
+        public ImmutableArray<SpellCardResource> Cards => _commandProcessor.CurrentState.Hand.Cards.Select(card => card.Resource).ToImmutableArray();
+        public ImmutableArray<SpellCardResource> SelectedCards => _commandProcessor.CurrentState.Hand.Cards.Where(card => card.IsSelected).Select(card => card.Resource).ToImmutableArray();
+        public SpellCardResource DraggingCard => _commandProcessor.CurrentState.Hand.DraggingCard.Resource;
+
+        private IGameStateData _currentState => _commandProcessor.CurrentState;
 
         public HandManager()
         {
             _logger = ServiceLocator.GetService<ILogger>();
-        }
-
-        public Hand Hand => _hand;
-
-        public void SetupHandNode(Hand hand)
-        {
-            _hand = hand;
+            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         }
 
         public void ResetForNewEncounter()
@@ -38,106 +34,87 @@ namespace Maximagus.Scripts.Managers
 
         public bool CanSubmitHand(HandActionType actionType)
         {
-            var gameStateManager = ServiceLocator.GetService<IGameStateManager>();
-            var currentState = gameStateManager?.CurrentState;
-            return currentState?.Player.CanPerformHandAction(actionType) ?? false;
-        }
-        public bool CanAddCard(IGameStateData currentState)
-        {
-            return !currentState.Hand.IsLocked &&
-                   currentState.Hand.Count < currentState.Hand.MaxHandSize;
+            return _currentState.Player.CanPerformHandAction(actionType);
         }
 
-        public bool CanRemoveCard(IGameStateData currentState, string cardId)
+        public bool CanAddCard()
         {
-            return !currentState.Hand.IsLocked &&
-                   currentState.Hand.Cards.Any(c => c.CardId == cardId);
+            return !_currentState.Hand.IsLocked &&
+                   _currentState.Hand.Count < _currentState.Hand.MaxHandSize;
         }
 
-        public bool CanPlayHand(IGameStateData currentState)
+        public bool CanRemoveCard(string cardId)
         {
-            return currentState.Hand.SelectedCount > 0 &&
-                   !currentState.Hand.IsLocked &&
-                   currentState.Player.HasHandsRemaining;
+            return !_currentState.Hand.IsLocked &&
+                   _currentState.Hand.Cards.Any(c => c.CardId == cardId);
         }
 
-        public bool CanDiscardHand(IGameStateData currentState)
+        public bool CanPlayHand()
         {
-            return currentState.Hand.SelectedCount > 0 &&
-                   !currentState.Hand.IsLocked &&
-                   currentState.Player.HasDiscardsRemaining;
+            return _currentState.Hand.SelectedCount > 0 &&
+                   !_currentState.Hand.IsLocked &&
+                   _currentState.Player.HasHandsRemaining;
         }
 
-        public bool CanPerformHandAction(IGameStateData currentState, HandActionType actionType)
+        public bool CanDiscardHand()
+        {
+            return _currentState.Hand.SelectedCount > 0 &&
+                   !_currentState.Hand.IsLocked &&
+                   _currentState.Player.HasDiscardsRemaining;
+        }
+
+        public bool CanPerformHandAction(HandActionType actionType)
         {
             return actionType switch
             {
-                HandActionType.Play => CanPlayHand(currentState),
-                HandActionType.Discard => CanDiscardHand(currentState),
+                HandActionType.Play => CanPlayHand(),
+                HandActionType.Discard => CanDiscardHand(),
                 _ => false
             };
         }
 
-        public int GetCardsToDraw(IGameStateData currentState)
+        public int GetCardsToDraw()
         {
-            return Math.Max(0, currentState.Hand.MaxHandSize - currentState.Hand.Count);
+            return Math.Max(0, _currentState.Hand.MaxHandSize - _currentState.Hand.Count);
         }
 
-        public HandStatusSummary GetHandStatus(IGameStateData currentState)
+        public HandStatusSummary GetHandStatus()
         {
             return new HandStatusSummary(
-                currentCards: currentState.Hand.Count,
-                maxCards: currentState.Hand.MaxHandSize,
-                selectedCards: currentState.Hand.SelectedCount,
-                isLocked: currentState.Hand.IsLocked,
-                hasDraggingCard: currentState.Hand.HasDraggingCard,
-                remainingHands: currentState.Player.RemainingHands,
-                remainingDiscards: currentState.Player.RemainingDiscards
+                currentCards: _currentState.Hand.Count,
+                maxCards: _currentState.Hand.MaxHandSize,
+                selectedCards: _currentState.Hand.SelectedCount,
+                isLocked: _currentState.Hand.IsLocked,
+                hasDraggingCard: _currentState.Hand.HasDraggingCard,
+                remainingHands: _currentState.Player.RemainingHands,
+                remainingDiscards: _currentState.Player.RemainingDiscards
             );
         }
 
-        /// <summary>
-        /// Draws a card from the deck and returns its resource ID
-        /// This follows state-driven architecture by only getting the card ID
-        /// The caller should then update the state, which will trigger UI updates
-        /// </summary>
-        /// <returns>The ID of the drawn card resource</returns>
-        public string DrawCard()
+        public void DrawCard()
         {
             var deck = new Deck();
             var resource = deck.GetNext();
-            return resource?.CardId;
-        }
-    
-        /// <summary>
-        /// Legacy method - should be removed once state-driven approach is fully implemented
-        /// </summary>
-        public void DrawCards(int count)
-        {
-            _hand?.DrawAndAppend(count);
+            var command = new AddCardCommand(resource);
+            _commandProcessor.ExecuteCommand(command);
         }
 
-        public void DiscardCards(IEnumerable<string> cardIds)
+        public void DiscardCard(string cardId)
         {
-            if (_hand == null) return;
-            
-            var cardsToDiscard = _hand.Cards
-                .Where(card => cardIds.Contains(card.GetInstanceId().ToString()))
-                .ToArray();
-                
-            if (cardsToDiscard.Length > 0)
-            {
-                _hand.Discard(cardsToDiscard);
-            }
+            var newHandState = _currentState.Hand.WithRemovedCard(cardId);
+            _commandProcessor.SetState(_currentState.WithHand(newHandState));
         }
 
         public void DiscardSelectedCards()
         {
-            var selectedCards = _hand?.SelectedCards;
-            if (selectedCards.HasValue && selectedCards.Value.Length > 0)
+            var newState = _currentState;
+            foreach (var card in _currentState.Hand.SelectedCards)
             {
-                _hand.Discard(selectedCards.Value);
+                _logger?.LogInfo($"[HandManager] Discarding card: {card.CardId}");
+                newState = newState.WithHand(newState.Hand.WithRemovedCard(card.CardId));
             }
+
+            _commandProcessor.SetState(newState);
         }
     }
 }

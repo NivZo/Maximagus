@@ -17,12 +17,12 @@ namespace Scripts.Input
 	public class InputToCommandMapper
 	{
 		private readonly IGameCommandProcessor _commandProcessor;
-		private readonly Dictionary<string, Func<InputEventData, IGameCommand>> _inputMappings;
+		private readonly Dictionary<string, Func<InputEventData, GameCommand>> _inputMappings;
 
 		public InputToCommandMapper(IGameCommandProcessor commandProcessor)
 		{
 			_commandProcessor = commandProcessor ?? throw new ArgumentNullException(nameof(commandProcessor));
-			_inputMappings = new Dictionary<string, Func<InputEventData, IGameCommand>>();
+			_inputMappings = new Dictionary<string, Func<InputEventData, GameCommand>>();
 			InitializeInputMappings();
 		}
 
@@ -65,7 +65,7 @@ namespace Scripts.Input
 		/// </summary>
 		/// <param name="inputData">The input event data</param>
 		/// <returns>Game command or null if no mapping exists</returns>
-		private IGameCommand MapInputToCommand(InputEventData inputData)
+		private GameCommand MapInputToCommand(InputEventData inputData)
 		{
 			var mappingKey = GetMappingKey(inputData);
 			
@@ -89,7 +89,7 @@ namespace Scripts.Input
 		/// <summary>
 		/// Handles inputs that require more complex logic than simple dictionary mapping
 		/// </summary>
-		private IGameCommand HandleGenericInput(InputEventData inputData)
+		private GameCommand HandleGenericInput(InputEventData inputData)
 		{
 			return inputData.Type switch
 			{
@@ -104,14 +104,14 @@ namespace Scripts.Input
 		/// <summary>
 		/// Handles card click inputs
 		/// </summary>
-		private IGameCommand HandleCardClick(InputEventData inputData)
+		private GameCommand HandleCardClick(InputEventData inputData)
 		{
 			if (string.IsNullOrEmpty(inputData.CardId)) return null;
 
 			var currentState = _commandProcessor.CurrentState;
 			
 			// Check if card is currently selected
-			var isSelected = currentState.Hand.SelectedCardIds.Contains(inputData.CardId);
+			var isSelected = currentState.Hand.SelectedCards.Select(card => card.CardId).Contains(inputData.CardId);
 			
 			// Toggle selection based on current state
 			return isSelected 
@@ -122,7 +122,7 @@ namespace Scripts.Input
 		/// <summary>
 		/// Handles keyboard input
 		/// </summary>
-		private IGameCommand HandleKeyPress(InputEventData inputData)
+		private GameCommand HandleKeyPress(InputEventData inputData)
 		{
 			// Use ONLY the new command system - no legacy integration
 			return inputData.KeyCode switch
@@ -137,7 +137,7 @@ namespace Scripts.Input
 		/// <summary>
 		/// Handles mouse actions (beyond card clicks)
 		/// </summary>
-		private IGameCommand HandleMouseAction(InputEventData inputData)
+		private GameCommand HandleMouseAction(InputEventData inputData)
 		{
 			return inputData.Action switch
 			{
@@ -152,7 +152,7 @@ namespace Scripts.Input
 		/// <summary>
 		/// Handles card drag operations
 		/// </summary>
-		private IGameCommand HandleCardDrag(InputEventData inputData)
+		private GameCommand HandleCardDrag(InputEventData inputData)
 		{
 			if (inputData.CardOrder != null && inputData.CardOrder.Count > 0)
 			{
@@ -181,7 +181,7 @@ namespace Scripts.Input
 		/// <param name="inputType">The input type</param>
 		/// <param name="action">The action name</param>
 		/// <param name="commandFactory">Function to create the command</param>
-		public void AddInputMapping(InputType inputType, string action, Func<InputEventData, IGameCommand> commandFactory)
+		public void AddInputMapping(InputType inputType, string action, Func<InputEventData, GameCommand> commandFactory)
 		{
 			var key = $"{inputType}_{action}";
 			_inputMappings[key] = commandFactory;

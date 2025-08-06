@@ -109,24 +109,6 @@ namespace Scripts.State
                 if (!Hand.IsValid() || !Player.IsValid() || !Phase.IsValid())
                     return false;
 
-                // Cross-component validation rules
-                
-                // Player must be alive unless game is over
-                if (!Player.IsAlive && !Phase.IsGameEnded)
-                    return false;
-
-                // Player must have hands remaining unless game is over
-                if (!Player.HasHandsRemaining && Phase.AllowsCardSelection)
-                    return false;
-
-                // Hand cannot be locked during card selection phase
-                if (Hand.IsLocked && Phase.AllowsCardSelection)
-                    return false;
-
-                // Cannot have selected cards during non-interactive phases
-                if (Hand.SelectedCount > 0 && !Phase.CanPlayerAct)
-                    return false;
-
                 return true;
             }
             catch
