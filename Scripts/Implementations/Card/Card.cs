@@ -76,12 +76,20 @@ public partial class Card : Control
         }
     }
     
+    /// <summary>
+    /// Creates a card with a specific resource
+    /// </summary>
+    /// <param name="parent">The parent node to add the card to</param>
+    /// <param name="cardSlot">The slot for the card</param>
+    /// <param name="resource">The resource for the card</param>
+    /// <returns>The created card</returns>
     public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource)
     {
         try
         {
             parent.ValidateNotNull(nameof(parent));
             cardSlot.ValidateNotNull(nameof(cardSlot));
+            resource.ValidateNotNull(nameof(resource));
 
             var scene = GD.Load<PackedScene>(CARD_SCENE);
             if (scene == null)
@@ -100,6 +108,44 @@ public partial class Card : Control
         catch (Exception ex)
         {
             ServiceLocator.GetService<ILogger>()?.LogError("Failed to create card", ex);
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Creates a card with a resource from state
+    /// </summary>
+    /// <param name="parent">The parent node to add the card to</param>
+    /// <param name="cardSlot">The slot for the card</param>
+    /// <param name="cardState">The card state from the game state</param>
+    /// <returns>The created card</returns>
+    public static Card CreateFromState(Node parent, CardSlot cardSlot, Scripts.State.CardState cardState)
+    {
+        try
+        {
+            parent.ValidateNotNull(nameof(parent));
+            cardSlot.ValidateNotNull(nameof(cardSlot));
+            cardState.ValidateNotNull(nameof(cardState));
+            
+            if (string.IsNullOrEmpty(cardState.ResourceId))
+            {
+                throw new InvalidOperationException("Cannot create card - card state has no resource ID");
+            }
+            
+            // Get resource from ResourceManager
+            var resourceManager = Maximagus.Scripts.Managers.ResourceManager.Instance;
+            var resource = resourceManager.GetSpellCardResource(cardState.ResourceId);
+            
+            if (resource == null)
+            {
+                throw new InvalidOperationException($"Resource not found: {cardState.ResourceId}");
+            }
+            
+            return Create(parent, cardSlot, resource);
+        }
+        catch (Exception ex)
+        {
+            ServiceLocator.GetService<ILogger>()?.LogError($"Failed to create card from state: {cardState?.CardId}", ex);
             throw;
         }
     }
