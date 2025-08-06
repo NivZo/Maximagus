@@ -43,11 +43,11 @@ namespace Scripts.Commands.Game
                 return currentState;
             }
 
-            // Queue the draw action to fill hand to maximum size
+            // Queue the draw action to fill hand to maximum size using state-driven approach
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             if (queuedActionsManager != null)
             {
-                _logger?.LogInfo("[TurnStartCommand] Queuing card draw to max hand size...");
+                _logger?.LogInfo("[TurnStartCommand] Queuing card draw to max hand size (state-driven)...");
                 
                 queuedActionsManager.QueueAction(() =>
                 {
@@ -57,8 +57,34 @@ namespace Scripts.Commands.Game
                     
                     if (cardsToDraw > 0)
                     {
-                        _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
-                        handManager.Hand.DrawAndAppend(cardsToDraw);
+                        _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size (state-driven)");
+                        
+                        // State-driven approach: Draw cards one by one and update state with each
+                        for (int i = 0; i < cardsToDraw; i++)
+                        {
+                            // Get card resource from deck
+                            var cardResourceId = handManager.DrawCard();
+                            if (string.IsNullOrEmpty(cardResourceId))
+                            {
+                                _logger?.LogError("[TurnStartCommand] Failed to get card from deck!");
+                                continue;
+                            }
+                            
+                            // Create AddCardCommand to update state
+                            var addCardCommand = new Commands.Hand.AddCardCommand(cardResourceId);
+                            
+                            // Execute command - this updates state, which will trigger UI updates
+                            var success = _commandProcessor.ExecuteCommand(addCardCommand);
+                            
+                            if (!success)
+                            {
+                                _logger?.LogError($"[TurnStartCommand] Failed to add card {cardResourceId} to hand state!");
+                                break; // Stop if we can't add more cards
+                            }
+                            
+                            _logger?.LogInfo($"[TurnStartCommand] Added card {cardResourceId} to hand state ({i+1}/{cardsToDraw})");
+                        }
+                        
                         _logger?.LogInfo($"[TurnStartCommand] Hand now has {_commandProcessor?.CurrentState?.Hand.Cards.Count} cards");
                     }
                     else
@@ -70,15 +96,37 @@ namespace Scripts.Commands.Game
             else
             {
                 _logger?.LogWarning("[TurnStartCommand] WARNING: QueuedActionsManager not available, executing immediately");
-                // Fallback to immediate execution
+                // Fallback to immediate execution with state-driven approach
                 var currentCardCount = _commandProcessor?.CurrentState?.Hand.Cards.Count ?? 0;
-                var maxHandSize = 10;
+                var maxHandSize = GameConfig.DEFAULT_MAX_HAND_SIZE;
                 var cardsToDraw = Math.Max(0, maxHandSize - currentCardCount);
                 
                 if (cardsToDraw > 0)
                 {
-                    _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size");
-                    handManager.Hand.DrawAndAppend(cardsToDraw);
+                    _logger?.LogInfo($"[TurnStartCommand] Drawing {cardsToDraw} cards to reach max hand size (state-driven)");
+                    
+                    for (int i = 0; i < cardsToDraw; i++)
+                    {
+                        // Get card resource from deck
+                        var cardResourceId = handManager.DrawCard();
+                        if (string.IsNullOrEmpty(cardResourceId))
+                        {
+                            _logger?.LogError("[TurnStartCommand] Failed to get card from deck!");
+                            continue;
+                        }
+                        
+                        // Create AddCardCommand to update state
+                        var addCardCommand = new Commands.Hand.AddCardCommand(cardResourceId);
+                        
+                        // Execute command - this updates state, which will trigger UI updates
+                        var success = _commandProcessor.ExecuteCommand(addCardCommand);
+                        
+                        if (!success)
+                        {
+                            _logger?.LogError($"[TurnStartCommand] Failed to add card {cardResourceId} to hand state!");
+                            break; // Stop if we can't add more cards
+                        }
+                    }
                 }
             }
 

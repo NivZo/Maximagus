@@ -25,8 +25,15 @@ public class Deck
     /// </summary>
     public void RefreshAvailableCards()
     {
-        // Get all resources from ResourceManager
-        var resources = ResourceManager.Instance.GetAllSpellCardResources();
+        // Get all resources from ResourceManager through ServiceLocator
+        var resourceManager = ServiceLocator.GetService<IResourceManager>();
+        if (resourceManager == null)
+        {
+            _logger?.LogError("ResourceManager not available via ServiceLocator");
+            return;
+        }
+        
+        var resources = resourceManager.GetAllSpellCardResources();
         _availableResourceIds = resources.Select(r => r.CardId).ToList();
         
         if (_availableResourceIds.Count == 0)
@@ -64,6 +71,13 @@ public class Deck
             return null;
         }
         
-        return ResourceManager.Instance.GetSpellCardResource(resourceId);
+        var resourceManager = ServiceLocator.GetService<IResourceManager>();
+        if (resourceManager == null)
+        {
+            _logger?.LogError("ResourceManager not available via ServiceLocator");
+            return null;
+        }
+        
+        return resourceManager.GetSpellCardResource(resourceId);
     }
 }

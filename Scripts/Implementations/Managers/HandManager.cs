@@ -96,6 +96,22 @@ namespace Maximagus.Scripts.Managers
             );
         }
 
+        /// <summary>
+        /// Draws a card from the deck and returns its resource ID
+        /// This follows state-driven architecture by only getting the card ID
+        /// The caller should then update the state, which will trigger UI updates
+        /// </summary>
+        /// <returns>The ID of the drawn card resource</returns>
+        public string DrawCard()
+        {
+            var deck = new Deck();
+            var resource = deck.GetNext();
+            return resource?.CardId;
+        }
+    
+        /// <summary>
+        /// Legacy method - should be removed once state-driven approach is fully implemented
+        /// </summary>
         public void DrawCards(int count)
         {
             _hand?.DrawAndAppend(count);

@@ -7,15 +7,14 @@ namespace Maximagus.Scripts.Managers
     /// <summary>
     /// Manages loading and caching of game resources to ensure a single source of truth
     /// </summary>
-    public class ResourceManager
+    public class ResourceManager : IResourceManager
     {
-        private static ResourceManager _instance;
-        public static ResourceManager Instance => _instance ??= new ResourceManager();
+        // Remove static instance since we'll use ServiceLocator instead
 
         private readonly Dictionary<string, SpellCardResource> _spellCardResources = new();
         private readonly ILogger _logger;
 
-        private ResourceManager()
+        public ResourceManager()
         {
             _logger = ServiceLocator.GetService<ILogger>();
             PreloadResources();

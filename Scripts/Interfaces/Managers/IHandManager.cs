@@ -22,6 +22,17 @@ public interface IHandManager
 
     bool CanPerformHandAction(IGameStateData currentState, HandActionType actionType);
 
+    /// <summary>
+    /// Draws a card from the deck and returns its resource ID
+    /// This follows state-driven architecture by only getting the card ID
+    /// The caller should then update the state, which will trigger UI updates
+    /// </summary>
+    /// <returns>The ID of the drawn card resource</returns>
+    string DrawCard();
+    
+    /// <summary>
+    /// Legacy method - should be removed once state-driven approach is fully implemented
+    /// </summary>
     void DrawCards(int count);
 
     void DiscardCards(IEnumerable<string> cardIds);
