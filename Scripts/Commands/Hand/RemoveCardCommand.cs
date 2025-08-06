@@ -8,45 +8,43 @@ namespace Scripts.Commands.Hand
     /// Command to remove a card from the player's hand in GameState
     /// Used when cards are discarded or removed
     /// </summary>
-    public class RemoveCardCommand : IGameCommand
+    public class RemoveCardCommand : GameCommand
     {
         private readonly string _cardId;
 
-        public RemoveCardCommand(string cardId)
+        public RemoveCardCommand(string cardId) : base()
         {
             _cardId = cardId;
         }
 
-        public bool CanExecute(IGameStateData currentState)
+        public override bool CanExecute()
         {
-            if (currentState == null) return false;
+            if (_commandProcessor.CurrentState == null) return false;
             if (string.IsNullOrEmpty(_cardId)) return false;
 
-            // Hand must not be locked
-            if (currentState.Hand.IsLocked) return false;
+            if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            // Card must exist in hand
-            foreach (var card in currentState.Hand.Cards)
+            foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
             {
                 if (card.CardId == _cardId) return true;
             }
 
-            return false; // Card not found
+            return false;
         }
 
-        public IGameStateData Execute(IGameStateData currentState)
+        public override IGameStateData Execute()
         {
             GD.Print($"[RemoveCardCommand] Removing card {_cardId} from GameState");
 
             // Remove card from hand
-            var newHandState = currentState.Hand.WithRemovedCard(_cardId);
-            var newState = currentState.WithHand(newHandState);
+            var newHandState = _commandProcessor.CurrentState.Hand.WithRemovedCard(_cardId);
+            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
 
             GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully. Hand now has {newHandState.Count} cards");
             return newState;
         }
 
-        public string GetDescription()
+        public override string GetDescription()
         {
             return $"Remove card {_cardId} from hand";
         }

@@ -25,7 +25,6 @@ public static class ServiceLocator
         RegisterService<IEventBus, SimpleEventBus>();
         RegisterService<IHoverManager, HoverManager>();
         RegisterService<IHandManager, HandManager>();
-        RegisterService<IGameStateManager, GameStateManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();
         RegisterService<IGameCommandProcessor, GameCommandProcessor>();

@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://cxk5lpt8xky65"
 
 [resource]
 script = ExtResource("1_ohmn1")
-CardId = "doublefire"
+CardResourceId = "doublefire"
 CardName = "Amplify Fire"
 CardDescription = "Double the next [b]Fire[/b] damage"
 CardArt = ExtResource("2_dmjhn")

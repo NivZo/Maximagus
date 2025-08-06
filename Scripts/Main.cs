@@ -3,8 +3,6 @@ using System;
 using Scripts.Commands;
 using Scripts.Input;
 using Scripts.State;
-using Scripts.Validation;
-using System.Linq;
 
 public partial class Main : Control
 {
@@ -16,9 +14,6 @@ public partial class Main : Control
 	private KeyboardInputHandler _keyboardHandler;
 	private MouseInputHandler _mouseHandler;
 	
-	// Direct reference to Hand node (no HandManager)
-	private Hand _hand;
-
 	public override void _EnterTree()
 	{
 		base._EnterTree();
@@ -33,13 +28,7 @@ public partial class Main : Control
 			_logger = ServiceLocator.GetService<ILogger>();
 			_logger?.LogInfo("Main scene initialized successfully");
 
-			// Get direct reference to Hand node
 			InitializeCommandSystem();
-			
-			// Setup HandManager with Hand node for proper access
-			_hand = GetNode<Hand>("Hand");
-			var handManager = ServiceLocator.GetService<IHandManager>();
-			handManager.SetupHandNode(_hand);			
 		}
 		catch (Exception ex)
 		{
@@ -137,7 +126,6 @@ public partial class Main : Control
 			// Create HandState with real data
 			var handState = new HandState(
 				cards: [],
-				selectedCardIds: [],
 				maxHandSize: 10,
 				isLocked: false
 			);
@@ -176,27 +164,6 @@ public partial class Main : Control
 				phase: gamePhaseState
 			);
 			
-			// Detailed state validation
-			var validator = new StateValidator();
-			var validationResult = validator.ValidateState(gameState);
-			
-			if (!validationResult.IsValid)
-			{
-				_logger.LogError($"[Main] ERROR: GameState validation failed!");
-				foreach (var error in validationResult.Errors)
-				{
-					_logger.LogError($"[Main] Validation Error: {error}");
-				}
-				foreach (var warning in validationResult.Warnings)
-				{
-					_logger.LogInfo($"[Main] Validation Warning: {warning}");
-				}
-				return;
-			}
-			
-			_logger.LogInfo("[Main] GameState validation passed, setting state...");
-			
-			// Set the GameState in the command processor
 			_commandProcessor.SetState(gameState);			
 			_logger?.LogInfo($"GameState initialized");
 		}

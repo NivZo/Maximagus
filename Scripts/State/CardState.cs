@@ -1,4 +1,6 @@
 using System;
+using Maximagus.Scripts.Managers;
+using Maximagus.Scripts.Spells.Abstractions;
 
 namespace Scripts.State
 {
@@ -14,34 +16,21 @@ namespace Scripts.State
         public bool IsSelected { get; }
         public bool IsDragging { get; }
         public int Position { get; }
-        public float VisualOffsetX { get; }
-        public float VisualOffsetY { get; }
-        
-        // Resource data (from SpellCardResource)
-        public string ResourceId { get; }
-        public string CardName { get; }
-        public string CardDescription { get; }
-        
+
+        public SpellCardResource Resource { get; }
+
         public CardState(
             string cardId,
+            SpellCardResource resource,
             bool isSelected = false,
             bool isDragging = false,
-            int position = 0,
-            float visualOffsetX = 0f,
-            float visualOffsetY = 0f,
-            string resourceId = null,
-            string cardName = null,
-            string cardDescription = null)
+            int position = 0)
         {
             CardId = cardId ?? throw new ArgumentNullException(nameof(cardId));
+            Resource = resource;
             IsSelected = isSelected;
             IsDragging = isDragging;
             Position = position;
-            VisualOffsetX = visualOffsetX;
-            VisualOffsetY = visualOffsetY;
-            ResourceId = resourceId;
-            CardName = cardName;
-            CardDescription = cardDescription;
         }
 
         /// <summary>
@@ -51,14 +40,10 @@ namespace Scripts.State
         {
             return new CardState(
                 CardId,
+                Resource,
                 isSelected,
                 IsDragging,
-                Position,
-                VisualOffsetX,
-                VisualOffsetY,
-                ResourceId,
-                CardName,
-                CardDescription);
+                Position);
         }
 
         /// <summary>
@@ -68,14 +53,10 @@ namespace Scripts.State
         {
             return new CardState(
                 CardId,
+                Resource,
                 IsSelected,
                 isDragging,
-                Position,
-                VisualOffsetX,
-                VisualOffsetY,
-                ResourceId,
-                CardName,
-                CardDescription);
+                Position);
         }
 
         /// <summary>
@@ -85,14 +66,10 @@ namespace Scripts.State
         {
             return new CardState(
                 CardId,
+                Resource,
                 IsSelected,
                 IsDragging,
-                position,
-                VisualOffsetX,
-                VisualOffsetY,
-                ResourceId,
-                CardName,
-                CardDescription);
+                position);
         }
 
         /// <summary>
@@ -102,14 +79,10 @@ namespace Scripts.State
         {
             return new CardState(
                 CardId,
+                Resource,
                 IsSelected,
                 IsDragging,
-                Position,
-                offsetX,
-                offsetY,
-                ResourceId,
-                CardName,
-                CardDescription);
+                Position);
         }
         
         /// <summary>
@@ -119,14 +92,10 @@ namespace Scripts.State
         {
             return new CardState(
                 CardId,
+                Resource,
                 IsSelected,
                 IsDragging,
-                Position,
-                VisualOffsetX,
-                VisualOffsetY,
-                resourceId,
-                cardName,
-                cardDescription);
+                Position);
         }
 
         public override bool Equals(object obj)
@@ -137,20 +106,14 @@ namespace Scripts.State
                        IsSelected == other.IsSelected &&
                        IsDragging == other.IsDragging &&
                        Position == other.Position &&
-                       Math.Abs(VisualOffsetX - other.VisualOffsetX) < 0.001f &&
-                       Math.Abs(VisualOffsetY - other.VisualOffsetY) < 0.001f &&
-                       ResourceId == other.ResourceId &&
-                       CardName == other.CardName &&
-                       CardDescription == other.CardDescription;
+                       Resource.GetRid() == other.Resource.GetRid();
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(CardId, IsSelected, IsDragging, Position);
-            hash = HashCode.Combine(hash, VisualOffsetX, VisualOffsetY);
-            return HashCode.Combine(hash, ResourceId, CardName, CardDescription);
+            return HashCode.Combine(CardId, IsSelected, IsDragging, Position, Resource);
         }
     }
 }

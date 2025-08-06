@@ -4,27 +4,23 @@ using Scripts.State;
 
 namespace Scripts.Commands.Game
 {
-    /// <summary>
-    /// Command to start the game (Menu -> TurnStart, or no-op if already in gameplay)
-    /// </summary>
-    public class StartGameCommand : IGameCommand
+    public class StartGameCommand : GameCommand
     {
-        public string GetDescription() => "Start Game";
+        public override string GetDescription() => "Start Game";
 
-        public bool CanExecute(IGameStateData currentState)
+        public override bool CanExecute()
         {
-            // Allow starting from Menu phase, or if already in TurnStart (game already started)
-            return currentState.Phase.CurrentPhase == GamePhase.Menu;
+            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu;
         }
 
-        public IGameStateData Execute(IGameStateData currentState)
+        public override IGameStateData Execute()
         {
             GD.Print("[StartGameCommand] Execute() called!");
             
             var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
             queuedActionsManager.QueueAction(() => { ServiceLocator.GetService<IGameCommandProcessor>().ExecuteCommand(new TurnStartCommand()); }, .1f);
 
-            return currentState;
+            return _commandProcessor.CurrentState;
         }
     }
 }

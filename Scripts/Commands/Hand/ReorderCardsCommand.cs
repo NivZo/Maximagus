@@ -9,11 +9,11 @@ namespace Scripts.Commands.Hand
     /// <summary>
     /// Command to reorder cards in the player's hand
     /// </summary>
-    public class ReorderCardsCommand : IGameCommand
+    public class ReorderCardsCommand : GameCommand
     {
         private readonly IReadOnlyList<string> _newCardOrder;
 
-        public ReorderCardsCommand(IEnumerable<string> newCardOrder)
+        public ReorderCardsCommand(IEnumerable<string> newCardOrder) : base()
         {
             if (newCardOrder == null) throw new ArgumentNullException(nameof(newCardOrder));
             _newCardOrder = newCardOrder.ToList().AsReadOnly();
@@ -22,18 +22,18 @@ namespace Scripts.Commands.Hand
                 throw new ArgumentException("Card order cannot be empty", nameof(newCardOrder));
         }
 
-        public bool CanExecute(IGameStateData currentState)
+        public override bool CanExecute()
         {
-            if (currentState == null) return false;
+            if (_commandProcessor.CurrentState == null) return false;
 
             // Can only reorder during phases that allow player action
-            if (!currentState.Phase.CanPlayerAct) return false;
+            if (!_commandProcessor.CurrentState.Phase.CanPlayerAct) return false;
 
             // Hand must not be locked
-            if (currentState.Hand.IsLocked) return false;
+            if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
             // All cards in the new order must exist in the current hand
-            var currentCardIds = currentState.Hand.Cards.Select(c => c.CardId).ToHashSet();
+            var currentCardIds = _commandProcessor.CurrentState.Hand.Cards.Select(c => c.CardId).ToHashSet();
             var newOrderSet = _newCardOrder.ToHashSet();
 
             // Check that all cards in new order exist in current hand
@@ -45,19 +45,13 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public IGameStateData Execute(IGameStateData currentState)
+        public override IGameStateData Execute()
         {
-            if (!CanExecute(currentState))
-                throw new InvalidOperationException("Cannot execute ReorderCardsCommand");
-
-            // Reorder the cards in the hand
-            var newHandState = currentState.Hand.WithReorderedCards(_newCardOrder);
-
-            // Return new game state with reordered hand
-            return currentState.WithHand(newHandState);
+            var newHandState = _commandProcessor.CurrentState.Hand.WithReorderedCards(_newCardOrder);
+            return _commandProcessor.CurrentState.WithHand(newHandState);
         }
 
-        public string GetDescription()
+        public override string GetDescription()
         {
             var cardCount = _newCardOrder.Count;
             var firstFew = string.Join(", ", _newCardOrder.Take(3));

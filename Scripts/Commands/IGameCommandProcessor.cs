@@ -25,11 +25,9 @@ namespace Scripts.Commands
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <returns>True if command was executed successfully</returns>
-        public bool ExecuteCommand(IGameCommand command);
+        public bool ExecuteCommand(GameCommand command);
 
         public void SetState(IGameStateData newState);
-
-        public string GetStateSummary();
     }
 
     /// <summary>
@@ -39,6 +37,6 @@ namespace Scripts.Commands
     {
         public IGameStateData PreviousState { get; set; }
         public IGameStateData NewState { get; set; }
-        public IGameCommand ExecutedCommand { get; set; }
+        public GameCommand ExecutedCommand { get; set; }
     }
 }

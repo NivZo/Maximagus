@@ -1,5 +1,8 @@
 using Scripts.State;
 using Godot;
+using Maximagus.Scripts.Managers;
+using Maximagus.Scripts.Spells.Abstractions;
+using System;
 
 namespace Scripts.Commands.Hand
 {
@@ -7,60 +10,51 @@ namespace Scripts.Commands.Hand
     /// Command to add a new card to the player's hand in GameState
     /// Used when cards are drawn/created after initial game setup
     /// </summary>
-    public class AddCardCommand : IGameCommand
+    public class AddCardCommand : GameCommand
     {
-        private readonly string _cardId;
+        private readonly SpellCardResource _spellCardResource;
         private readonly int _position;
 
-        public AddCardCommand(string cardId, int position = -1)
+        public AddCardCommand(SpellCardResource spellCardResource, int position = -1) : base()
         {
-            _cardId = cardId;
-            _position = position; // -1 means append to end
+            _spellCardResource = spellCardResource;
+            _position = position;
         }
 
-        public bool CanExecute(IGameStateData currentState)
+        public override bool CanExecute()
         {
-            if (currentState == null) return false;
-            if (string.IsNullOrEmpty(_cardId)) return false;
+            if (_commandProcessor.CurrentState == null) return false;
+            if (_spellCardResource == null) return false;
 
-            // Hand must not be locked
-            if (currentState.Hand.IsLocked) return false;
+            if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            // Check hand size limit
-            if (currentState.Hand.Count >= currentState.Hand.MaxHandSize) return false;
-
-            // Card must not already exist in hand
-            foreach (var card in currentState.Hand.Cards)
-            {
-                if (card.CardId == _cardId) return false;
-            }
+            if (_commandProcessor.CurrentState.Hand.Count >= _commandProcessor.CurrentState.Hand.MaxHandSize) return false;
 
             return true;
         }
 
-        public IGameStateData Execute(IGameStateData currentState)
+        public override IGameStateData Execute()
         {
-            GD.Print($"[AddCardCommand] Adding card {_cardId} to GameState at position {_position}");
+            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {_position}");
 
-            // Create new CardState for the added card
             var newCardState = new CardState(
-                cardId: _cardId,
+                cardId: Guid.NewGuid().ToString(),
+                resource: _spellCardResource,
                 isSelected: false,
                 isDragging: false,
-                position: _position >= 0 ? _position : currentState.Hand.Count
+                position: _position >= 0 ? _position : _commandProcessor.CurrentState.Hand.Count
             );
 
-            // Add card to hand
-            var newHandState = currentState.Hand.WithAddedCard(newCardState);
-            var newState = currentState.WithHand(newHandState);
+            var newHandState = _commandProcessor.CurrentState.Hand.WithAddedCard(newCardState);
+            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
 
-            GD.Print($"[AddCardCommand] Card {_cardId} added to GameState successfully. Hand now has {newHandState.Count} cards");
+            GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
             return newState;
         }
 
-        public string GetDescription()
+        public override string GetDescription()
         {
-            return $"Add card {_cardId} to hand at position {_position}";
+            return $"Add card {_spellCardResource.CardName} to hand at position {_position}";
         }
     }
 }

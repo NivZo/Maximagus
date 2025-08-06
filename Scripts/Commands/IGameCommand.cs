@@ -6,27 +6,21 @@ namespace Scripts.Commands
     /// Base interface for all game commands that modify game state.
     /// Commands must be immutable and side-effect free.
     /// </summary>
-    public interface IGameCommand
+    public abstract class GameCommand
     {
-        /// <summary>
-        /// Determines if this command can be executed in the current state.
-        /// </summary>
-        /// <param name="currentState">The current game state</param>
-        /// <returns>True if the command can be executed, false otherwise</returns>
-        bool CanExecute(IGameStateData currentState);
+        protected readonly ILogger _logger;
+        protected readonly IGameCommandProcessor _commandProcessor;
 
-        /// <summary>
-        /// Executes the command and returns a new game state.
-        /// Must not modify the input state - returns new immutable state.
-        /// </summary>
-        /// <param name="currentState">The current game state</param>
-        /// <returns>New game state with changes applied</returns>
-        IGameStateData Execute(IGameStateData currentState);
+        public GameCommand()
+        {
+            _logger = ServiceLocator.GetService<ILogger>();
+            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+        }
 
-        /// <summary>
-        /// Gets a human-readable description of this command for debugging.
-        /// </summary>
-        /// <returns>Description of the command</returns>
-        string GetDescription();
+        public abstract bool CanExecute();
+
+        public abstract IGameStateData Execute();
+
+        public abstract string GetDescription();
     }
 }

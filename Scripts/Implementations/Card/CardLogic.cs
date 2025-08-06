@@ -21,16 +21,7 @@ public partial class CardLogic : Button
 	public bool IsSelected { get; private set; } = false;
 	public bool IsHovering => _hoverManager != null ? _hoverManager.CurrentlyHoveringCard == Card : false;
 	
-	public bool IsDragging
-	{
-		get
-		{
-			if (_commandProcessor?.CurrentState == null || Card == null) return false;
-			var cardId = Card.GetInstanceId().ToString();
-			var cardState = _commandProcessor.CurrentState.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
-			return cardState?.IsDragging == true;
-		}
-	}
+	public bool IsDragging => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == Card.CardId;
 	
 	public Card Card { get; set; }
 	public CardSlot CardSlot { get; private set; }
@@ -148,12 +139,11 @@ public partial class CardLogic : Button
 		try
 		{
 			var currentState = _commandProcessor.CurrentState;
-			var cardId = Card.GetInstanceId().ToString();
-			var cardState = currentState.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
-			
-			if (cardState == null) 
+			var cardState = currentState.Hand.Cards.FirstOrDefault(c => c.CardId == Card.CardId);
+
+			if (cardState == null)
 			{
-				// Card not in GameState - expected for newly created cards
+				Card.QueueFree();
 				return;
 			}
 			
@@ -293,22 +283,18 @@ public partial class CardLogic : Button
 	/// </summary>
 	private void HandleClick()
 	{
-		if (!_commandSystemReady || _commandProcessor == null) return;
 		
-		var cardId = Card.GetInstanceId().ToString();
-		var currentState = _commandProcessor.CurrentState;
-		var cardState = currentState?.Hand.Cards.FirstOrDefault(c => c.CardId == cardId);
+		var isSelected = _commandProcessor.CurrentState.Hand.Cards
+			.FirstOrDefault(card => card.CardId == Card.CardId)?.IsSelected ?? false;
 		
-		if (cardState == null) return; // Card not in GameState
-		
-		IGameCommand command;
-		if (cardState.IsSelected)
+		GameCommand command;
+		if (isSelected)
 		{
-			command = new DeselectCardCommand(cardId);
+			command = new DeselectCardCommand(Card.CardId);
 		}
 		else
 		{
-			command = new SelectCardCommand(cardId);
+			command = new SelectCardCommand(Card.CardId);
 		}
 		
 		var success = _commandProcessor.ExecuteCommand(command);
@@ -327,8 +313,7 @@ public partial class CardLogic : Button
 	{
 		if (!_commandSystemReady || _commandProcessor == null) return;
 		
-		var cardId = Card.GetInstanceId().ToString();
-		var command = new StartDragCommand(cardId, _distanceFromMouse);
+		var command = new StartDragCommand(Card.CardId);
 		var success = _commandProcessor.ExecuteCommand(command);
 		
 		if (success)
@@ -345,8 +330,7 @@ public partial class CardLogic : Button
 	{
 		if (!_commandSystemReady || _commandProcessor == null) return;
 		
-		var cardId = Card.GetInstanceId().ToString();
-		var command = new EndDragCommand(cardId);
+		var command = new EndDragCommand(Card.CardId);
 		var success = _commandProcessor.ExecuteCommand(command);
 		
 		if (success)
