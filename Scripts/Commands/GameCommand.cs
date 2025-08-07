@@ -3,7 +3,7 @@ using Scripts.State;
 namespace Scripts.Commands
 {
     /// <summary>
-    /// Base interface for all game commands that modify game state.
+    /// Base class for all game commands that modify game state.
     /// Commands must be immutable and side-effect free.
     /// </summary>
     public abstract class GameCommand
@@ -17,10 +17,19 @@ namespace Scripts.Commands
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         }
 
+        /// <summary>
+        /// Checks if the command can be executed with the current game state
+        /// </summary>
         public abstract bool CanExecute();
 
-        public abstract IGameStateData Execute();
+        /// <summary>
+        /// Executes the command and returns a CommandResult with new state and follow-up actions
+        /// </summary>
+        public abstract CommandResult ExecuteWithResult();
 
+        /// <summary>
+        /// Gets a description of what this command does
+        /// </summary>
         public abstract string GetDescription();
     }
 }

@@ -44,17 +44,19 @@ namespace Scripts.Commands.Card
             return cardExists;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
+            var currentState = _commandProcessor.CurrentState;
             GD.Print($"[SelectCardCommand] Selecting card {_cardId} in GameState");
             
             // PURE COMMAND SYSTEM: Update only GameState
             // CardLogic.SyncWithGameState() will handle visual updates automatically
-            var newHandState = _commandProcessor.CurrentState.Hand.WithCardSelection(_cardId, true);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
+            var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
+            var newState = currentState.WithHand(newHandState);
 
             GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
-            return newState;
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()

@@ -2,12 +2,14 @@ using System;
 using System.Linq;
 using Scripts.State;
 using Scripts.Config;
+using Scripts.Commands;
 using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Game
 {
     /// <summary>
-    /// Command to handle turn start - draws cards to max hand size and transitions to CardSelection
+    /// PURE COMMAND: Handles turn start - draws cards to max hand size and transitions to CardSelection
+    /// Natural phase flow: TurnEnd -> TurnStart (processing) -> CardSelection
     /// </summary>
     public class TurnStartCommand : GameCommand
     {
@@ -22,27 +24,52 @@ namespace Scripts.Commands.Game
 
         public override bool CanExecute()
         {
-            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu || _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.TurnEnd;
+            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu ||
+                   _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.TurnEnd ||
+                   _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.GameStart;
         }
 
-        public override IGameStateData Execute()
-        {
-            _commandProcessor.SetState(_commandProcessor.CurrentState.WithPhase(_commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart)));
-            _logger?.LogInfo($"[TurnStartCommand] Current phase: {_commandProcessor.CurrentState.Phase.CurrentPhase}");
 
-            _logger?.LogInfo("[TurnStartCommand] Queuing card draw to max hand size...");
+        public override CommandResult ExecuteWithResult()
+        {
+            // First transition to TurnStart phase (intermediate phase for processing)
+            var turnStartPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart);
+            var turnStartState = _commandProcessor.CurrentState.WithPhase(turnStartPhaseState);
+            
+            _logger?.LogInfo($"[TurnStartCommand] Entered TurnStart phase");
+
+            // Draw cards to max hand size (pure computation)
             var cardsToDraw = _handManager.GetCardsToDraw();
+            var currentHandState = turnStartState.Hand;
+            
             for (int i = 0; i < cardsToDraw; i++)
             {
                 _logger.LogInfo($"[TurnStartCommand] Drawing card {i + 1} of {cardsToDraw}");
+                // Note: This still uses HandManager.DrawCard() which might have side effects
+                // This should be refactored to be pure in a future iteration
                 _handManager.DrawCard();
             }
 
-            var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.CardSelection);
-            var newState = _commandProcessor.CurrentState.WithPhase(newPhaseState);
-            _logger?.LogInfo($"[TurnStartCommand] Turn started - new phase: {newState.Phase.CurrentPhase}");
+            // Get the updated hand state after drawing
+            var newHandState = _commandProcessor.CurrentState.Hand;
 
-            return newState;
+            // Transition to CardSelection phase (natural end state)
+            var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.CardSelection);
+            var finalState = _commandProcessor.CurrentState
+                .WithHand(newHandState)
+                .WithPhase(newPhaseState);
+
+            _logger?.LogInfo($"[TurnStartCommand] Turn started - cards drawn: {cardsToDraw}, final phase: {finalState.Phase.CurrentPhase}");
+
+            // Events for turn start and card drawing
+            var events = new object[]
+            {
+                new { Type = "TurnStarted", CardsDrawn = cardsToDraw },
+                new { Type = "PhaseChanged", NewPhase = GamePhase.CardSelection, PreviousPhase = GamePhase.TurnStart },
+                new { Type = "HandUpdated", NewHandState = newHandState }
+            };
+
+            return CommandResult.Success(finalState);
         }
     }
 }

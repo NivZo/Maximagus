@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://n84dju5wqbyj"]
 
-[ext_resource type="Script" uid="uid://074arghf3h7f" path="res://Scripts/Implementations/Hand.cs" id="1_3p1lq"]
+[ext_resource type="Script" uid="uid://bh6evkxln6ptn" path="res://Scripts/Implementations/Hand.cs" id="1_3p1lq"]
 [ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="3_fkehq"]
 
 [node name="Hand" type="Control"]

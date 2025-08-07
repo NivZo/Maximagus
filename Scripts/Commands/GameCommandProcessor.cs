@@ -8,15 +8,13 @@ using Scripts.Commands.Game;
 
 namespace Scripts.Commands
 {
-    /// <summary>
-    /// Central processor for all game commands.
-    /// Validates, executes, and tracks command history.
-    /// </summary>
     public class GameCommandProcessor : IGameCommandProcessor
     {
         private readonly ILogger _logger;
         private readonly IEventBus _eventBus;
         private IGameStateData _currentState;
+        private readonly Queue<GameCommand> _commandQueue = new();
+        private bool _isProcessingQueue = false;
 
         public GameCommandProcessor()
         {
@@ -25,21 +23,9 @@ namespace Scripts.Commands
             _currentState = GameState.CreateInitial();
         }
 
-        /// <summary>
-        /// Gets the current game state (read-only)
-        /// </summary>
         public IGameStateData CurrentState => _currentState;
-
-        /// <summary>
-        /// Event fired when game state changes
-        /// </summary>
         public event Action<IGameStateData, IGameStateData> StateChanged;
 
-        /// <summary>
-        /// Executes a command if it's valid
-        /// </summary>
-        /// <param name="command">The command to execute</param>
-        /// <returns>True if command was executed successfully</returns>
         public bool ExecuteCommand(GameCommand command)
         {
             if (command == null)
@@ -48,69 +34,80 @@ namespace Scripts.Commands
                 return false;
             }
 
-            // Validate command can be executed
             if (!command.CanExecute())
             {
-                _logger.LogWarning($"Command rejected: {command.GetDescription()} - Cannot execute in current state - {_currentState.Phase.PhaseDescription}");
+                _logger.LogWarning($"Command rejected: {command.GetDescription()}");
                 return false;
             }
 
             try
             {
-                // Store previous state for events
                 var previousState = _currentState;
+                var result = command.ExecuteWithResult();
 
-                // Execute command to get new state
-                _logger.LogInfo($"Executing command: {command.GetType()}");
-                var newState = command.Execute();
-
-                // Validate the new state
-                if (newState == null)
+                if (!result.IsSuccess)
                 {
-                    _logger.LogError($"Command {command.GetDescription()} returned null state");
+                    _logger.LogError($"Command failed: {result.ErrorMessage}");
                     return false;
                 }
 
-                if (!newState.IsValid())
+                if (result.NewState == null)
                 {
-                    _logger.LogError($"Command {command.GetDescription()} resulted in invalid state");
+                    _logger.LogError("Command returned null state");
                     return false;
                 }
 
-                // Update current state
-                _currentState = newState;
+                if (!result.NewState.IsValid())
+                {
+                    _logger.LogError("Command resulted in invalid state");
+                    return false;
+                }
 
-                // Fire state change event
-                StateChanged?.Invoke(previousState, newState);
+                _currentState = result.NewState;
+                StateChanged?.Invoke(previousState, result.NewState);
 
-                // Publish state change event through event bus
                 _eventBus?.Publish(new GameStateChangedEventData
                 {
                     PreviousState = previousState,
-                    NewState = newState,
+                    NewState = result.NewState,
                     ExecutedCommand = command
                 });
 
-                _logger.LogInfo($"Command executed successfully: {command.GetDescription()}");
-
-                if (_currentState.Phase != previousState.Phase)
+                foreach (var followUpCommand in result.FollowUpCommands)
                 {
-                    _logger.LogInfo($"Phase changed from {previousState.Phase.CurrentPhase} to {_currentState.Phase.CurrentPhase} - executing phase command");
+                    _commandQueue.Enqueue(followUpCommand);
                 }
+
+                ProcessQueuedCommands();
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Exception executing command {command.GetDescription()}: {ex.Message}");
+                _logger.LogError("Exception executing command", ex);
                 return false;
             }
         }
 
-        /// <summary>
-        /// Sets the game state directly (used for initialization or loading saved games)
-        /// </summary>
-        /// <param name="newState">The new game state</param>
+        private void ProcessQueuedCommands()
+        {
+            if (_isProcessingQueue) return;
+
+            _isProcessingQueue = true;
+            try
+            {
+                while (_commandQueue.Count > 0)
+                {
+                    var queuedCommand = _commandQueue.Dequeue();
+                    ExecuteCommand(queuedCommand);
+                }
+            }
+            finally
+            {
+                _isProcessingQueue = false;
+            }
+        }
+
         public void SetState(IGameStateData newState)
         {
             if (newState == null) throw new ArgumentNullException(nameof(newState));
@@ -123,18 +120,14 @@ namespace Scripts.Commands
             var previousState = _currentState;
             _currentState = newState;
 
-            // Fire state change event
             StateChanged?.Invoke(previousState, newState);
 
-            // Publish state change event
             _eventBus?.Publish(new GameStateChangedEventData
             {
                 PreviousState = previousState,
                 NewState = newState,
                 ExecutedCommand = null
             });
-
-            _logger.LogInfo("Game state set directly");
         }
     }
 }

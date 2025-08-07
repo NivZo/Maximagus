@@ -1,24 +1,21 @@
 using System;
 using System.Linq;
 using Scripts.State;
+using Scripts.Commands;
+using Scripts.Commands.Game;
 using Godot;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Implementations;
-using Maximagus.Scripts.Managers;
-using Scripts.Commands.Game;
 
 namespace Scripts.Commands.Hand
 {
     /// <summary>
-    /// Command to play the currently selected cards as a spell
+    /// PURE COMMAND: Initiates spell casting by transitioning to SpellCasting phase
+    /// Natural phase flow: CardSelection -> SpellCasting (on play) -> TurnEnd -> TurnStart
     /// </summary>
     public class PlayHandCommand : GameCommand
     {
-        private readonly ISpellProcessingManager _spellProcessingManager;
-
         public PlayHandCommand() : base()
         {
-            _spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
         }
 
         public override bool CanExecute()
@@ -36,31 +33,23 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
-            _logger.LogInfo("[PlayHandCommand] Execute() called!");
+            _logger.LogInfo("[PlayHandCommand] Initiating spell casting with command result...");
 
+            // Pure state computation - no side effects
             var newPlayerState = _commandProcessor.CurrentState.Player.WithHandUsed();
             var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.SpellCasting);
             var newState = _commandProcessor.CurrentState
                 .WithPlayer(newPlayerState)
                 .WithPhase(newPhaseState);
-            _commandProcessor.SetState(newState);
 
-            _spellProcessingManager.ProcessSpell();
+            _logger.LogInfo($"[PlayHandCommand] Transitioned to SpellCasting phase. Hands remaining: {newPlayerState.RemainingHands}");
 
-            var newHandState = newState.Hand.WithRemovedCards(_commandProcessor.CurrentState.Hand.SelectedCards.Select(c => c.CardId));
-            newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnEnd);
-            newState = newState
-                .WithHand(newHandState)
-                .WithPhase(newPhaseState);
-            _commandProcessor.SetState(newState);
-            _logger.LogInfo($"[PlayHandCommand] State updated: hands remaining: {newState.Player.RemainingHands}, cards remaining: {newHandState.Count}");
+            // Follow-up command to handle the actual spell processing
+            var followUpCommands = new[] { new SpellCastCommand() };
 
-            var command = new TurnStartCommand();
-            _commandProcessor.ExecuteCommand(command);
-
-            return _commandProcessor.CurrentState;
+            return CommandResult.Success(newState, followUpCommands);
         }
 
         public override string GetDescription()

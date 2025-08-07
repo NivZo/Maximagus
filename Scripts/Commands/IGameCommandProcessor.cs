@@ -21,7 +21,7 @@ namespace Scripts.Commands
         public event Action<IGameStateData, IGameStateData> StateChanged;
 
         /// <summary>
-        /// Executes a command if it's valid
+        /// Executes a command using CommandResult pattern with support for follow-up commands and events
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <returns>True if command was executed successfully</returns>

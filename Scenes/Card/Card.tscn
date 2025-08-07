@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://ccpeukrdsfbkm"]
 
-[ext_resource type="Script" uid="uid://cgffjj3qsq8ww" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
+[ext_resource type="Script" uid="uid://bfkueqhdjuv4m" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
 [ext_resource type="Texture2D" uid="uid://cywfbq2o5vtee" path="res://Assets/Art/CardFrame.png" id="4_j66st"]
 [ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]

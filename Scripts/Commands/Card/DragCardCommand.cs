@@ -33,16 +33,18 @@ namespace Scripts.Commands.Card
             return true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
+            var currentState = _commandProcessor.CurrentState;
             GD.Print($"[StartDragCommand] Starting drag for card {_cardId}");
             
             // Update the specific card to be dragging
-            var newHandState = _commandProcessor.CurrentState.Hand.WithCardDragging(_cardId, true);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
+            var newHandState = currentState.Hand.WithCardDragging(_cardId, true);
+            var newState = currentState.WithHand(newHandState);
 
             GD.Print($"[StartDragCommand] Card {_cardId} is now dragging");
-            return newState;
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription() => $"Start dragging card: {_cardId}";
@@ -66,15 +68,17 @@ namespace Scripts.Commands.Card
             return cardState?.IsDragging == true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
+            var currentState = _commandProcessor.CurrentState;
             GD.Print($"[EndDragCommand] Ending drag for card {_cardId}");
 
-            var newHandState = _commandProcessor.CurrentState.Hand.WithCardDragging(_cardId, false);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
+            var newHandState = currentState.Hand.WithCardDragging(_cardId, false);
+            var newState = currentState.WithHand(newHandState);
             
             GD.Print($"[EndDragCommand] Card {_cardId} drag ended");
-            return newState;
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription() => $"End dragging card: {_cardId}";

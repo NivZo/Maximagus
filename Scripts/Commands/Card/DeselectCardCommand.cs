@@ -5,10 +5,6 @@ using Godot;
 
 namespace Scripts.Commands.Card
 {
-    /// <summary>
-    /// PURE COMMAND SYSTEM: Command to deselect a card in the player's hand
-    /// Updates only GameState - visual sync happens automatically
-    /// </summary>
     public class DeselectCardCommand : GameCommand
     {
         private readonly string _cardId;
@@ -22,35 +18,26 @@ namespace Scripts.Commands.Card
         {
             if (_commandProcessor.CurrentState == null) return false;
 
-            // Can only deselect cards during phases that allow player action
             if (!_commandProcessor.CurrentState.Phase.CanPlayerAct) return false;
-
-            // Hand must not be locked
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            // Card must exist in hand and be selected
             foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
             {
                 if (card.CardId == _cardId)
                 {
-                    return card.IsSelected; // Can only deselect if currently selected
+                    return card.IsSelected;
                 }
             }
 
-            return false; // Card not found
+            return false;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
-            GD.Print($"[DeselectCardCommand] Deselecting card {_cardId} in GameState");
-            
-            // PURE COMMAND SYSTEM: Update only GameState
-            // CardLogic.SyncWithGameState() will handle visual updates automatically
-            var newHandState = _commandProcessor.CurrentState.Hand.WithCardSelection(_cardId, false);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
-
-            GD.Print($"[DeselectCardCommand] Card {_cardId} deselected in GameState successfully");
-            return newState;
+            var currentState = _commandProcessor.CurrentState;
+            var newHandState = currentState.Hand.WithCardSelection(_cardId, false);
+            var newState = currentState.WithHand(newHandState);
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()

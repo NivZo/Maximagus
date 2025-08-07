@@ -34,22 +34,24 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
-            _logger?.LogInfo("[DiscardHandCommand] Execute() called!");
+            var currentState = _commandProcessor.CurrentState;
+            _logger?.LogInfo("[DiscardHandCommand] Executing discard command...");
 
-            var newPlayerState = _commandProcessor.CurrentState.Player.WithDiscardUsed();
-            var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.CardSelection);
-            var newHandState = _commandProcessor.CurrentState.Hand.WithRemovedCards(_commandProcessor.CurrentState.Hand.SelectedCards.Select(c => c.CardId));
-            var newState = _commandProcessor.CurrentState
+            var selectedCardIds = currentState.Hand.SelectedCards.Select(c => c.CardId);
+            var newPlayerState = currentState.Player.WithDiscardUsed();
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
+            var newHandState = currentState.Hand.WithRemovedCards(selectedCardIds);
+            var newState = currentState
                 .WithPlayer(newPlayerState)
                 .WithPhase(newPhaseState)
                 .WithHand(newHandState);
-            _commandProcessor.SetState(newState);
 
-            _logger?.LogInfo($"[DiscardHandCommand] State updated: discards remaining: {newState.Player.RemainingDiscards}");
+            _logger?.LogInfo($"[DiscardHandCommand] State updated: discards remaining: {newPlayerState.RemainingDiscards}");
 
-            _logger?.LogInfo("[DiscardHandCommand] Queuing card draw to max hand size...");
+            // Draw cards to refill hand (side effect handled by HandManager)
+            _logger?.LogInfo("[DiscardHandCommand] Drawing cards to refill hand...");
             var cardsToDraw = _handManager.GetCardsToDraw();
             for (int i = 0; i < cardsToDraw; i++)
             {
@@ -57,7 +59,11 @@ namespace Scripts.Commands.Hand
                 _handManager.DrawCard();
             }
 
-            return _commandProcessor.CurrentState;
+            // Get updated hand state after drawing
+            var finalHandState = _commandProcessor.CurrentState.Hand;
+            var finalState = newState.WithHand(finalHandState);
+
+            return CommandResult.Success(finalState);
         }
 
         public override string GetDescription()

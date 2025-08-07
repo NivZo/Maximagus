@@ -13,14 +13,19 @@ namespace Scripts.Commands.Game
             return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
-            GD.Print("[StartGameCommand] Execute() called!");
+            var currentState = _commandProcessor.CurrentState;
+            GD.Print("[StartGameCommand] Starting game...");
             
-            var queuedActionsManager = ServiceLocator.GetService<QueuedActionsManager>();
-            queuedActionsManager.QueueAction(() => { ServiceLocator.GetService<IGameCommandProcessor>().ExecuteCommand(new TurnStartCommand()); }, .1f);
+            // Transition to game start phase
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.GameStart);
+            var newState = currentState.WithPhase(newPhaseState);
 
-            return _commandProcessor.CurrentState;
+            // Queue TurnStartCommand as follow-up (no need for QueuedActionsManager)
+            var followUpCommands = new[] { new TurnStartCommand() };
+
+            return CommandResult.Success(newState, followUpCommands);
         }
     }
 }

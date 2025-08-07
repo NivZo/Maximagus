@@ -10,10 +10,6 @@ using Godot;
 
 namespace Scripts.Input
 {
-	/// <summary>
-	/// Central mapper that converts user inputs into game commands.
-	/// This is the core component that bridges user interactions and the command system.
-	/// </summary>
 	public class InputToCommandMapper
 	{
 		private readonly IGameCommandProcessor _commandProcessor;
@@ -26,45 +22,24 @@ namespace Scripts.Input
 			InitializeInputMappings();
 		}
 
-		/// <summary>
-		/// Processes an input event and converts it to a command if applicable
-		/// </summary>
-		/// <param name="inputData">The input event data</param>
-		/// <returns>True if the input was processed and converted to a command</returns>
 		public bool ProcessInput(InputEventData inputData)
 		{
 			if (inputData == null) return false;
 
-			// Process input with new system
-
 			try
 			{
-				// Try to map the input to a command
 				var command = MapInputToCommand(inputData);
 				if (command == null) return false;
 
-				// Execute the command through the processor
-				var success = _commandProcessor.ExecuteCommand(command);
-				
-				if (success)
-				{
-					GD.Print($"[InputMapper] Successfully processed {inputData.Type}: {command.GetDescription()}");
-				}
-
-				return success;
+				return _commandProcessor.ExecuteCommand(command);
 			}
 			catch (Exception ex)
 			{
-				GD.Print($"[InputMapper] Error processing input {inputData.Type}: {ex.Message}");
+				GD.Print($"Error processing input: {ex.Message}");
 				return false;
 			}
 		}
 
-		/// <summary>
-		/// Maps an input event to a game command
-		/// </summary>
-		/// <param name="inputData">The input event data</param>
-		/// <returns>Game command or null if no mapping exists</returns>
 		private GameCommand MapInputToCommand(InputEventData inputData)
 		{
 			var mappingKey = GetMappingKey(inputData);
@@ -74,21 +49,14 @@ namespace Scripts.Input
 				return mappingFunc(inputData);
 			}
 
-			// Handle generic mappings that don't fit the dictionary pattern
 			return HandleGenericInput(inputData);
 		}
 
-		/// <summary>
-		/// Gets a mapping key for the input data
-		/// </summary>
 		private string GetMappingKey(InputEventData inputData)
 		{
 			return $"{inputData.Type}_{inputData.Action}";
 		}
 
-		/// <summary>
-		/// Handles inputs that require more complex logic than simple dictionary mapping
-		/// </summary>
 		private GameCommand HandleGenericInput(InputEventData inputData)
 		{
 			return inputData.Type switch
@@ -101,30 +69,20 @@ namespace Scripts.Input
 			};
 		}
 
-		/// <summary>
-		/// Handles card click inputs
-		/// </summary>
 		private GameCommand HandleCardClick(InputEventData inputData)
 		{
 			if (string.IsNullOrEmpty(inputData.CardId)) return null;
 
 			var currentState = _commandProcessor.CurrentState;
-			
-			// Check if card is currently selected
 			var isSelected = currentState.Hand.SelectedCards.Select(card => card.CardId).Contains(inputData.CardId);
 			
-			// Toggle selection based on current state
-			return isSelected 
+			return isSelected
 				? new DeselectCardCommand(inputData.CardId)
 				: new SelectCardCommand(inputData.CardId);
 		}
 
-		/// <summary>
-		/// Handles keyboard input
-		/// </summary>
 		private GameCommand HandleKeyPress(InputEventData inputData)
 		{
-			// Use ONLY the new command system - no legacy integration
 			return inputData.KeyCode switch
 			{
 				Key.Enter => new StartGameCommand(),
@@ -134,9 +92,6 @@ namespace Scripts.Input
 			};
 		}
 
-		/// <summary>
-		/// Handles mouse actions (beyond card clicks)
-		/// </summary>
 		private GameCommand HandleMouseAction(InputEventData inputData)
 		{
 			return inputData.Action switch
@@ -149,9 +104,6 @@ namespace Scripts.Input
 			};
 		}
 
-		/// <summary>
-		/// Handles card drag operations
-		/// </summary>
 		private GameCommand HandleCardDrag(InputEventData inputData)
 		{
 			if (inputData.CardOrder != null && inputData.CardOrder.Count > 0)
@@ -161,52 +113,27 @@ namespace Scripts.Input
 			return null;
 		}
 		
-		/// <summary>
-		/// Initializes the input mapping dictionary
-		/// </summary>
 		private void InitializeInputMappings()
 		{
-			// Add specific input mappings that don't require complex logic
-			// Most mappings are handled in HandleGenericInput for flexibility
-
-			_inputMappings["System_Quit"] = _ => null; // System events don't map to game commands
+			_inputMappings["System_Quit"] = _ => null;
 			_inputMappings["System_Pause"] = _ => null;
-
-			// Add more specific mappings as needed
 		}
 
-		/// <summary>
-		/// Adds a custom input mapping
-		/// </summary>
-		/// <param name="inputType">The input type</param>
-		/// <param name="action">The action name</param>
-		/// <param name="commandFactory">Function to create the command</param>
 		public void AddInputMapping(InputType inputType, string action, Func<InputEventData, GameCommand> commandFactory)
 		{
 			var key = $"{inputType}_{action}";
 			_inputMappings[key] = commandFactory;
 		}
 
-		/// <summary>
-		/// Removes an input mapping
-		/// </summary>
-		/// <param name="inputType">The input type</param>
-		/// <param name="action">The action name</param>
 		public void RemoveInputMapping(InputType inputType, string action)
 		{
 			var key = $"{inputType}_{action}";
 			_inputMappings.Remove(key);
 		}
 
-		/// <summary>
-		/// Gets the current number of registered input mappings
-		/// </summary>
 		public int MappingCount => _inputMappings.Count;
 	}
 
-	/// <summary>
-	/// Data structure representing an input event
-	/// </summary>
 	public class InputEventData
 	{
 		public InputType Type { get; set; }
@@ -229,9 +156,6 @@ namespace Scripts.Input
 		}
 	}
 
-	/// <summary>
-	/// Types of input events
-	/// </summary>
 	public enum InputType
 	{
 		CardClick,

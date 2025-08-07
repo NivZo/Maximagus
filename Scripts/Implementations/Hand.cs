@@ -40,7 +40,6 @@ public partial class Hand : Control
             
             if (handStateChanged)
             {
-                _logger?.LogInfo($"[Hand] State changed - was {_lastHandState?.Cards.Count ?? 0} cards, now {currentState.Hand.Cards.Count} cards");
                 _lastHandState = currentState.Hand;
                 SyncVisualCardsWithState(currentState);
             }
@@ -51,7 +50,6 @@ public partial class Hand : Control
         }
     }
     
-    // Helper method for comparing card state collections
     private bool CardsAreEqual(IEnumerable<CardState> cards1, IEnumerable<CardState> cards2)
     {
         if (cards1 == null && cards2 == null) return true;
@@ -79,46 +77,26 @@ public partial class Hand : Control
         return true;
     }
     
-    // Synchronize visual cards with state
     private void SyncVisualCardsWithState(IGameStateData currentState)
     {
         var currentCards = _cards.ToArray();
-        _logger?.LogInfo($"[Hand] Starting sync - Current visual cards: {currentCards.Length}, State cards: {currentState.Hand.Cards.Count}");
-        
-        // Log current visual card IDs
-        var currentVisualCardIds = currentCards.Select(c => c.CardId).ToArray();
-        _logger?.LogInfo($"[Hand] Current visual card IDs: [{string.Join(", ", currentVisualCardIds)}]");
-        
-        // Sort state cards by position to ensure correct order
         var orderedStateCards = currentState.Hand.Cards.OrderBy(c => c.Position).ToArray();
-        var stateCardIds = orderedStateCards.Select(c => c.CardId).ToArray();
-        _logger?.LogInfo($"[Hand] State card IDs (ordered): [{string.Join(", ", stateCardIds)}]");
 
         var toRemove = currentCards.Where(card => !orderedStateCards.Any(c => c.CardId == card.CardId)).ToList();
         var toAdd = orderedStateCards.Where(c => !currentCards.Any(card => card.CardId == c.CardId)).ToList();
 
-        _logger?.LogInfo($"[Hand] Cards to remove: {toRemove.Count}, Cards to add: {toAdd.Count}");
-
-        // Remove cards that are no longer in state
         foreach (var card in toRemove)
         {
-            _logger?.LogInfo($"[Hand] Removing visual card {card.CardId} from hand");
             _cardsContainer.RemoveElement(card);
             card.QueueFree();
         }
 
-        // Add new cards
         foreach (var cardState in toAdd)
         {
-            _logger?.LogInfo($"[Hand] Adding visual card {cardState.CardId} to hand");
             CreateVisualCardFromState(cardState);
         }
 
-        // Ensure visual cards are ordered according to state positions
         SyncCardOrder(orderedStateCards);
-        
-        var finalCards = _cards.ToArray();
-        _logger?.LogInfo($"[Hand] Sync complete - Final visual cards: {finalCards.Length}");
     }
 
     private void SyncCardOrder(CardState[] orderedStateCards)
@@ -126,45 +104,39 @@ public partial class Hand : Control
         try
         {
             var currentCards = _cards.ToArray();
-            bool orderChanged = false;
 
-            // Check if the current visual order matches the state order
-            for (int i = 0; i < orderedStateCards.Length && i < currentCards.Length; i++)
+            // Create a mapping of CardId to desired position from state
+            var desiredOrder = orderedStateCards.Select((card, index) => new { card.CardId, DesiredIndex = index })
+                                               .ToDictionary(x => x.CardId, x => x.DesiredIndex);
+
+            // Move each card to its correct position using MoveElement
+            for (int i = 0; i < currentCards.Length; i++)
             {
-                var stateCard = orderedStateCards[i];
-                var visualCard = currentCards[i];
-                
-                if (visualCard.CardId != stateCard.CardId)
+                var currentCard = currentCards[i];
+
+                // Skip cards that are no longer in state (they should have been removed in SyncVisualCardsWithState)
+                if (!desiredOrder.ContainsKey(currentCard.CardId))
+                    continue;
+
+                var desiredIndex = desiredOrder[currentCard.CardId];
+                var currentIndex = _cardsContainer.IndexOf(currentCard);
+
+                if (currentIndex != desiredIndex && currentIndex >= 0 && desiredIndex >= 0)
                 {
-                    orderChanged = true;
-                    break;
+                    _cardsContainer.MoveElement(currentIndex, desiredIndex);
+                    // Update our local array to reflect the move for subsequent iterations
+                    currentCards = _cards.ToArray();
                 }
             }
 
-            if (orderChanged || orderedStateCards.Length != currentCards.Length)
+            foreach (var (card, state) in currentCards.Zip(orderedStateCards))
             {
-                _logger?.LogInfo($"[Hand] Card order changed - reordering visual cards");
-                
-                // Clear container and re-add cards in correct order
-                foreach (var card in currentCards)
-                {
-                    _cardsContainer.RemoveElement(card);
-                }
-
-                // Re-add cards in state order
-                foreach (var stateCard in orderedStateCards)
-                {
-                    var visualCard = currentCards.FirstOrDefault(c => c.CardId == stateCard.CardId);
-                    if (visualCard != null)
-                    {
-                        _cardsContainer.InsertElement(visualCard);
-                    }
-                }
+                _cardsNode.MoveChild(card, state.Position);
             }
         }
         catch (Exception ex)
         {
-            _logger?.LogError($"[Hand] Error syncing card order: {ex.Message}", ex);
+            _logger?.LogError("Error syncing card order", ex);
         }
     }
     
@@ -172,22 +144,13 @@ public partial class Hand : Control
     {
         try
         {
-            _logger?.LogInfo($"[Hand] Creating visual card for state card {cardState.CardId}");
-            
-            // Create card directly
             var card = Card.Create(_cardsNode, cardState.Resource, cardState.CardId);
-            
-            // Set the card's initial position off-screen
             card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
-            
-            // Add card to the container (this triggers ElementsChanged and position calculation)
             _cardsContainer.InsertElement(card);
-            
-            _logger?.LogInfo($"[Hand] Successfully created visual card for {cardState.Resource.CardName} with ID {cardState.CardId}");
         }
         catch (Exception ex)
         {
-            _logger?.LogError($"[Hand] Error creating visual card: {ex.Message}", ex);
+            _logger?.LogError("Error creating visual card", ex);
         }
     }
 
@@ -256,17 +219,13 @@ public partial class Hand : Control
             {
                 var card = cards[i];
 
-                // Skip if card is null (timing issue during creation)
                 if (card == null)
                 {
-                    _logger?.LogWarning($"[Hand] Skipping null card at index {i}");
+                    _logger?.LogWarning("Skipping null card");
                     continue;
                 }
 
-                // Handle Z-index ordering
                 card.ZIndex = i;
-
-                // TargetPosition is set by OrderedContainer, just apply Y offset for fan effect
                 var currentTarget = card.TargetPosition;
                 card.TargetPosition = new Vector2(currentTarget.X, positions[i].Y);
                 card.RotationDegrees = rotations[i];
@@ -274,7 +233,7 @@ public partial class Hand : Control
         }
         catch (Exception ex)
         {
-            _logger?.LogError($"[Hand] Error in AdjustFanEffect: {ex.Message}", ex);
+            _logger?.LogError("Error in AdjustFanEffect", ex);
         }
     }
 
@@ -314,31 +273,23 @@ public partial class Hand : Control
         if (draggedIndex < 0 || targetIndex < 0 || draggedIndex == targetIndex)
             return;
 
-        // Get the new card order for the command
         var currentCards = _cards.ToList();
         var newCardOrder = new List<string>();
         
-        // Create the new order by moving the dragged card to the target position
         var cardToMove = currentCards[draggedIndex];
         currentCards.RemoveAt(draggedIndex);
         
-        // Adjust target index if dragged card was before target
         var adjustedTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
         currentCards.Insert(adjustedTargetIndex, cardToMove);
         
         newCardOrder.AddRange(currentCards.Select(card => card.CardId));
 
-        // Send the reorder command - this will update the state
         var reorderCommand = new ReorderCardsCommand(newCardOrder);
         var success = _commandProcessor.ExecuteCommand(reorderCommand);
         
-        if (success)
+        if (!success)
         {
-            _logger?.LogInfo($"[Hand] Successfully reordered cards - moved {draggedCard.CardId} to position {adjustedTargetIndex}");
-        }
-        else
-        {
-            _logger?.LogWarning($"[Hand] Failed to execute reorder command");
+            _logger?.LogWarning("Failed to execute reorder command");
         }
     }
 

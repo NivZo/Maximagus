@@ -33,8 +33,9 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
+            var currentState = _commandProcessor.CurrentState;
             GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {_position}");
 
             var newCardState = new CardState(
@@ -42,14 +43,15 @@ namespace Scripts.Commands.Hand
                 resource: _spellCardResource,
                 isSelected: false,
                 isDragging: false,
-                position: _position >= 0 ? _position : _commandProcessor.CurrentState.Hand.Count
+                position: _position >= 0 ? _position : currentState.Hand.Count
             );
 
-            var newHandState = _commandProcessor.CurrentState.Hand.WithAddedCard(newCardState);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
+            var newHandState = currentState.Hand.WithAddedCard(newCardState);
+            var newState = currentState.WithHand(newHandState);
 
             GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
-            return newState;
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()

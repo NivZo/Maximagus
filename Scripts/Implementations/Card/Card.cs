@@ -381,14 +381,6 @@ public partial class Card : Control, IOrderable
     }
     #endregion
 
-    #region Position Management
-    private void UpdateTargetPosition()
-    {
-        // TargetPosition will be set by the OrderedContainer
-        // No need to manually update it here anymore
-    }
-    #endregion
-
     #region Movement and Position Handling
     private void HandleMovementToTarget(float delta)
     {
@@ -539,12 +531,10 @@ public partial class Card : Control, IOrderable
     private void OnDragEnded()
     {
         OnHoverEnded();
-        UpdateTargetPosition();
     }
 
     private void OnHoverStarted()
     {
-        // ZIndex = LayerIndices.HoveredCard;
         AnimationUtils.AnimateScale(this, HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
         _tooltip?.ShowTooltip();
     }
@@ -553,7 +543,7 @@ public partial class Card : Control, IOrderable
     {
         if (_isDragging) return;
 
-        // ZIndex = GetCardStateFromGameState()?.Position ?? LayerIndices.Base;
+        ZIndex = GetCardStateFromGameState()?.Position ?? LayerIndices.Base;
         ResetPerspective();
         ResetScale();
         _tooltip?.HideTooltip();

@@ -45,9 +45,10 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
-            var currentHand = _commandProcessor.CurrentState.Hand;
+            var currentState = _commandProcessor.CurrentState;
+            var currentHand = currentState.Hand;
             var cardDict = currentHand.Cards.ToDictionary(c => c.CardId);
             
             // Create new cards with updated positions
@@ -74,7 +75,9 @@ namespace Scripts.Commands.Hand
             
             // Create new hand state with reordered cards that have updated positions
             var newHandState = new HandState(reorderedCards, currentHand.MaxHandSize, currentHand.IsLocked);
-            return _commandProcessor.CurrentState.WithHand(newHandState);
+            var newState = currentState.WithHand(newHandState);
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()

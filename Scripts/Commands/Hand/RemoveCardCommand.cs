@@ -32,16 +32,18 @@ namespace Scripts.Commands.Hand
             return false;
         }
 
-        public override IGameStateData Execute()
+        public override CommandResult ExecuteWithResult()
         {
+            var currentState = _commandProcessor.CurrentState;
             GD.Print($"[RemoveCardCommand] Removing card {_cardId} from GameState");
 
             // Remove card from hand
-            var newHandState = _commandProcessor.CurrentState.Hand.WithRemovedCard(_cardId);
-            var newState = _commandProcessor.CurrentState.WithHand(newHandState);
+            var newHandState = currentState.Hand.WithRemovedCard(_cardId);
+            var newState = currentState.WithHand(newHandState);
 
             GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully. Hand now has {newHandState.Count} cards");
-            return newState;
+
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()
