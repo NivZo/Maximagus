@@ -4,11 +4,10 @@ using System;
 public partial class CardSlot : Control, IOrderable
 {
     private static readonly string CARD_SCENE = "res://Scenes/Card/CardSlot.tscn";
-    private ILogger _logger;
 
     [Export] public float MaxValidDistance = 512f;
 
-    public Card Card { get; private set; }
+    private ILogger _logger;
 
     public Vector2 TargetPosition
     {
@@ -16,7 +15,6 @@ public partial class CardSlot : Control, IOrderable
         set
         {
             GlobalPosition = value;
-            Card?.Logic?.SetCardSlot(this);
         }
     }
 
@@ -33,7 +31,6 @@ public partial class CardSlot : Control, IOrderable
             var cardSlot = scene.Instantiate<CardSlot>();
             if (cardSlot == null)
                 throw new InvalidOperationException("Failed to instantiate card slot from scene");
-
             parent?.AddChild(cardSlot);
             return cardSlot;
         }
@@ -56,42 +53,5 @@ public partial class CardSlot : Control, IOrderable
             _logger?.LogError($"Error initializing CardSlot", ex);
             throw;
         }
-    }
-
-    public override void _Process(double delta)
-    {
-        base._Process(delta);
-        // Original comment preserved: Reordering logic was commented out
-        // if (Card.IsDragging)
-        // {
-        //     ReorderSlots();
-        // }
-    }
-
-    public void SetCard(Card card)
-    {
-        try
-        {
-            Card = card;
-            
-            if (Card?.Logic != null)
-            {
-                Card.Logic.SetCardSlot(this);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error setting card for slot", ex);
-            throw;
-        }
-    }
-
-    private static void SwitchSlotContents(CardSlot slotA, CardSlot slotB)
-    {
-        if (slotA == null || slotB == null) return;
-        
-        var cardA = slotA.Card;
-        slotA.SetCard(slotB.Card);
-        slotB.SetCard(cardA);
     }
 }

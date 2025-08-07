@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Scripts.Commands;
@@ -26,9 +27,9 @@ public partial class Hand : Control
         .Cast<CardSlot>()
         .ToImmutableArray() ?? ImmutableArray<CardSlot>.Empty;
 
-    private ImmutableArray<Card> _cards => _cardSlots
-        .Select(slot => slot.Card)
-        .Where(card => card != null)
+    private ImmutableArray<Card> _cards => _cardsNode
+        .GetChildren()
+        .OfType<Card>()
         .ToImmutableArray();
     
     private void OnHandStateChanged(IGameStateData oldState, IGameStateData newState)
@@ -36,9 +37,15 @@ public partial class Hand : Control
         try
         {
             var currentState = _commandProcessor.CurrentState;
-            if (currentState.Hand.GetHashCode() != _lastHandState?.GetHashCode())
+            
+            // Use more reliable comparison - check if the actual card lists differ
+            bool handStateChanged = _lastHandState == null ||
+                                   _lastHandState.Cards.Count != currentState.Hand.Cards.Count ||
+                                   !CardsAreEqual(_lastHandState.Cards, currentState.Hand.Cards);
+            
+            if (handStateChanged)
             {
-                _logger?.LogInfo($"[Hand] State changed: {currentState.GetHashCode()}");
+                _logger?.LogInfo($"[Hand] State changed - was {_lastHandState?.Cards.Count ?? 0} cards, now {currentState.Hand.Cards.Count} cards");
                 _lastHandState = currentState.Hand;
                 SyncVisualCardsWithState(currentState);
             }
@@ -49,16 +56,57 @@ public partial class Hand : Control
         }
     }
     
+    // Helper method for comparing card state collections
+    private bool CardsAreEqual(IEnumerable<CardState> cards1, IEnumerable<CardState> cards2)
+    {
+        if (cards1 == null && cards2 == null) return true;
+        if (cards1 == null || cards2 == null) return false;
+        
+        var list1 = cards1.ToList();
+        var list2 = cards2.ToList();
+        
+        if (list1.Count != list2.Count) return false;
+        
+        for (int i = 0; i < list1.Count; i++)
+        {
+            var card1 = list1[i];
+            var card2 = list2[i];
+            
+            if (card1.CardId != card2.CardId ||
+                card1.IsSelected != card2.IsSelected ||
+                card1.IsDragging != card2.IsDragging ||
+                card1.Position != card2.Position)
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     // Synchronize visual cards with state
     private void SyncVisualCardsWithState(IGameStateData currentState)
     {
-        var toRemove = _cards.Where(card => !currentState.Hand.Cards.Any(c => c.CardId == card.CardId)).ToList();
-        var toAdd = currentState.Hand.Cards.Where(c => !_cards.Any(card => card.CardId == c.CardId)).ToList();
+        var currentCards = _cards.ToArray();
+        _logger?.LogInfo($"[Hand] Starting sync - Current visual cards: {currentCards.Length}, State cards: {currentState.Hand.Cards.Count}");
+        
+        // Log current visual card IDs
+        var currentVisualCardIds = currentCards.Select(c => c.CardId).ToArray();
+        _logger?.LogInfo($"[Hand] Current visual card IDs: [{string.Join(", ", currentVisualCardIds)}]");
+        
+        // Log state card IDs
+        var stateCardIds = currentState.Hand.Cards.Select(c => c.CardId).ToArray();
+        _logger?.LogInfo($"[Hand] State card IDs: [{string.Join(", ", stateCardIds)}]");
+
+        var toRemove = currentCards.Where(card => !currentState.Hand.Cards.Any(c => c.CardId == card.CardId)).ToList();
+        var toAdd = currentState.Hand.Cards.Where(c => !currentCards.Any(card => card.CardId == c.CardId)).ToList();
+
+        _logger?.LogInfo($"[Hand] Cards to remove: {toRemove.Count}, Cards to add: {toAdd.Count}");
 
         foreach (var card in toRemove)
         {
             _logger?.LogInfo($"[Hand] Removing visual card {card.CardId} from hand");
-            _cardSlotsContainer.RemoveElement(card.Logic.CardSlot);
+            _cardSlotsContainer.RemoveElement(card.CardSlot);
             card.QueueFree();
         }
 
@@ -67,6 +115,9 @@ public partial class Hand : Control
             _logger?.LogInfo($"[Hand] Adding visual card {cardState.CardId} to hand");
             CreateVisualCardFromState(cardState);
         }
+        
+        var finalCards = _cards.ToArray();
+        _logger?.LogInfo($"[Hand] Sync complete - Final visual cards: {finalCards.Length}");
     }
     
     private void CreateVisualCardFromState(CardState cardState)
@@ -74,12 +125,17 @@ public partial class Hand : Control
         try
         {
             _logger?.LogInfo($"[Hand] Creating visual card for state card {cardState.CardId}");
+            
+            // Create slot and card
             var slot = CardSlot.Create(_cardSlotsNode);
             var card = Card.Create(_cardsNode, slot, cardState.Resource, cardState.CardId);
             
+            // Set the card's position
             card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
-
+            
+            // Now add the slot to the container (this triggers ElementsChanged)
             _cardSlotsContainer.InsertElement(slot);
+            
             _logger?.LogInfo($"[Hand] Successfully created visual card for {cardState.Resource.CardName} with ID {cardState.CardId}");
         }
         catch (Exception ex)
@@ -142,27 +198,44 @@ public partial class Hand : Control
 
     private void AdjustFanEffect()
     {
-        float baselineY = GlobalPosition.Y;
-        var count = _cardSlotsContainer.Count;
-
-        var (positions, rotations) = _layoutCache.GetLayout(
-            count,
-            CardsCurveMultiplier,
-            CardsRotationMultiplier,
-            baselineY
-        );
-
-        for (int i = 0; i < count; i++)
+        try
         {
-            var slot = _cardSlots[i];
-            var card = slot.Card;
+            var count = _cardSlots.Length;
+            
+            if (count == 0) return; // No slots to adjust
 
-            // Handle Z-index ordering
-            card.ZIndex = i;
-            MoveChildSafe(card, i);
+            float baselineY = GlobalPosition.Y;
+            var (positions, rotations) = _layoutCache.GetLayout(
+                count,
+                CardsCurveMultiplier,
+                CardsRotationMultiplier,
+                baselineY
+            );
 
-            slot.TargetPosition = new Vector2(slot.TargetPosition.X, positions[i].Y);
-            card.Visual.RotationDegrees = rotations[i];
+            for (int i = 0; i < count; i++)
+            {
+                var slot = _cardSlots[i];
+                var card = _cards[i];
+
+                // Skip if slot or card is null (timing issue during creation)
+                if (slot == null || card == null)
+                {
+                    _logger?.LogWarning($"[Hand] Skipping null slot or card at index {i}");
+                    continue;
+                }
+
+                // Handle Z-index ordering
+                // card.ZIndex = i;
+                MoveChildSafe(card, i);
+                _logger.LogError("Moving child safe: " + card.Name + " to index: " + i);
+
+                slot.TargetPosition = new Vector2(slot.TargetPosition.X, positions[i].Y);
+                card.RotationDegrees = rotations[i];
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"[Hand] Error in AdjustFanEffect: {ex.Message}", ex);
         }
     }
 
@@ -173,17 +246,17 @@ public partial class Hand : Control
             var draggingCard = _cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
             if (draggingCard == null) return;
 
-            var draggedCardSlot = draggingCard.Logic.CardSlot;
+            var draggedCardSlot = draggingCard.CardSlot;
             if (draggedCardSlot == null) return;
 
             var validSlots = _cardSlots.Where(slot =>
-                slot.GetCenter().DistanceTo(draggingCard.Logic.GetCenter()) <= draggedCardSlot.MaxValidDistance);
+                slot.GetCenter().DistanceTo(draggingCard.GetCenter()) <= draggedCardSlot.MaxValidDistance);
 
             if (!validSlots.Any())
                 return;
 
             var validTargetSlot = validSlots.MinBy(slot =>
-                slot.GetCenter().DistanceSquaredTo(draggingCard.Logic.GetCenter()));
+                slot.GetCenter().DistanceSquaredTo(draggingCard.GetCenter()));
 
             if (validTargetSlot != null && validTargetSlot != draggedCardSlot)
             {
@@ -198,12 +271,12 @@ public partial class Hand : Control
 
     private void OnCardHoverEnded(CardHoverEndedEvent @event)
     {
-        CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.IndexOf(@event.Card.Logic.CardSlot));
+        // CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.IndexOf(@event.Card.CardSlot));
     }
 
     private void OnCardHoverStarted(CardHoverStartedEvent @event)
     {
-        CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.Count);
+        // CallDeferred(MethodName.MoveChildSafe, @event.Card, _cardSlotsContainer.Count);
     }
 
     private void PerformSlotReorder(CardSlot draggedSlot, CardSlot targetSlot)
@@ -214,7 +287,7 @@ public partial class Hand : Control
         if (draggedIndex < 0 || targetIndex < 0 && draggedIndex != targetIndex)
             return;
 
-        if (targetSlot.Card == null)
+        if (_cards[targetIndex] == null)
         {
             _cardSlotsContainer.SwapElements(draggedIndex, targetIndex);
             GD.Print($"Swapping dragged: {draggedIndex} and target: {targetIndex}");

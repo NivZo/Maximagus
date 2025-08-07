@@ -2,8 +2,9 @@
 
 [ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_8jfk0"]
 [ext_resource type="Script" uid="uid://cgffjj3qsq8ww" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
-[ext_resource type="PackedScene" uid="uid://cp5fadjipbrqy" path="res://Scenes/Card/CardVisual.tscn" id="3_h8wm0"]
-[ext_resource type="PackedScene" uid="uid://c8x8ywuxcnmm7" path="res://Scenes/Card/CardLogic.tscn" id="4_vlntq"]
+[ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
+[ext_resource type="Texture2D" uid="uid://cywfbq2o5vtee" path="res://Assets/Art/CardFrame.png" id="4_j66st"]
+[ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_3m7nw"]
 seed = -15
@@ -21,21 +22,14 @@ shader_parameter/dissolve_value = 1.0
 shader_parameter/burn_size = 0.03
 shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_kntej"]
-seed = -15
-frequency = 0.0021
-fractal_octaves = 4
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_bboy4"]
-noise = SubResource("FastNoiseLite_kntej")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_l5eg5"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
 resource_local_to_scene = true
-shader = ExtResource("1_8jfk0")
-shader_parameter/dissolve_texture = SubResource("NoiseTexture2D_bboy4")
-shader_parameter/dissolve_value = 1.0
-shader_parameter/burn_size = 0.03
-shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
+shader = ExtResource("4_25b8w")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
 
 [node name="Card" type="Control"]
 layout_mode = 3
@@ -53,24 +47,74 @@ grow_vertical = 2
 pivot_offset = Vector2(58, 90)
 size_flags_horizontal = 4
 size_flags_vertical = 4
-mouse_filter = 2
+mouse_filter = 0
 script = ExtResource("1_vlntq")
-
-[node name="CardVisual" parent="." instance=ExtResource("3_h8wm0")]
-material = SubResource("ShaderMaterial_wejov")
-layout_mode = 1
 AngleXMax = 5.0
 AngleYMax = 5.0
 AngleIdleRatio = 0.7
 HoverScale = 1.2
 
-[node name="CardLogic" parent="." instance=ExtResource("4_vlntq")]
-material = SubResource("ShaderMaterial_l5eg5")
+[node name="Textures" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Card" type="TextureRect" parent="Textures"]
+material = SubResource("ShaderMaterial_cho03")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -58.0
+offset_top = -90.0
+offset_right = 58.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+texture = ExtResource("4_j66st")
+stretch_mode = 5
+
+[node name="Art" type="TextureRect" parent="Textures/Card"]
+use_parent_material = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 38.0
+offset_right = -6.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(50, 50)
+mouse_filter = 2
+texture = ExtResource("5_o7v1n")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Shadow" type="TextureRect" parent="Textures/Card"]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(1, 1, 1, 0.168627)
+show_behind_parent = true
+z_index = -2
+use_parent_material = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(80, 120)
+mouse_filter = 2
+texture = ExtResource("4_j66st")
+expand_mode = 1
+stretch_mode = 5
