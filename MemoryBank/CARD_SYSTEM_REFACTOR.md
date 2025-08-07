@@ -113,6 +113,61 @@ After initial success with card unification, three regressions were identified a
 
 **Solution**: Update pivot offset to center before scaling operations in both hover and drag states.
 
+## Major Architectural Improvement: CardSlot Elimination
+
+### CardSlot Component Removal ✅
+**Problem**: Unnecessary intermediate CardSlot component added complexity without benefit.
+**Solution**:
+- Made Card implement IOrderable directly
+- Eliminated CardSlot.cs and CardSlot.tscn files
+- Cards now work directly with OrderedContainer
+- Simplified Hand scene structure (removed CardSlots node)
+
+### State-Driven Card Ordering ✅
+**Problem**: Card reordering was handled visually without updating game state.
+**Solution**:
+- Drag operations now send ReorderCardsCommand with new card order (CardId array)
+- Command updates CardState.Position values in game state
+- Hand detects position changes and visually reorders cards accordingly
+- Complete state-driven architecture for card positioning
+
+### Technical Improvements
+1. **Simplified Architecture**:
+   - Card → OrderedContainer (direct)
+   - Eliminated Card → CardSlot → OrderedContainer indirection
+
+2. **State-Driven Ordering**:
+   - CardState already had Position property
+   - Hand.SyncCardOrder() ensures visual order matches state positions
+   - ReorderCardsCommand handles state updates
+
+3. **Cleaner Code**:
+   - Removed CardSlot dependencies from Card and Hand
+   - Updated Hand scene to use CardsContainer instead of CardSlotsContainer
+   - All legacy CardSlot code eliminated
+
+## New ReorderCardsCommand with Position Updates ✅
+**Problem**: Previous ReorderCardsCommand only reordered cards in the list without updating Position values.
+**Solution**:
+- Updated ReorderCardsCommand.Execute() to properly update CardState.Position values
+- Each card's position now reflects its actual index in the reordered list
+- Missing cards (not in reorder list) are appended with correct position indices
+- Complete state-driven reordering that updates both order and position values
+
+### Technical Implementation
+```csharp
+// For each card in new order, update its position to match index
+for (int i = 0; i < _newCardOrder.Count; i++)
+{
+    var cardId = _newCardOrder[i];
+    if (cardDict.TryGetValue(cardId, out var card))
+    {
+        var updatedCard = card.WithPosition(i);  // Position = index
+        reorderedCards.Add(updatedCard);
+    }
+}
+```
+
 ## Current Status
 - ✅ **Core functionality**: 10 cards drawn, selectable, draggable, reorderable
 - ✅ **Card duplication**: Completely resolved
@@ -120,8 +175,16 @@ After initial success with card unification, three regressions were identified a
 - ✅ **Smooth dragging**: Restored with interpolated movement
 - ✅ **ZIndex ordering**: Fixed after drag operations
 - ✅ **Centered scaling**: Fixed for hover and drag animations
+- ✅ **CardSlot elimination**: Simplified architecture with direct Card → OrderedContainer
+- ✅ **State-driven ordering**: Reorder operations update game state, visual follows
+- ✅ **Position-driven reordering**: ReorderCardsCommand now properly updates CardState.Position values
 
-## Next Steps
-- Final testing to ensure all interactions work smoothly
-- Performance monitoring compared to previous implementation
-- Any additional polish as needed
+## Architecture Summary
+The card system now has a clean, simplified architecture:
+- **Card**: Unified component implementing IOrderable, handles all card functionality
+- **Hand**: Manages Cards directly in OrderedContainer, syncs with game state
+- **OrderedContainer**: Handles positioning and layout for Cards
+- **ReorderCardsCommand**: Updates card positions in game state
+- **State-driven**: All card behavior driven by game state changes
+
+No more intermediate CardSlot component - the architecture is now more direct and maintainable.

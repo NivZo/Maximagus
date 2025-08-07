@@ -14,9 +14,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_3p1lq")
 
-[node name="CardSlots" type="Node" parent="."]
-
 [node name="Cards" type="Node" parent="."]
 
-[node name="CardSlotsContainer" parent="." instance=ExtResource("3_fkehq")]
+[node name="CardsContainer" parent="." instance=ExtResource("3_fkehq")]
 layout_mode = 1

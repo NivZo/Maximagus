@@ -47,7 +47,33 @@ namespace Scripts.Commands.Hand
 
         public override IGameStateData Execute()
         {
-            var newHandState = _commandProcessor.CurrentState.Hand.WithReorderedCards(_newCardOrder);
+            var currentHand = _commandProcessor.CurrentState.Hand;
+            var cardDict = currentHand.Cards.ToDictionary(c => c.CardId);
+            
+            // Create new cards with updated positions
+            var reorderedCards = new List<CardState>();
+            
+            for (int i = 0; i < _newCardOrder.Count; i++)
+            {
+                var cardId = _newCardOrder[i];
+                if (cardDict.TryGetValue(cardId, out var card))
+                {
+                    // Update the card's position to match its new index
+                    var updatedCard = card.WithPosition(i);
+                    reorderedCards.Add(updatedCard);
+                }
+            }
+            
+            // Add any cards that weren't in the order list
+            var missingCards = currentHand.Cards.Where(c => !_newCardOrder.Contains(c.CardId));
+            foreach (var missingCard in missingCards)
+            {
+                var updatedCard = missingCard.WithPosition(reorderedCards.Count);
+                reorderedCards.Add(updatedCard);
+            }
+            
+            // Create new hand state with reordered cards that have updated positions
+            var newHandState = new HandState(reorderedCards, currentHand.MaxHandSize, currentHand.IsLocked);
             return _commandProcessor.CurrentState.WithHand(newHandState);
         }
 
@@ -56,7 +82,7 @@ namespace Scripts.Commands.Hand
             var cardCount = _newCardOrder.Count;
             var firstFew = string.Join(", ", _newCardOrder.Take(3));
             var suffix = cardCount > 3 ? "..." : "";
-            return $"Reorder cards: [{firstFew}{suffix}] ({cardCount} cards)";
+            return $"Reorder cards with positions: [{firstFew}{suffix}] ({cardCount} cards)";
         }
     }
 }

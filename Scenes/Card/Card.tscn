@@ -1,26 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://ccpeukrdsfbkm"]
+[gd_scene load_steps=6 format=3 uid="uid://ccpeukrdsfbkm"]
 
-[ext_resource type="Shader" uid="uid://u23ajvxffmwv" path="res://Shaders/Dissolve.gdshader" id="1_8jfk0"]
 [ext_resource type="Script" uid="uid://cgffjj3qsq8ww" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
 [ext_resource type="Texture2D" uid="uid://cywfbq2o5vtee" path="res://Assets/Art/CardFrame.png" id="4_j66st"]
 [ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_3m7nw"]
-seed = -15
-frequency = 0.0021
-fractal_octaves = 4
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_kphy1"]
-noise = SubResource("FastNoiseLite_3m7nw")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wejov"]
-resource_local_to_scene = true
-shader = ExtResource("1_8jfk0")
-shader_parameter/dissolve_texture = SubResource("NoiseTexture2D_kphy1")
-shader_parameter/dissolve_value = 1.0
-shader_parameter/burn_size = 0.03
-shader_parameter/burn_color = Color(1.5, 0.924, 0, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
 resource_local_to_scene = true
@@ -47,7 +30,6 @@ grow_vertical = 2
 pivot_offset = Vector2(58, 90)
 size_flags_horizontal = 4
 size_flags_vertical = 4
-mouse_filter = 0
 script = ExtResource("1_vlntq")
 AngleXMax = 5.0
 AngleYMax = 5.0

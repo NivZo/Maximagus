@@ -7,7 +7,7 @@ using Scripts.Config;
 using System.Linq;
 using System.Collections.Generic;
 
-public partial class Card : Control
+public partial class Card : Control, IOrderable
 {
     private static readonly string CARD_SCENE = "res://Scenes/Card/Card.tscn";
 
@@ -44,7 +44,6 @@ public partial class Card : Control
 
     public string CardId { get; private set; }
     public SpellCardResource Resource { get; private set; }
-    public CardSlot CardSlot { get; private set; }
 
     private Control _textures;
     private TextureRect _cardTexture;
@@ -170,12 +169,11 @@ public partial class Card : Control
     #endregion
 
     #region Static Creation Method
-    public static Card Create(Node parent, CardSlot cardSlot, SpellCardResource resource, string cardId)
+    public static Card Create(Node parent, SpellCardResource resource, string cardId)
     {
         try
         {
             parent.ValidateNotNull(nameof(parent));
-            cardSlot.ValidateNotNull(nameof(cardSlot));
             resource.ValidateNotNull(nameof(resource));
 
             var scene = GD.Load<PackedScene>(CARD_SCENE);
@@ -190,7 +188,6 @@ public partial class Card : Control
             card.Resource = resource;
             card.CardId = cardId;
             card.SetupCardResource(resource);
-            card.SetCardSlot(cardSlot);
 
             return card;
         }
@@ -384,16 +381,11 @@ public partial class Card : Control
     }
     #endregion
 
-    #region Card Slot Management
-    private void SetCardSlot(CardSlot cardSlot)
-    {
-        CardSlot = cardSlot?.ValidateNotNull(nameof(cardSlot));
-        UpdateTargetPosition();
-    }
-
+    #region Position Management
     private void UpdateTargetPosition()
     {
-        TargetPosition = GetTargetCenter();
+        // TargetPosition will be set by the OrderedContainer
+        // No need to manually update it here anymore
     }
     #endregion
 
@@ -438,8 +430,6 @@ public partial class Card : Control
 
     private Vector2 GetTargetSlottedCenter()
     {
-        if (CardSlot == null) return Vector2.Zero;
-        
         Vector2 offset = Vector2.Zero;
         if (_isSelected)
         {
@@ -453,8 +443,8 @@ public partial class Card : Control
             }
         }
         
-        var baseCenter = CardSlot.GetCenter();
-        var targetCenter = baseCenter + offset;
+        // TargetPosition is now set directly by OrderedContainer
+        var targetCenter = TargetPosition + offset;
         return targetCenter;
     }
 
