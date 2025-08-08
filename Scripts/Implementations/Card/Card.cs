@@ -30,7 +30,8 @@ public partial class Card : Control, IOrderable
     [Export] public float ShadowFadeDuration = 1.0f;
 
     [ExportGroup("Movement Physics")]
-    [Export(PropertyHint.Range, "0, 100, 1")] public float MaxSpeed = 1f;
+    [Export(PropertyHint.Range, "0, 100, 1")] public float MoveSpeedFactor = 5f;
+    [Export(PropertyHint.Range, "0, 100, 1")] public float DragMoveSpeedFactor = 8f;
     
     [ExportGroup("Sway Physics")]
     [Export(PropertyHint.Range, "0, 500, 1")] public float Stiffness { get; set; } = 150f;
@@ -68,7 +69,6 @@ public partial class Card : Control, IOrderable
     private Vector2 _shadowBasePosition;
     private readonly Dictionary<string, Tween> _propertyTweens = new();
 
-    private const string ROTATION_PROPERTY = "rotation";
     private const string SHADER_X_ROT_PROPERTY = "shader_x_rot";
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
 
@@ -225,6 +225,11 @@ public partial class Card : Control, IOrderable
                 return;
             }
 
+            if (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging)
+            {
+                OnHoverEnded();
+            }
+
             // ZIndex = GetCardStateFromGameState()?.Position ?? LayerIndices.Base;
         }
         catch (Exception ex)
@@ -258,7 +263,6 @@ public partial class Card : Control, IOrderable
     private void OnMouseEntered()
     {
         var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
-        
         if (_hoverManager?.IsHoveringActive == true || hasDraggingCard) return;
         if (_hoverManager?.StartHover(this) != true) return;
 
@@ -395,9 +399,9 @@ public partial class Card : Control, IOrderable
         
         if (currentCenter != targetCenter)
         {
-            // Use different interpolation speeds for dragging vs normal movement
-            float lerpSpeed = _isDragging ? 15f : 10f; // Faster interpolation when dragging
+            float lerpSpeed = _isDragging ? DragMoveSpeedFactor : MoveSpeedFactor;
             var newCenter = currentCenter.Lerp(targetCenter, delta * lerpSpeed);
+            newCenter = newCenter.Clamp(currentCenter - Size * 2, currentCenter + Size * 2);
             this.SetCenter(newCenter);
 
             // Update velocity for sway physics

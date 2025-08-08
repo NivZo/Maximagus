@@ -25,18 +25,49 @@ public partial class Hand : Control
         ?.Where(n => n is Card)
         .Cast<Card>()
         .ToImmutableArray() ?? ImmutableArray<Card>.Empty;
+
+    public override void _Ready()
+    {
+        try
+        {
+            _logger = ServiceLocator.GetService<ILogger>();
+            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+            _layoutCache = new HandLayoutCache();
+
+            InitializeComponents();
+            SetupEventHandlers();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Error initializing Hand", ex);
+            throw;
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        try
+        {
+            base._Process(delta);
+            HandleDrag();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Error in Hand process", ex);
+        }
+    }
     
     private void OnHandStateChanged(IGameStateData oldState, IGameStateData newState)
     {
         try
         {
             var currentState = _commandProcessor.CurrentState;
-            
+
             // Use more reliable comparison - check if the actual card lists differ
             bool handStateChanged = _lastHandState == null ||
                                    _lastHandState.Cards.Count != currentState.Hand.Cards.Count ||
                                    !CardsAreEqual(_lastHandState.Cards, currentState.Hand.Cards);
-            
+
             if (handStateChanged)
             {
                 _lastHandState = currentState.Hand;
@@ -144,43 +175,12 @@ public partial class Hand : Control
         try
         {
             var card = Card.Create(_cardsNode, cardState.Resource, cardState.CardId);
-            card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, 0);
+            card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, -card.Size.Y * 3);
             _cardsContainer.InsertElement(card);
         }
         catch (Exception ex)
         {
             _logger?.LogError("Error creating visual card", ex);
-        }
-    }
-
-    public override void _Ready()
-    {
-        try
-        {
-            _logger = ServiceLocator.GetService<ILogger>();
-            _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
-            _layoutCache = new HandLayoutCache();
-
-            InitializeComponents();
-            SetupEventHandlers();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error initializing Hand", ex);
-            throw;
-        }
-    }
-
-    public override void _Process(double delta)
-    {
-        try
-        {
-            base._Process(delta);
-            HandleDrag();
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Error in Hand process", ex);
         }
     }
 

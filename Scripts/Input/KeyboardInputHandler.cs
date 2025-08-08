@@ -66,7 +66,6 @@ namespace Scripts.Input
             var inputData = new InputEventData(InputType.KeyPress)
             {
                 KeyCode = keyEvent.Keycode,
-                Action = GetKeyAction(keyEvent),
                 IsShiftPressed = keyEvent.ShiftPressed,
                 IsCtrlPressed = keyEvent.CtrlPressed,
                 IsAltPressed = keyEvent.AltPressed
@@ -79,31 +78,6 @@ namespace Scripts.Input
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Determines the action string for a key event
-        /// </summary>
-        /// <param name="keyEvent">The key event</param>
-        /// <returns>Action string describing the key combination</returns>
-        private string GetKeyAction(InputEventKey keyEvent)
-        {
-            var action = keyEvent.AsText();
-
-            // Handle special key combinations
-            if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.Z)
-                return "Undo";
-            
-            if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.Y)
-                return "Redo";
-            
-            if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.A)
-                return "SelectAll";
-            
-            if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.D)
-                return "DeselectAll";
-
-            return action;
         }
 
         /// <summary>

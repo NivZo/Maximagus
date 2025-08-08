@@ -9,7 +9,7 @@ namespace Scripts.Config
     public static class GameConfig
     {
         // Card Interaction Constants
-        public const float DRAG_THRESHOLD = 35.0f;
+        public const float DRAG_THRESHOLD = 4f;
         public const float SELECTION_VERTICAL_OFFSET = -64.0f;
         
         // Hand Layout Constants
