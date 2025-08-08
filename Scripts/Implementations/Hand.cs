@@ -14,7 +14,6 @@ public partial class Hand : Control
     [Export] float CardsCurveMultiplier = GameConfig.DEFAULT_CARDS_CURVE_MULTIPLIER;
     [Export] float CardsRotationMultiplier = GameConfig.DEFAULT_CARDS_ROTATION_MULTIPLIER;
 
-    private IEventBus _eventBus;
     private ILogger _logger;
     private IGameCommandProcessor _commandProcessor;
     private OrderedContainer _cardsContainer;
@@ -158,7 +157,6 @@ public partial class Hand : Control
     {
         try
         {
-            _eventBus = ServiceLocator.GetService<IEventBus>();
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
             _layoutCache = new HandLayoutCache();
@@ -244,52 +242,27 @@ public partial class Hand : Control
             var draggingCard = _cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
             if (draggingCard == null) return;
 
-            const float MAX_VALID_DISTANCE = 512f; // Same as the old CardSlot MaxValidDistance
+            var targetPositions = _cards.Select((card, index) => (card.TargetPosition, Index: index));
+            var candidateIndex = targetPositions.MinBy(tp => tp.TargetPosition.DistanceSquaredTo(draggingCard.GetCenter())).Index;
+            var draggedIndex = _cards.IndexOf(draggingCard);
+            if (candidateIndex == draggedIndex) return;
 
-            var otherCards = _cards.Where(card => card != draggingCard);
-            var validCards = otherCards.Where(card => card.GetCenter().DistanceTo(draggingCard.GetCenter()) <= MAX_VALID_DISTANCE);
+            var candidateCard = _cards[candidateIndex];
+            var newCardOrder = _cards.Select(card => card.CardId).ToArray();
+            newCardOrder[candidateIndex] = draggingCard.CardId;
+            newCardOrder[draggedIndex] = candidateCard.CardId;
+            
+            var reorderCommand = new ReorderCardsCommand(newCardOrder);
+            var success = _commandProcessor.ExecuteCommand(reorderCommand);
 
-            if (!validCards.Any())
-                return;
-
-            var targetCard = validCards.MinBy(card => card.GlobalPosition.DistanceSquaredTo(draggingCard.GetCenter()));
-
-            if (targetCard != null)
+            if (!success)
             {
-                PerformCardReorder(draggingCard, targetCard);
+                _logger?.LogWarning("Failed to execute reorder command");
             }
         }
         catch (Exception ex)
         {
             _logger?.LogError("Error handling drag", ex);
-        }
-    }
-
-    private void PerformCardReorder(Card draggedCard, Card targetCard)
-    {
-        var draggedIndex = _cardsContainer.IndexOf(draggedCard);
-        var targetIndex = _cardsContainer.IndexOf(targetCard);
-
-        if (draggedIndex < 0 || targetIndex < 0 || draggedIndex == targetIndex)
-            return;
-
-        var currentCards = _cards.ToList();
-        var newCardOrder = new List<string>();
-        
-        var cardToMove = currentCards[draggedIndex];
-        currentCards.RemoveAt(draggedIndex);
-        
-        var adjustedTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
-        currentCards.Insert(adjustedTargetIndex, cardToMove);
-        
-        newCardOrder.AddRange(currentCards.Select(card => card.CardId));
-
-        var reorderCommand = new ReorderCardsCommand(newCardOrder);
-        var success = _commandProcessor.ExecuteCommand(reorderCommand);
-        
-        if (!success)
-        {
-            _logger?.LogWarning("Failed to execute reorder command");
         }
     }
 

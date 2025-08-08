@@ -53,17 +53,14 @@ namespace Scripts.Commands.Hand
             // Draw cards to refill hand (side effect handled by HandManager)
             _logger?.LogInfo("[DiscardHandCommand] Drawing cards to refill hand...");
             var cardsToDraw = _handManager.GetCardsToDraw();
+            var drawCardCommands = new AddCardCommand[cardsToDraw];
             for (int i = 0; i < cardsToDraw; i++)
             {
                 _logger.LogInfo($"[DiscardHandCommand] Drawing card {i + 1} of {cardsToDraw}");
-                _handManager.GetDrawCardCommand();
+                drawCardCommands[i] = _handManager.GetDrawCardCommand();
             }
 
-            // Get updated hand state after drawing
-            // var finalHandState = _commandProcessor.CurrentState.Hand;
-            // var finalState = newState.WithHand(finalHandState);
-
-            return CommandResult.Success(newState);
+            return CommandResult.Success(newState, drawCardCommands);
         }
 
         public override string GetDescription()

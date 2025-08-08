@@ -207,7 +207,7 @@ public partial class OrderedContainer : ColorRect, IEnumerable<IOrderable>
                indexA != indexB;
     }
 
-    public void RecalculatePositions()
+    private void RecalculatePositions()
     {
         try
         {

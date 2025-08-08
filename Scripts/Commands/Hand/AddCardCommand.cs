@@ -51,7 +51,7 @@ namespace Scripts.Commands.Hand
 
             GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
 
-            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.5f).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.1f).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
 
             return CommandResult.Success(newState);
         }
