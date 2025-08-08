@@ -56,14 +56,14 @@ namespace Scripts.Commands.Hand
             for (int i = 0; i < cardsToDraw; i++)
             {
                 _logger.LogInfo($"[DiscardHandCommand] Drawing card {i + 1} of {cardsToDraw}");
-                _handManager.DrawCard();
+                _handManager.GetDrawCardCommand();
             }
 
             // Get updated hand state after drawing
-            var finalHandState = _commandProcessor.CurrentState.Hand;
-            var finalState = newState.WithHand(finalHandState);
+            // var finalHandState = _commandProcessor.CurrentState.Hand;
+            // var finalState = newState.WithHand(finalHandState);
 
-            return CommandResult.Success(finalState);
+            return CommandResult.Success(newState);
         }
 
         public override string GetDescription()

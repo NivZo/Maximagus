@@ -28,15 +28,7 @@ namespace Scripts.Commands
         public bool ExecuteCommand(GameCommand command);
 
         public void SetState(IGameStateData newState);
-    }
 
-    /// <summary>
-    /// Event data for game state changes
-    /// </summary>
-    public class GameStateChangedEventData
-    {
-        public IGameStateData PreviousState { get; set; }
-        public IGameStateData NewState { get; set; }
-        public GameCommand ExecutedCommand { get; set; }
+        public void NotifyBlockingCommandFinished();
     }
 }

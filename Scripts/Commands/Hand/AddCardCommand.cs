@@ -15,7 +15,7 @@ namespace Scripts.Commands.Hand
         private readonly SpellCardResource _spellCardResource;
         private readonly int _position;
 
-        public AddCardCommand(SpellCardResource spellCardResource, int position = -1) : base()
+        public AddCardCommand(SpellCardResource spellCardResource, int position = -1) : base(true)
         {
             _spellCardResource = spellCardResource;
             _position = position;
@@ -50,6 +50,8 @@ namespace Scripts.Commands.Hand
             var newState = currentState.WithHand(newHandState);
 
             GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
+
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.5f).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
 
             return CommandResult.Success(newState);
         }

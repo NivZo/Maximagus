@@ -4,6 +4,7 @@ using Scripts.State;
 using Scripts.Config;
 using Scripts.Commands;
 using Maximagus.Scripts.Managers;
+using Scripts.Commands.Hand;
 
 namespace Scripts.Commands.Game
 {
@@ -38,16 +39,12 @@ namespace Scripts.Commands.Game
             
             _logger?.LogInfo($"[TurnStartCommand] Entered TurnStart phase");
 
-            // Draw cards to max hand size (pure computation)
             var cardsToDraw = _handManager.GetCardsToDraw();
-            var currentHandState = turnStartState.Hand;
-            
+            var drawCardCommands = new AddCardCommand[cardsToDraw];
             for (int i = 0; i < cardsToDraw; i++)
             {
                 _logger.LogInfo($"[TurnStartCommand] Drawing card {i + 1} of {cardsToDraw}");
-                // Note: This still uses HandManager.DrawCard() which might have side effects
-                // This should be refactored to be pure in a future iteration
-                _handManager.DrawCard();
+                drawCardCommands[i] = _handManager.GetDrawCardCommand();
             }
 
             // Get the updated hand state after drawing
@@ -61,15 +58,7 @@ namespace Scripts.Commands.Game
 
             _logger?.LogInfo($"[TurnStartCommand] Turn started - cards drawn: {cardsToDraw}, final phase: {finalState.Phase.CurrentPhase}");
 
-            // Events for turn start and card drawing
-            var events = new object[]
-            {
-                new { Type = "TurnStarted", CardsDrawn = cardsToDraw },
-                new { Type = "PhaseChanged", NewPhase = GamePhase.CardSelection, PreviousPhase = GamePhase.TurnStart },
-                new { Type = "HandUpdated", NewHandState = newHandState }
-            };
-
-            return CommandResult.Success(finalState);
+            return CommandResult.Success(finalState, drawCardCommands);
         }
     }
 }

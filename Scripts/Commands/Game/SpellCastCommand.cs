@@ -17,7 +17,7 @@ namespace Scripts.Commands.Game
     {
         private readonly ISpellProcessingManager _spellProcessingManager;
 
-        public SpellCastCommand() : base()
+        public SpellCastCommand() : base(true)
         {
             _spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
         }
@@ -51,6 +51,8 @@ namespace Scripts.Commands.Game
 
             // Create follow-up command to continue the turn flow
             var followUpCommands = new[] { new TurnStartCommand() };
+
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(3).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
 
             return CommandResult.Success(newState, followUpCommands);
         }

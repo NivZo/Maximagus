@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using Maximagus.Scripts.Enums;
-using Scripts.State;
+using Scripts.Commands.Hand;
 
 public interface IHandManager
 {
@@ -18,7 +17,7 @@ public interface IHandManager
 
     bool CanPerformHandAction(HandActionType actionType);
 
-    void DrawCard();
+    AddCardCommand GetDrawCardCommand();
 
     void DiscardCard(string cardId);
 

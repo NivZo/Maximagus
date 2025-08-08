@@ -91,12 +91,12 @@ namespace Maximagus.Scripts.Managers
             );
         }
 
-        public void DrawCard()
+        public AddCardCommand GetDrawCardCommand()
         {
             var deck = new Deck();
             var resource = deck.GetNext();
             var command = new AddCardCommand(resource);
-            _commandProcessor.ExecuteCommand(command);
+            return command;
         }
 
         public void DiscardCard(string cardId)
