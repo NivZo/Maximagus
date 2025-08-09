@@ -5,7 +5,7 @@ using Scripts.Config;
 
 namespace Scripts.Utils
 {
-    public class HandLayoutCache
+    public class ContainerLayoutCache
     {
         private struct LayoutKey : IEquatable<LayoutKey>
         {
@@ -56,7 +56,7 @@ namespace Scripts.Utils
         private readonly Dictionary<LayoutKey, LayoutData> _cache = new();
         private readonly int _maxCacheSize;
 
-        public HandLayoutCache(int maxCacheSize = GameConfig.LAYOUT_CACHE_MAX_SIZE)
+        public ContainerLayoutCache(int maxCacheSize = GameConfig.LAYOUT_CACHE_MAX_SIZE)
         {
             _maxCacheSize = maxCacheSize;
         }

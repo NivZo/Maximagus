@@ -40,6 +40,9 @@ namespace Scripts.State
 
             var newCards = Cards.ToList();
             newCards.Add(card);
+            newCards = newCards
+                .Select((c, i) => c.WithPosition(i))
+                .ToList();
             return new HandState(newCards, MaxHandSize, IsLocked);
         }
 
@@ -47,7 +50,10 @@ namespace Scripts.State
         {
             if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
 
-            var newCards = Cards.Where(c => c.CardId != cardId).ToList();
+            var newCards = Cards
+                .Where(c => c.CardId != cardId)
+                .Select((c, i) => c.WithPosition(i))
+                .ToList();
             return new HandState(newCards, MaxHandSize, IsLocked);
         }
         
@@ -55,7 +61,10 @@ namespace Scripts.State
         {
             if (cardIds == null) throw new ArgumentNullException(nameof(cardIds));
 
-            var newCards = Cards.Where(c => !cardIds.Contains(c.CardId)).ToList();
+            var newCards = Cards
+                .Where(c => !cardIds.Contains(c.CardId))
+                .Select((c, i) => c.WithPosition(i))
+                .ToList();
             return new HandState(newCards, MaxHandSize, IsLocked);
         }
 

@@ -9,19 +9,19 @@ using Scripts.Config;
 using Scripts.State;
 using Scripts.Utils;
 
-public partial class Hand : Control
+public abstract partial class CardContainer : Control
 {
-    [Export] float CardsCurveMultiplier = GameConfig.DEFAULT_CARDS_CURVE_MULTIPLIER;
-    [Export] float CardsRotationMultiplier = GameConfig.DEFAULT_CARDS_ROTATION_MULTIPLIER;
+    [Export] public float CardsCurveMultiplier = GameConfig.DEFAULT_CARDS_CURVE_MULTIPLIER;
+    [Export] public float CardsRotationMultiplier = GameConfig.DEFAULT_CARDS_ROTATION_MULTIPLIER;
 
     private ILogger _logger;
     private IGameCommandProcessor _commandProcessor;
     private OrderedContainer _cardsContainer;
     private Node _cardsNode;
-    private HandLayoutCache _layoutCache;
-    private HandState _lastHandState;
+    private ContainerLayoutCache _layoutCache;
+    private CardState[] _lastCardsState;
 
-    private ImmutableArray<Card> _cards => _cardsContainer
+    public ImmutableArray<Card> Cards => _cardsContainer
         ?.Where(n => n is Card)
         .Cast<Card>()
         .ToImmutableArray() ?? ImmutableArray<Card>.Empty;
@@ -32,7 +32,7 @@ public partial class Hand : Control
         {
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
-            _layoutCache = new HandLayoutCache();
+            _layoutCache = new ContainerLayoutCache();
 
             InitializeComponents();
             SetupEventHandlers();
@@ -56,22 +56,52 @@ public partial class Hand : Control
             _logger?.LogError("Error in Hand process", ex);
         }
     }
-    
-    private void OnHandStateChanged(IGameStateData oldState, IGameStateData newState)
+
+    public abstract CardState[] GetCardStates(IGameStateData currentState);
+
+    public void AddCard(Card card)
     {
+        _cardsNode.AddChild(card);
+        _cardsContainer.InsertElement(card);
+    }
+    
+    public Card RemoveCard(string cardId)
+    {
+        var card = Cards.FirstOrDefault(c => c.CardId == cardId);
+        if (card == null)
+            return null;
+
+        _cardsNode.RemoveChild(card);
+        _cardsContainer.RemoveElement(card);
+        return card;
+    }
+    
+    private void InitializeComponents()
+    {
+        _cardsNode = GetNode<Node>("Cards").ValidateNotNull("Cards");
+        _cardsContainer = GetNode<OrderedContainer>("CardsContainer").ValidateNotNull("CardsContainer");
+    }
+
+    private void SetupEventHandlers()
+    {
+        _cardsContainer.ElementsChanged += OnElementsChanged;
+        _commandProcessor.StateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged(IGameStateData oldGlobalState, IGameStateData newGlobalState)
+    {
+        var newState = GetCardStates(newGlobalState);
         try
         {
-            var currentState = _commandProcessor.CurrentState;
-
             // Use more reliable comparison - check if the actual card lists differ
-            bool handStateChanged = _lastHandState == null ||
-                                   _lastHandState.Cards.Count != currentState.Hand.Cards.Count ||
-                                   !CardsAreEqual(_lastHandState.Cards, currentState.Hand.Cards);
+            bool containerStateChanged = _lastCardsState == null ||
+                                   _lastCardsState.Length != newState.Length ||
+                                   !CardsAreEqual(_lastCardsState, newState);
 
-            if (handStateChanged)
+            if (containerStateChanged)
             {
-                _lastHandState = currentState.Hand;
-                SyncVisualCardsWithState(currentState);
+                _lastCardsState = newState;
+                SyncVisualCardsWithState(_lastCardsState);
             }
         }
         catch (Exception ex)
@@ -107,10 +137,10 @@ public partial class Hand : Control
         return true;
     }
     
-    private void SyncVisualCardsWithState(IGameStateData currentState)
+    private void SyncVisualCardsWithState(CardState[] currentState)
     {
-        var currentCards = _cards.ToArray();
-        var orderedStateCards = currentState.Hand.Cards.OrderBy(c => c.Position).ToArray();
+        var currentCards = Cards.ToArray();
+        var orderedStateCards = currentState.OrderBy(c => c.Position).ToArray();
 
         var toRemove = currentCards.Where(card => !orderedStateCards.Any(c => c.CardId == card.CardId)).ToList();
         var toAdd = orderedStateCards.Where(c => !currentCards.Any(card => card.CardId == c.CardId)).ToList();
@@ -133,35 +163,22 @@ public partial class Hand : Control
     {
         try
         {
-            var currentCards = _cards.ToArray();
+            var currentCards = Cards.ToArray();
 
-            // Create a mapping of CardId to desired position from state
-            var desiredOrder = orderedStateCards.Select((card, index) => new { card.CardId, DesiredIndex = index })
-                                               .ToDictionary(x => x.CardId, x => x.DesiredIndex);
+            var desiredOrder = orderedStateCards
+                .Select((card, index) => new { card.CardId, DesiredIndex = index })
+                .ToDictionary(x => x.CardId, x => x.DesiredIndex);
 
-            // Move each card to its correct position using MoveElement
-            for (int i = 0; i < currentCards.Length; i++)
+            for (int i = 0; i < _cardsContainer.Count; i++)
             {
-                var currentCard = currentCards[i];
-
-                // Skip cards that are no longer in state (they should have been removed in SyncVisualCardsWithState)
-                if (!desiredOrder.ContainsKey(currentCard.CardId))
-                    continue;
-
-                var desiredIndex = desiredOrder[currentCard.CardId];
-                var currentIndex = _cardsContainer.IndexOf(currentCard);
-
-                if (currentIndex != desiredIndex && currentIndex >= 0 && desiredIndex >= 0)
+                var card = _cardsContainer[i] as Card;
+                var desiredIndex = desiredOrder.GetValueOrDefault(card?.CardId, _cardsContainer.Count);
+                if (desiredIndex != i)
                 {
-                    _cardsContainer.MoveElement(currentIndex, desiredIndex);
-                    // Update our local array to reflect the move for subsequent iterations
-                    currentCards = _cards.ToArray();
+                    _cardsContainer.MoveElement(i, desiredIndex);
+                    _cardsNode.MoveChild(card, desiredIndex);
+                    card.ZIndex = desiredIndex;
                 }
-            }
-
-            foreach (var (card, state) in currentCards.Zip(orderedStateCards))
-            {
-                _cardsNode.MoveChild(card, state.Position);
             }
         }
         catch (Exception ex)
@@ -184,25 +201,13 @@ public partial class Hand : Control
         }
     }
 
-    private void InitializeComponents()
-    {
-        _cardsNode = GetNode<Node>("Cards").ValidateNotNull("Cards");
-        _cardsContainer = GetNode<OrderedContainer>("CardsContainer").ValidateNotNull("CardsContainer");
-    }
-
-    private void SetupEventHandlers()
-    {
-        _cardsContainer.ElementsChanged += OnElementsChanged;
-        _commandProcessor.StateChanged += OnHandStateChanged;
-    }
-
-    private void AdjustFanEffect()
+    private void AdjustTargetPositions()
     {
         try
         {
-            var cards = _cards.ToArray();
+            var cards = Cards.ToArray();
             var count = cards.Length;
-            
+
             if (count == 0) return; // No cards to adjust
 
             float baselineY = GlobalPosition.Y;
@@ -239,16 +244,16 @@ public partial class Hand : Control
     {
         try
         {
-            var draggingCard = _cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
+            var draggingCard = Cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
             if (draggingCard == null) return;
 
-            var targetPositions = _cards.Select((card, index) => (card.TargetPosition, Index: index));
+            var targetPositions = Cards.Select((card, index) => (card.TargetPosition, Index: index));
             var candidateIndex = targetPositions.MinBy(tp => tp.TargetPosition.DistanceSquaredTo(draggingCard.GetCenter())).Index;
-            var draggedIndex = _cards.IndexOf(draggingCard);
+            var draggedIndex = Cards.IndexOf(draggingCard);
             if (candidateIndex == draggedIndex) return;
 
-            var candidateCard = _cards[candidateIndex];
-            var newCardOrder = _cards.Select(card => card.CardId).ToArray();
+            var candidateCard = Cards[candidateIndex];
+            var newCardOrder = Cards.Select(card => card.CardId).ToArray();
             newCardOrder[candidateIndex] = draggingCard.CardId;
             newCardOrder[draggedIndex] = candidateCard.CardId;
             
@@ -270,7 +275,7 @@ public partial class Hand : Control
     {
         try
         {
-            AdjustFanEffect();
+            AdjustTargetPositions();
         }
         catch (Exception ex)
         {
