@@ -33,6 +33,7 @@ public static class ServiceLocator
 
         // Node services
         RegisterNodeService<QueuedActionsManager>(false);
+        RegisterNodeService<CardsRoot>(false);
     }
 
     public static void RegisterService<T>(T instance)
@@ -45,12 +46,6 @@ public static class ServiceLocator
     {
         var lazyImplementation = new Lazy<object>(() => new TImplementation());
         _services[typeof(TInterface)] = lazyImplementation;
-    }
-
-    private static void RegisterMainService<T>(Func<T> factory)
-    {
-        var lazyService = new Lazy<object>(() => factory());
-        _services[typeof(T)] = lazyService;
     }
 
     private static void RegisterNodeService<TNode>(bool lazy = true)

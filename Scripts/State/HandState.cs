@@ -25,7 +25,15 @@ namespace Scripts.State
 
         public IEnumerable<CardState> SelectedCards => Cards.Where(card => card.IsSelected);
 
+        public IEnumerable<CardState> CardsInHand => Cards.Where(card => card.ContainerType == ContainerType.Hand);
+
+        public IEnumerable<CardState> PlayedCards => Cards.Where(card => card.ContainerType == ContainerType.PlayedCards);
+
         public int SelectedCount => SelectedCards.Count();
+
+        public int CardsInHandCount => CardsInHand.Count();
+
+        public int PlayedCCount => PlayedCards.Count();
 
         public int Count => Cards.Count;
 

@@ -25,18 +25,18 @@ namespace Maximagus.Scripts.Spells.Implementations
         public void ProcessSpell()
         {
             var currentState = _commandProcessor.CurrentState;
-            var selectedCardStates = currentState.Hand.SelectedCards;
+            var playedCardStates = currentState.Hand.PlayedCards;
 
-            if (selectedCardStates.Count() == 0)
+            if (playedCardStates.Count() == 0)
             {
-                _logger.LogError("No selected cards found in state");
+                _logger.LogError("No played cards found in state");
                 return;
             }
 
             var context = new SpellContext();
             _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);
 
-            foreach (var cardState in selectedCardStates)
+            foreach (var cardState in playedCardStates)
             {
                 cardState.Resource.Execute(context);
             }

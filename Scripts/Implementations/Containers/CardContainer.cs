@@ -17,7 +17,7 @@ public abstract partial class CardContainer : Control
     private ILogger _logger;
     private IGameCommandProcessor _commandProcessor;
     private OrderedContainer _cardsContainer;
-    private Node _cardsNode;
+    private CardsRoot _cardsRoot;
     private ContainerLayoutCache _layoutCache;
     private CardState[] _lastCardsState;
 
@@ -32,6 +32,7 @@ public abstract partial class CardContainer : Control
         {
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+            _cardsRoot = ServiceLocator.GetService<CardsRoot>();
             _layoutCache = new ContainerLayoutCache();
 
             InitializeComponents();
@@ -59,26 +60,16 @@ public abstract partial class CardContainer : Control
 
     public abstract CardState[] GetCardStates(IGameStateData currentState);
 
-    public void AddCard(Card card)
-    {
-        _cardsNode.AddChild(card);
-        _cardsContainer.InsertElement(card);
-    }
-    
-    public Card RemoveCard(string cardId)
-    {
-        var card = Cards.FirstOrDefault(c => c.CardId == cardId);
-        if (card == null)
-            return null;
+    public virtual void OnCardEnter(Card card) { }
 
-        _cardsNode.RemoveChild(card);
+    public void MoveToContainer(Card card, CardContainer targetContainer)
+    {
         _cardsContainer.RemoveElement(card);
-        return card;
+        targetContainer._cardsContainer.InsertElement(card);
     }
-    
+
     private void InitializeComponents()
     {
-        _cardsNode = GetNode<Node>("Cards").ValidateNotNull("Cards");
         _cardsContainer = GetNode<OrderedContainer>("CardsContainer").ValidateNotNull("CardsContainer");
     }
 
@@ -148,7 +139,6 @@ public abstract partial class CardContainer : Control
         foreach (var card in toRemove)
         {
             _cardsContainer.RemoveElement(card);
-            card.QueueFree();
         }
 
         foreach (var cardState in toAdd)
@@ -176,7 +166,7 @@ public abstract partial class CardContainer : Control
                 if (desiredIndex != i)
                 {
                     _cardsContainer.MoveElement(i, desiredIndex);
-                    _cardsNode.MoveChild(card, desiredIndex);
+                    _cardsRoot.MoveChild(card, desiredIndex);
                     card.ZIndex = desiredIndex;
                 }
             }
@@ -191,8 +181,8 @@ public abstract partial class CardContainer : Control
     {
         try
         {
-            var card = Card.Create(_cardsNode, cardState.Resource, cardState.CardId);
-            card.GlobalPosition = GetViewportRect().Size + new Vector2(card.Size.X * 2, -card.Size.Y * 3);
+            var card = _cardsRoot.Create(cardState);
+            OnCardEnter(card);
             _cardsContainer.InsertElement(card);
         }
         catch (Exception ex)

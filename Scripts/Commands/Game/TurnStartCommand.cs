@@ -25,18 +25,12 @@ namespace Scripts.Commands.Game
 
         public override bool CanExecute()
         {
-            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu ||
-                   _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.TurnEnd ||
-                   _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.GameStart;
+            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.TurnStart;
         }
 
 
         public override CommandResult ExecuteWithResult()
-        {
-            // First transition to TurnStart phase (intermediate phase for processing)
-            var turnStartPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart);
-            var turnStartState = _commandProcessor.CurrentState.WithPhase(turnStartPhaseState);
-            
+        {   
             _logger?.LogInfo($"[TurnStartCommand] Entered TurnStart phase");
 
             var cardsToDraw = _handManager.GetCardsToDraw();

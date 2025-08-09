@@ -52,7 +52,7 @@ namespace Scripts.Commands.Hand
 
             // Draw cards to refill hand (side effect handled by HandManager)
             _logger?.LogInfo("[DiscardHandCommand] Drawing cards to refill hand...");
-            var cardsToDraw = _handManager.GetCardsToDraw();
+            var cardsToDraw = selectedCardIds.Count();
             var drawCardCommands = new AddCardCommand[cardsToDraw];
             for (int i = 0; i < cardsToDraw; i++)
             {

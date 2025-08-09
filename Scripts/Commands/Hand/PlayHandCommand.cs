@@ -20,6 +20,8 @@ namespace Scripts.Commands.Hand
 
         public override bool CanExecute()
         {
+            if (_commandProcessor.CurrentState.Phase.CurrentPhase != GamePhase.CardSelection) return false;
+            
             if (_commandProcessor.CurrentState == null) return false;
 
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
@@ -38,9 +40,18 @@ namespace Scripts.Commands.Hand
             _logger.LogInfo("[PlayHandCommand] Initiating spell casting with command result...");
 
             // Pure state computation - no side effects
+            var newHandState = _commandProcessor.CurrentState.Hand;
+            foreach (var card in newHandState.Cards)
+            {
+                if (card.IsSelected)
+                {
+                    newHandState = newHandState.WithUpdatedCard(card.WithContainerType(ContainerType.PlayedCards).WithSelection(false));
+                }
+            }
             var newPlayerState = _commandProcessor.CurrentState.Player.WithHandUsed();
             var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.SpellCasting);
             var newState = _commandProcessor.CurrentState
+                .WithHand(newHandState)
                 .WithPlayer(newPlayerState)
                 .WithPhase(newPhaseState);
 

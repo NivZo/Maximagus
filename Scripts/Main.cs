@@ -91,7 +91,7 @@ public partial class Main : Control
 			}
 			
 			var gamePhaseState = new GamePhaseState(
-				currentPhase: GamePhase.Menu,
+				currentPhase: GamePhase.GameStart,
 				turnNumber: 1,
 				canPlayerAct: true,
 				phaseDescription: "Select cards for your spell"

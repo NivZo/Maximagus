@@ -24,35 +24,21 @@ namespace Scripts.Commands.Game
 
         public override bool CanExecute()
         {
-            // Can only cast spell when we have selected cards and are in the right phase
-            return _commandProcessor.CurrentState?.Phase?.CurrentPhase == GamePhase.SpellCasting &&
-                   _commandProcessor.CurrentState?.Hand?.SelectedCount > 0;
+            return _commandProcessor.CurrentState?.Phase?.CurrentPhase == GamePhase.SpellCasting;
         }
 
         public override CommandResult ExecuteWithResult()
         {
-            var currentState = _commandProcessor.CurrentState;
-            _logger.LogInfo("[SpellCastCommand] Processing spell with command result...");
-
-            // Process the spell using the selected cards
             _spellProcessingManager.ProcessSpell();
 
-            // Remove the selected cards from hand
-            var selectedCardIds = currentState.Hand.SelectedCards.Select(c => c.CardId);
-            var newHandState = currentState.Hand.WithRemovedCards(selectedCardIds);
-
-            // Transition to TurnEnd phase
+            var currentState = _commandProcessor.CurrentState;
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnEnd);
             var newState = currentState
-                .WithHand(newHandState)
                 .WithPhase(newPhaseState);
 
-            _logger.LogInfo($"[SpellCastCommand] Spell processed, transitioning to TurnEnd. Cards remaining: {newHandState.Count}");
+            var followUpCommands = new[] { new TurnEndCommand() };
 
-            // Create follow-up command to continue the turn flow
-            var followUpCommands = new[] { new TurnStartCommand() };
-
-            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(1).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(5).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
 
             return CommandResult.Success(newState, followUpCommands);
         }

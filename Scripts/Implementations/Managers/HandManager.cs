@@ -95,7 +95,7 @@ namespace Maximagus.Scripts.Managers
         {
             var deck = new Deck();
             var resource = deck.GetNext();
-            var command = new AddCardCommand(resource);
+            var command = new AddCardCommand(resource, ContainerType.Hand);
             return command;
         }
 

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5mg28jbg6a0"]
+[gd_scene load_steps=3 format=3 uid="uid://b5mg28jbg6a0"]
 
-[ext_resource type="Script" path="res://Scripts/Implementations/PlayedCards.cs" id="1_0abc123"]
+[ext_resource type="Script" uid="uid://mqcix5h6lo82" path="res://Scripts/Implementations/Containers/PlayedCards.cs" id="1_d1o5m"]
+[ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="2_57f1u"]
 
 [node name="PlayedCards" type="Control"]
 layout_mode = 3
@@ -9,20 +10,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_0abc123")
-ContainerType = null
+script = ExtResource("1_d1o5m")
+CardsCurveMultiplier = 0.0
+CardsRotationMultiplier = 0.0
 
-[node name="CardsContainer" type="ColorRect" parent="."]
+[node name="CardsContainer" parent="." instance=ExtResource("2_57f1u")]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -50.0
-offset_right = 300.0
-offset_bottom = 50.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0)
+Debug = true

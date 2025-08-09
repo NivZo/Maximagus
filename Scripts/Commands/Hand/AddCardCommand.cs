@@ -13,11 +13,13 @@ namespace Scripts.Commands.Hand
     public class AddCardCommand : GameCommand
     {
         private readonly SpellCardResource _spellCardResource;
+        private readonly ContainerType _containerType;
         private readonly int _position;
 
-        public AddCardCommand(SpellCardResource spellCardResource, int position = -1) : base(true)
+        public AddCardCommand(SpellCardResource spellCardResource, ContainerType containerType, int position = -1) : base(true)
         {
             _spellCardResource = spellCardResource;
+            _containerType = containerType;
             _position = position;
         }
 
@@ -43,7 +45,8 @@ namespace Scripts.Commands.Hand
                 resource: _spellCardResource,
                 isSelected: false,
                 isDragging: false,
-                position: _position >= 0 ? _position : currentState.Hand.Count
+                position: _position >= 0 ? _position : currentState.Hand.Count,
+                containerType: _containerType
             );
 
             var newHandState = currentState.Hand.WithAddedCard(newCardState);

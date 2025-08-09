@@ -85,6 +85,7 @@ public partial class Card : Control, IOrderable
             InitializeComponents();
             SetupEventHandlers();
             SetupVisualSettings();
+            SetupCardResource(Resource);
         }
         catch (Exception ex)
         {
@@ -169,11 +170,10 @@ public partial class Card : Control, IOrderable
     #endregion
 
     #region Static Creation Method
-    public static Card Create(Node parent, SpellCardResource resource, string cardId)
+    public static Card Create(SpellCardResource resource, string cardId)
     {
         try
         {
-            parent.ValidateNotNull(nameof(parent));
             resource.ValidateNotNull(nameof(resource));
 
             var scene = GD.Load<PackedScene>(CARD_SCENE);
@@ -184,10 +184,8 @@ public partial class Card : Control, IOrderable
             if (card == null)
                 throw new InvalidOperationException("Failed to instantiate card from scene");
 
-            parent.AddChild(card);
             card.Resource = resource;
             card.CardId = cardId;
-            card.SetupCardResource(resource);
 
             return card;
         }

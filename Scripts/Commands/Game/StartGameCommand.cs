@@ -10,7 +10,7 @@ namespace Scripts.Commands.Game
 
         public override bool CanExecute()
         {
-            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.Menu;
+            return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.GameStart;
         }
 
         public override CommandResult ExecuteWithResult()
@@ -18,11 +18,9 @@ namespace Scripts.Commands.Game
             var currentState = _commandProcessor.CurrentState;
             GD.Print("[StartGameCommand] Starting game...");
             
-            // Transition to game start phase
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.GameStart);
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnStart);
             var newState = currentState.WithPhase(newPhaseState);
 
-            // Queue TurnStartCommand as follow-up (no need for QueuedActionsManager)
             var followUpCommands = new[] { new TurnStartCommand() };
 
             return CommandResult.Success(newState, followUpCommands);

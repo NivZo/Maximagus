@@ -7,7 +7,6 @@ namespace Scripts.State
     /// </summary>
     public enum GamePhase
     {
-        Menu,
         GameStart,
         TurnStart,        // Turn start effects trigger and finish
         CardSelection,    // Player selects cards
@@ -28,7 +27,7 @@ namespace Scripts.State
         public string PhaseDescription { get; }
 
         public GamePhaseState(
-            GamePhase currentPhase = GamePhase.Menu,
+            GamePhase currentPhase = GamePhase.GameStart,
             int turnNumber = 1,
             bool canPlayerAct = true,
             string phaseDescription = "")
@@ -83,8 +82,7 @@ namespace Scripts.State
         /// <summary>
         /// Checks if the game is in an active gameplay phase
         /// </summary>
-        public bool IsInGameplay => CurrentPhase != GamePhase.Menu && 
-                                   CurrentPhase != GamePhase.GameStart && 
+        public bool IsInGameplay => CurrentPhase != GamePhase.GameStart && 
                                    CurrentPhase != GamePhase.GameOver && 
                                    CurrentPhase != GamePhase.Victory;
 
@@ -93,40 +91,10 @@ namespace Scripts.State
         /// </summary>
         public bool IsGameEnded => CurrentPhase == GamePhase.GameOver || CurrentPhase == GamePhase.Victory;
 
-        /// <summary>
-        /// Gets the next logical phase based on current phase following the turn loop:
-        /// TurnStart -> CardSelection -> SpellCasting -> TurnEnd -> TurnStart (next turn)
-        /// Discard loops back to CardSelection
-        /// </summary>
-        public GamePhase GetNextPhase()
-        {
-            return CurrentPhase switch
-            {
-                GamePhase.Menu => GamePhase.GameStart,
-                GamePhase.GameStart => GamePhase.TurnStart,
-                GamePhase.TurnStart => GamePhase.CardSelection,
-                GamePhase.CardSelection => GamePhase.SpellCasting, // When playing cards
-                GamePhase.SpellCasting => GamePhase.TurnEnd,
-                GamePhase.TurnEnd => GamePhase.TurnStart, // Next turn
-                GamePhase.GameOver => GamePhase.Menu,
-                GamePhase.Victory => GamePhase.Menu,
-                _ => CurrentPhase
-            };
-        }
-
-        /// <summary>
-        /// Gets the phase to go to when discarding (loops back to CardSelection)
-        /// </summary>
-        public GamePhase GetDiscardPhase()
-        {
-            return GamePhase.CardSelection;
-        }
-
         private static string GetDefaultPhaseDescription(GamePhase phase)
         {
             return phase switch
             {
-                GamePhase.Menu => "Main Menu",
                 GamePhase.GameStart => "Starting Game...",
                 GamePhase.TurnStart => "Turn starting...",
                 GamePhase.CardSelection => "Select cards for your spell",
