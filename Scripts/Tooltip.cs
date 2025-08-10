@@ -41,7 +41,7 @@ public partial class Tooltip : Control
     {
         Scale = new(.9f, .9f);
         Visible = true;
-        AnimationUtils.AnimateScale(this, 1, .2f, Tween.TransitionType.Elastic);
+        this.AnimateScale(1, .2f, Tween.TransitionType.Elastic);
     }
 
     public void HideTooltip()

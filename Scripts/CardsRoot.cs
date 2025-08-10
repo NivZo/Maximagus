@@ -8,6 +8,12 @@ using System.Linq;
 public partial class CardsRoot : Node
 {
     public Card[] Cards => GetChildren().OfType<Card>().ToArray();
+
+    public Card GetCardById(string cardId)
+    {
+        return Cards.FirstOrDefault(c => c.CardId == cardId);
+    }
+
     public Card Create(CardState cardState)
     {
         var exist = Cards.FirstOrDefault(c => c.CardId == cardState.CardId);

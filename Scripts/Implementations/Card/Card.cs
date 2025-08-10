@@ -225,10 +225,16 @@ public partial class Card : Control, IOrderable
                 return;
             }
 
-            if (!_isInteractable || (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging))
+            if (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging)
             {
                 OnHoverEnded();
             }
+
+            if (Scale != Vector2.One && this.GetRunningScaleTween() == null && !_isInteractable)
+            {
+                ResetScale();
+            }
+
         }
         catch (Exception ex)
         {
@@ -542,7 +548,7 @@ public partial class Card : Control, IOrderable
 
     private void OnHoverStarted()
     {
-        AnimationUtils.AnimateScale(this, HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
+        this.AnimateScale(HoverScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
         _tooltip?.ShowTooltip();
     }
 
@@ -565,7 +571,7 @@ public partial class Card : Control, IOrderable
         PivotOffset = Size / 2;
         _textures.PivotOffset = Size / 2;
         
-        AnimationUtils.AnimateScale(this, DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
+        this.AnimateScale(DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
         _lastPosition = GlobalPosition;
         _tooltip?.HideTooltip();
@@ -595,7 +601,7 @@ public partial class Card : Control, IOrderable
 
     private void ResetScale()
     {
-        AnimationUtils.AnimateScale(this, 1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
+        this.AnimateScale(1.0f, ScaleResetDuration, Tween.TransitionType.Elastic);
     }
     #endregion
 

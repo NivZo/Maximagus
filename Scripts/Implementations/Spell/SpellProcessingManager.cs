@@ -7,6 +7,7 @@ using Scripts.State;
 using Maximagus.Scripts.Managers;
 using Scripts.Commands;
 using System;
+using System.Threading;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
@@ -15,12 +16,14 @@ namespace Maximagus.Scripts.Spells.Implementations
         private ILogger _logger;
         private IGameCommandProcessor _commandProcessor;
         private IStatusEffectManager _statusEffectManager;
+        private CardsRoot _cardsRoot;
 
         public SpellProcessingManager()
         {
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
             _statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
+            _cardsRoot = ServiceLocator.GetService<CardsRoot>();
         }
 
         public void ProcessSpell(Action callback)
@@ -39,6 +42,8 @@ namespace Maximagus.Scripts.Spells.Implementations
 
             foreach (var cardState in playedCardStates)
             {
+                var card = _cardsRoot.GetCardById(cardState.CardId);
+                card.AnimateScale(1.4f, 1f, Tween.TransitionType.Elastic);
                 cardState.Resource.Execute(context);
             }
             
