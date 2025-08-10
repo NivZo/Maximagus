@@ -33,7 +33,7 @@ namespace Scripts.Commands.Game
             var currentState = _commandProcessor.CurrentState;
             // Remove the selected cards from hand
             var playedCards = currentState.Hand.Cards.Where(c => c.ContainerType == ContainerType.PlayedCards).Select(c => c.CardId);
-            var newHandState = currentState.Hand.WithRemovedCards(playedCards);
+            var newHandState = currentState.Hand.WithDiscardedCards(playedCards);
 
             // Transition to CardSelection phase (natural end state)
             var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart);

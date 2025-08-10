@@ -42,7 +42,7 @@ namespace Scripts.Commands.Hand
             var selectedCardIds = currentState.Hand.SelectedCards.Select(c => c.CardId);
             var newPlayerState = currentState.Player.WithDiscardUsed();
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
-            var newHandState = currentState.Hand.WithRemovedCards(selectedCardIds);
+            var newHandState = currentState.Hand.WithDiscardedCards(selectedCardIds);
             var newState = currentState
                 .WithPlayer(newPlayerState)
                 .WithPhase(newPhaseState)

@@ -33,7 +33,7 @@ namespace Scripts.State
 
         public int CardsInHandCount => CardsInHand.Count();
 
-        public int PlayedCCount => PlayedCards.Count();
+        public int PlayedCount => PlayedCards.Count();
 
         public int Count => Cards.Count;
 
@@ -44,13 +44,59 @@ namespace Scripts.State
         public HandState WithAddedCard(CardState card)
         {
             if (card == null) throw new ArgumentNullException(nameof(card));
-            if (Count >= MaxHandSize) throw new InvalidOperationException("Hand is at maximum capacity");
+            if (CardsInHandCount >= MaxHandSize) throw new InvalidOperationException("Hand is at maximum capacity");
 
             var newCards = Cards.ToList();
             newCards.Add(card);
             newCards = newCards
                 .Select((c, i) => c.WithPosition(i))
                 .ToList();
+            return new HandState(newCards, MaxHandSize, IsLocked);
+        }
+
+        public HandState WithPlayedCard(string cardId)
+        {
+            if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
+
+            var card = Cards.FirstOrDefault(c => c.CardId == cardId);
+            var newCards = Cards
+                .Select(c => c.CardId == cardId ? c.WithContainerType(ContainerType.PlayedCards) : c)
+                .ToList();
+
+            return new HandState(newCards, MaxHandSize, IsLocked);
+        }
+
+        public HandState WithPlayedCards(IEnumerable<string> cardIds)
+        {
+            if (cardIds == null) throw new ArgumentNullException(nameof(cardIds));
+
+            var newCards = Cards
+                .Select(c => cardIds.Contains(c.CardId) ? c.WithContainerType(ContainerType.PlayedCards) : c)
+                .ToList();
+
+            return new HandState(newCards, MaxHandSize, IsLocked);
+        }
+
+        public HandState WithDiscardedCard(string cardId)
+        {
+            if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
+
+            var card = Cards.FirstOrDefault(c => c.CardId == cardId);
+            var newCards = Cards
+                .Select(c => c.CardId == cardId ? c.WithContainerType(ContainerType.DiscardedCards) : c)
+                .ToList();
+
+            return new HandState(newCards, MaxHandSize, IsLocked);
+        }
+
+        public HandState WithDiscardedCards(IEnumerable<string> cardIds)
+        {
+            if (cardIds == null) throw new ArgumentNullException(nameof(cardIds));
+
+            var newCards = Cards
+                .Select(c => cardIds.Contains(c.CardId) ? c.WithContainerType(ContainerType.DiscardedCards) : c)
+                .ToList();
+
             return new HandState(newCards, MaxHandSize, IsLocked);
         }
 
@@ -157,7 +203,7 @@ namespace Scripts.State
         /// </summary>
         public bool IsValid()
         {
-            var basicValid = Cards.Count <= MaxHandSize &&
+            var basicValid = CardsInHandCount <= MaxHandSize &&
                    Cards.Select(c => c.CardId).Distinct().Count() == Cards.Count;
 
             var draggingCount = Cards.Count(card => card.IsDragging);
@@ -183,6 +229,11 @@ namespace Scripts.State
                 Cards.GetHashCode(),
                 MaxHandSize,
                 IsLocked);
+        }
+
+        internal object Where()
+        {
+            throw new NotImplementedException();
         }
     }
 }

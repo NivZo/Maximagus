@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://wynxvlgqi4fm"]
+
+[ext_resource type="Script" uid="uid://bxaldncpulihx" path="res://Scripts/Implementations/Containers/DiscardedCards.cs" id="1_x55uh"]
+[ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="2_6ef3l"]
+
+[node name="DiscardedCards" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x55uh")
+
+[node name="CardsContainer" parent="." instance=ExtResource("2_6ef3l")]
+layout_mode = 1
+Debug = true

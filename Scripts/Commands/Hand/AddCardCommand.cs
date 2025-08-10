@@ -27,10 +27,7 @@ namespace Scripts.Commands.Hand
         {
             if (_commandProcessor.CurrentState == null) return false;
             if (_spellCardResource == null) return false;
-
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
-
-            if (_commandProcessor.CurrentState.Hand.Count >= _commandProcessor.CurrentState.Hand.MaxHandSize) return false;
 
             return true;
         }
@@ -38,7 +35,7 @@ namespace Scripts.Commands.Hand
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            var position = _position >= 0 ? _position : currentState.Hand.Count;
+            var position = _position >= 0 ? _position : currentState.Hand.CardsInHandCount;
             GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {position}");
 
             var newCardState = new CardState(

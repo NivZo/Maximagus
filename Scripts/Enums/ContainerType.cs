@@ -1,5 +1,6 @@
 public enum ContainerType
 {
     Hand,
-    PlayedCards
+    PlayedCards,
+    DiscardedCards
 }
