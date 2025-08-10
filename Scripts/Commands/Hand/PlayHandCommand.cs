@@ -28,7 +28,8 @@ namespace Scripts.Commands.Hand
 
             if (!_commandProcessor.CurrentState.Player.HasHandsRemaining) return false;
 
-            if (_commandProcessor.CurrentState.Hand.SelectedCount == 0) return false;
+            // Require at least one selected card in Hand
+            if (!_commandProcessor.CurrentState.Cards.SelectedInHand.Any()) return false;
 
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
@@ -39,18 +40,17 @@ namespace Scripts.Commands.Hand
         {
             _logger.LogInfo("[PlayHandCommand] Initiating spell casting with command result...");
 
-            var newHandState = _commandProcessor.CurrentState.Hand;
-            foreach (var card in newHandState.Cards)
-            {
-                if (card.IsSelected)
-                {
-                    newHandState = newHandState.WithUpdatedCard(card.WithContainerType(ContainerType.PlayedCards).WithSelection(false));
-                }
-            }
-            var newPlayerState = _commandProcessor.CurrentState.Player.WithHandUsed();
-            var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.SpellCasting);
-            var newState = _commandProcessor.CurrentState
-                .WithHand(newHandState)
+            var currentState = _commandProcessor.CurrentState;
+
+            // Move selected Hand cards to PlayedCards and clear selection in hand
+            var selectedIds = currentState.Cards.SelectedInHand.Select(c => c.CardId).ToArray();
+            var moved = currentState.Cards.WithMovedToContainer(selectedIds, ContainerType.PlayedCards);
+            var newCards = moved.WithClearedSelectionInHand();
+
+            var newPlayerState = currentState.Player.WithHandUsed();
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellCasting);
+            var newState = currentState
+                .WithCards(newCards)
                 .WithPlayer(newPlayerState)
                 .WithPhase(newPhaseState);
 

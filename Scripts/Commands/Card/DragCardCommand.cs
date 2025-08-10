@@ -21,12 +21,12 @@ namespace Scripts.Commands.Card
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            var cardExists = _commandProcessor.CurrentState.Hand.Cards.Any(card => card.CardId == _cardId);
-            if (!cardExists) return false;
+            var cardExistsInHand = _commandProcessor.CurrentState.Cards.Cards
+                .Any(card => card.CardId == _cardId && card.ContainerType == ContainerType.Hand);
+            if (!cardExistsInHand) return false;
 
-            var anyCardDragging = _commandProcessor.CurrentState.Hand.Cards.Any(card => card.IsDragging);
+            var anyCardDragging = _commandProcessor.CurrentState.Cards.HasDragging;
             if (anyCardDragging) return false;
-
 
             return true;
         }
@@ -37,8 +37,8 @@ namespace Scripts.Commands.Card
             GD.Print($"[StartDragCommand] Starting drag for card {_cardId}");
             
             // Update the specific card to be dragging
-            var newHandState = currentState.Hand.WithCardDragging(_cardId, true);
-            var newState = currentState.WithHand(newHandState);
+            var newCards = currentState.Cards.WithCardDragging(_cardId, true);
+            var newState = currentState.WithCards(newCards);
 
             GD.Print($"[StartDragCommand] Card {_cardId} is now dragging");
 
@@ -62,7 +62,8 @@ namespace Scripts.Commands.Card
             if (string.IsNullOrEmpty(_cardId)) return false;
             
             // Check if the specific card is currently being dragged
-            var cardState = _commandProcessor.CurrentState.Hand.Cards.FirstOrDefault(card => card.CardId == _cardId);
+            var cardState = _commandProcessor.CurrentState.Cards.Cards
+                .FirstOrDefault(card => card.CardId == _cardId);
             return cardState?.IsDragging == true;
         }
 
@@ -71,8 +72,8 @@ namespace Scripts.Commands.Card
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[EndDragCommand] Ending drag for card {_cardId}");
 
-            var newHandState = currentState.Hand.WithCardDragging(_cardId, false);
-            var newState = currentState.WithHand(newHandState);
+            var newCards = currentState.Cards.WithCardDragging(_cardId, false);
+            var newState = currentState.WithCards(newCards);
             
             GD.Print($"[EndDragCommand] Card {_cardId} drag ended");
 

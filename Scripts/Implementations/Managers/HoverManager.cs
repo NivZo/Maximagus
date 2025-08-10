@@ -24,7 +24,7 @@ public class HoverManager : IHoverManager
             return false;
         }
 
-        if (IsHoveringActive && _commandProcessor.CurrentState.Hand.Cards.Any(c => c.CardId == CurrentlyHoveringCard.CardId))
+        if (IsHoveringActive && _commandProcessor.CurrentState.Cards.Cards.Any(c => c.CardId == CurrentlyHoveringCard.CardId))
         {
             _logger.LogWarning($"Cannot start hover for {card.Name}, already hovering {CurrentlyHoveringCard.Name}");
             return false;

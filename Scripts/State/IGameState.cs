@@ -7,7 +7,12 @@ namespace Scripts.State
     public interface IGameStateData
     {
         /// <summary>
-        /// Current state of the player's hand
+        /// Global immutable state of all cards across containers (Hand/Played/Discarded)
+        /// </summary>
+        CardsState Cards { get; }
+
+        /// <summary>
+        /// Player hand settings (size/lock). Does not contain the cards themselves.
         /// </summary>
         HandState Hand { get; }
 
@@ -22,36 +27,33 @@ namespace Scripts.State
         GamePhaseState Phase { get; }
 
         /// <summary>
-        /// Creates a new game state with updated hand state
+        /// Creates a new game state with updated cards state
         /// </summary>
-        /// <param name="newHandState">The new hand state</param>
-        /// <returns>New immutable game state with updated hand</returns>
+        IGameStateData WithCards(CardsState newCardsState);
+
+        /// <summary>
+        /// Creates a new game state with updated hand settings
+        /// </summary>
         IGameStateData WithHand(HandState newHandState);
 
         /// <summary>
         /// Creates a new game state with updated player state
         /// </summary>
-        /// <param name="newPlayerState">The new player state</param>
-        /// <returns>New immutable game state with updated player</returns>
         IGameStateData WithPlayer(PlayerState newPlayerState);
 
         /// <summary>
         /// Creates a new game state with updated phase state
         /// </summary>
-        /// <param name="newPhaseState">The new phase state</param>
-        /// <returns>New immutable game state with updated phase</returns>
         IGameStateData WithPhase(GamePhaseState newPhaseState);
 
         /// <summary>
         /// Validates that the current state is consistent and valid
         /// </summary>
-        /// <returns>True if state is valid, false otherwise</returns>
         bool IsValid();
 
         /// <summary>
         /// Gets a string representation of the current state for debugging
         /// </summary>
-        /// <returns>String summary of the state</returns>
         string ToString();
     }
 }

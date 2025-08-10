@@ -13,7 +13,7 @@ public partial class DiscardedCards : CardContainer
 
 	public override CardState[] GetCardStates(IGameStateData currentState)
 	{
-		return currentState.Hand.Cards.Where(card => card.ContainerType == ContainerType.DiscardedCards).ToArray();
+		return currentState.Cards.DiscardedCards.ToArray();
 	}
 
 	public override void OnCardEnter(Card card)

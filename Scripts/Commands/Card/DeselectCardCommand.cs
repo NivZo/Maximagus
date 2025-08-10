@@ -21,22 +21,15 @@ namespace Scripts.Commands.Card
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
-            {
-                if (card.CardId == _cardId)
-                {
-                    return card.IsSelected;
-                }
-            }
-
-            return false;
+            var card = _commandProcessor.CurrentState.Cards.Cards.FirstOrDefault(c => c.CardId == _cardId);
+            return card != null && card.ContainerType == ContainerType.Hand && card.IsSelected;
         }
 
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            var newHandState = currentState.Hand.WithCardSelection(_cardId, false);
-            var newState = currentState.WithHand(newHandState);
+            var newCards = currentState.Cards.WithCardSelection(_cardId, false);
+            var newState = currentState.WithCards(newCards);
             token.Complete(CommandResult.Success(newState));
         }
 

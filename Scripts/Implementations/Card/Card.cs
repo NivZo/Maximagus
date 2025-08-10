@@ -211,7 +211,7 @@ public partial class Card : Control, IOrderable
     #region State Management
     private CardState GetCardStateFromGameState()
     {
-        return _commandProcessor?.CurrentState?.Hand?.Cards?.FirstOrDefault(c => c.CardId == CardId);
+        return _commandProcessor?.CurrentState?.Cards?.Cards?.FirstOrDefault(c => c.CardId == CardId);
     }
 
     private void SyncWithGameState()
@@ -225,7 +225,7 @@ public partial class Card : Control, IOrderable
                 return;
             }
 
-            if (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging)
+            if (_tooltip.Visible && _commandProcessor.CurrentState.Cards.HasDragging && !_isDragging)
             {
                 OnHoverEnded();
             }
@@ -270,7 +270,7 @@ public partial class Card : Control, IOrderable
     {
         if (!_isInteractable) return;
         
-        if (_commandProcessor.CurrentState.Hand.HasDraggingCard == true) return;
+        if (_commandProcessor.CurrentState.Cards.HasDragging == true) return;
         if (_hoverManager?.StartHover(this) != true) return;
 
         // Visual-only effect: Start hover animations
@@ -281,7 +281,7 @@ public partial class Card : Control, IOrderable
     {
         if (!_isInteractable) return;
         
-        var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
+        var hasDraggingCard = _commandProcessor.CurrentState.Cards.HasDragging == true;
         
         if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard) return;
 
@@ -327,7 +327,7 @@ public partial class Card : Control, IOrderable
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
-        var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
+        var hasDraggingCard = _commandProcessor.CurrentState.Cards.HasDragging == true;
         
         if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard || _isDragging) return;
 
@@ -358,7 +358,7 @@ public partial class Card : Control, IOrderable
         if (!_mousePressed || _isDragging) 
             return;
         
-        if (_commandProcessor.CurrentState.Hand.HasDraggingCard == true)
+        if (_commandProcessor.CurrentState.Cards.HasDragging == true)
             return;
 
         Vector2 currentMousePos = GetGlobalMousePosition();

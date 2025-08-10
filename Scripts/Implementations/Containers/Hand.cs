@@ -11,7 +11,7 @@ public partial class Hand : CardContainer
 
     public override CardState[] GetCardStates(IGameStateData currentState)
     {
-        return currentState.Hand.Cards.Where(card => card.ContainerType == ContainerType.Hand).ToArray();
+        return currentState.Cards.HandCards.ToArray();
     }
 
     public override void OnCardEnter(Card card)

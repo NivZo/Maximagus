@@ -24,30 +24,21 @@ namespace Scripts.Commands.Card
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            var cardExists = false;
-            foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
-            {
-                if (card.CardId == _cardId)
-                {
-                    cardExists = true;
-                    // Card must not already be selected
-                    if (card.IsSelected) return false;
-                    break;
-                }
-            }
+            var card = _commandProcessor.CurrentState.Cards.Cards.FirstOrDefault(c => c.CardId == _cardId);
+            if (card == null) return false;
+            if (card.ContainerType != ContainerType.Hand) return false;
+            if (card.IsSelected) return false;
 
-            return cardExists;
+            return true;
         }
 
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[SelectCardCommand] Selecting card {_cardId} in GameState");
-            
-            // PURE COMMAND SYSTEM: Update only GameState
-            // CardLogic.SyncWithGameState() will handle visual updates automatically
-            var newHandState = currentState.Hand.WithCardSelection(_cardId, true);
-            var newState = currentState.WithHand(newHandState);
+
+            var newCards = currentState.Cards.WithCardSelection(_cardId, true);
+            var newState = currentState.WithCards(newCards);
 
             GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
 

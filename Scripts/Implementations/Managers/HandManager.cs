@@ -15,9 +15,9 @@ namespace Maximagus.Scripts.Managers
         private ILogger _logger;
         private IGameCommandProcessor _commandProcessor;
         
-        public ImmutableArray<SpellCardResource> Cards => _commandProcessor.CurrentState.Hand.Cards.Select(card => card.Resource).ToImmutableArray();
-        public ImmutableArray<SpellCardResource> SelectedCards => _commandProcessor.CurrentState.Hand.Cards.Where(card => card.IsSelected).Select(card => card.Resource).ToImmutableArray();
-        public SpellCardResource DraggingCard => _commandProcessor.CurrentState.Hand.DraggingCard.Resource;
+        public ImmutableArray<SpellCardResource> Cards => _commandProcessor.CurrentState.Cards.HandCards.Select(card => card.Resource).ToImmutableArray();
+        public ImmutableArray<SpellCardResource> SelectedCards => _commandProcessor.CurrentState.Cards.SelectedInHand.Select(card => card.Resource).ToImmutableArray();
+        public SpellCardResource DraggingCard => _commandProcessor.CurrentState.Cards.DraggingInHand?.Resource;
 
         private IGameStateData _currentState => _commandProcessor.CurrentState;
 
@@ -29,7 +29,7 @@ namespace Maximagus.Scripts.Managers
 
         public int GetCardsToDraw()
         {
-            return Math.Max(0, _currentState.Hand.MaxHandSize - _currentState.Hand.Cards.Where(card => card.ContainerType == ContainerType.Hand).Count());
+            return Math.Max(0, _currentState.Hand.MaxHandSize - _currentState.Cards.InHandCount);
         }
 
         public AddCardCommand GetDrawCardCommand()

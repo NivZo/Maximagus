@@ -31,14 +31,14 @@ namespace Scripts.Commands.Game
         {
             // First transition to TurnStart phase (intermediate phase for processing)
             var currentState = _commandProcessor.CurrentState;
-            // Remove the selected cards from hand
-            var playedCards = currentState.Hand.Cards.Where(c => c.ContainerType == ContainerType.PlayedCards).Select(c => c.CardId);
-            var newHandState = currentState.Hand.WithDiscardedCards(playedCards);
+            // Move all played cards to Discarded in centralized CardsState
+            var playedCards = currentState.Cards.PlayedCards.Select(c => c.CardId).ToArray();
+            var newCardsState = currentState.Cards.WithMovedToContainer(playedCards, ContainerType.DiscardedCards);
 
             // Transition to CardSelection phase (natural end state)
             var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart);
             var finalState = _commandProcessor.CurrentState
-                .WithHand(newHandState)
+                .WithCards(newCardsState)
                 .WithPhase(newPhaseState);
 
             _logger?.LogInfo($"[TurnEndCommand] Turn ended - cards played: {playedCards.Count()}, final phase: {finalState.Phase.CurrentPhase}");

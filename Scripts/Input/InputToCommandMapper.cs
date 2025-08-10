@@ -74,11 +74,11 @@ namespace Scripts.Input
 			if (string.IsNullOrEmpty(inputData.CardId)) return null;
 
 			var currentState = _commandProcessor.CurrentState;
-			var isSelected = currentState.Hand.SelectedCards.Select(card => card.CardId).Contains(inputData.CardId);
+			var isSelected = currentState.Cards.SelectedInHand.Select(card => card.CardId).Contains(inputData.CardId);
 			
 			return isSelected
-				? new DeselectCardCommand(inputData.CardId)
-				: new SelectCardCommand(inputData.CardId);
+			    ? new DeselectCardCommand(inputData.CardId)
+			    : new SelectCardCommand(inputData.CardId);
 		}
 
 		private GameCommand HandleKeyPress(InputEventData inputData)

@@ -21,15 +21,10 @@ namespace Scripts.Commands.Hand
         {
             if (_commandProcessor.CurrentState == null) return false;
             if (string.IsNullOrEmpty(_cardId)) return false;
-
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
-            {
-                if (card.CardId == _cardId) return true;
-            }
-
-            return false;
+            // Card must exist
+            return _commandProcessor.CurrentState.Cards.Cards.Any(c => c.CardId == _cardId);
         }
 
         public override void Execute(CommandCompletionToken token)
@@ -37,11 +32,10 @@ namespace Scripts.Commands.Hand
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[RemoveCardCommand] Removing card {_cardId} from GameState");
 
-            // Remove card from hand
-            var newHandState = currentState.Hand.WithRemovedCard(_cardId);
-            var newState = currentState.WithHand(newHandState);
+            var newCards = currentState.Cards.WithRemovedCard(_cardId);
+            var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully. Hand now has {newHandState.Count} cards");
+            GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully");
 
             token.Complete(CommandResult.Success(newState));
         }

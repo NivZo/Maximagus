@@ -234,7 +234,8 @@ public abstract partial class CardContainer : Control
     {
         try
         {
-            var draggingCard = Cards.FirstOrDefault(card => _commandProcessor.CurrentState.Hand.DraggingCard?.CardId == card.CardId);
+            var draggingState = _commandProcessor.CurrentState.Cards.DraggingInHand;
+            var draggingCard = draggingState == null ? null : Cards.FirstOrDefault(card => draggingState.CardId == card.CardId);
             if (draggingCard == null) return;
 
             var targetPositions = Cards.Select((card, index) => (card.TargetPosition, Index: index));

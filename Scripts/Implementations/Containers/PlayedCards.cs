@@ -10,6 +10,6 @@ public partial class PlayedCards : CardContainer
 
 	public override CardState[] GetCardStates(IGameStateData currentState)
 	{
-		return currentState.Hand.Cards.Where(card => card.ContainerType == ContainerType.PlayedCards).ToArray();
+		return currentState.Cards.PlayedCards.ToArray();
 	}
 }

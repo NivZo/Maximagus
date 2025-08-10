@@ -78,11 +78,8 @@ public partial class Main : Control
 	{
 		try
 		{
-			var handState = new HandState(
-				cards: [],
-				maxHandSize: 10,
-				isLocked: false
-			);
+			var handState = new HandState(maxHandSize: 10, isLocked: false);
+			var cardsState = new CardsState();
 			
 			if (!handState.IsValid())
 			{
@@ -103,6 +100,7 @@ public partial class Main : Control
 			}
 			
 			var gameState = GameState.Create(
+				cards: cardsState,
 				hand: handState,
 				player: new PlayerState(),
 				phase: gamePhaseState

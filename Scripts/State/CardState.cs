@@ -15,7 +15,7 @@ namespace Scripts.State
         public bool IsSelected { get; }
         public bool IsDragging { get; }
         public int Position { get; }
-        public ContainerType ContainerType { get; set; }
+        public ContainerType ContainerType { get; }
 
         public SpellCardResource Resource { get; }
 

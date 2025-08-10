@@ -25,8 +25,8 @@ namespace Scripts.Commands.Hand
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection)
                 return false;
 
-            // Must have at least one card selected
-            if (_commandProcessor.CurrentState.Hand.SelectedCount == 0) return false;
+            // Must have at least one card selected in Hand
+            if (!_commandProcessor.CurrentState.Cards.SelectedInHand.Any()) return false;
 
             // Hand must not be locked
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
@@ -39,20 +39,24 @@ namespace Scripts.Commands.Hand
             var currentState = _commandProcessor.CurrentState;
             _logger?.LogInfo("[DiscardHandCommand] Executing discard command...");
 
-            var selectedCardIds = currentState.Hand.SelectedCards.Select(c => c.CardId);
+            var selectedCardIds = currentState.Cards.SelectedInHand.Select(c => c.CardId).ToArray();
+
+            // Move selected hand cards to Discarded, then clear any hand selections
+            var moved = currentState.Cards.WithMovedToContainer(selectedCardIds, ContainerType.DiscardedCards);
+            var newCards = moved.WithClearedSelectionInHand();
+
             var newPlayerState = currentState.Player.WithDiscardUsed();
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);
-            var newHandState = currentState.Hand.WithDiscardedCards(selectedCardIds);
             var newState = currentState
+                .WithCards(newCards)
                 .WithPlayer(newPlayerState)
-                .WithPhase(newPhaseState)
-                .WithHand(newHandState);
+                .WithPhase(newPhaseState);
 
             _logger?.LogInfo($"[DiscardHandCommand] State updated: discards remaining: {newPlayerState.RemainingDiscards}");
 
             // Draw cards to refill hand (side effect handled by HandManager)
             _logger?.LogInfo("[DiscardHandCommand] Drawing cards to refill hand...");
-            var cardsToDraw = selectedCardIds.Count();
+            var cardsToDraw = selectedCardIds.Length;
             var drawCardCommands = new AddCardCommand[cardsToDraw];
             for (int i = 0; i < cardsToDraw; i++)
             {

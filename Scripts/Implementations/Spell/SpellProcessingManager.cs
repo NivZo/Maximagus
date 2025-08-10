@@ -29,29 +29,34 @@ namespace Maximagus.Scripts.Spells.Implementations
         public void ProcessSpell(Action callback)
         {
             var currentState = _commandProcessor.CurrentState;
-            var playedCardStates = currentState.Hand.PlayedCards;
-
-            if (playedCardStates.Count() == 0)
+        
+            // Materialize and lock execution order by Position
+            var playedCardStates = currentState.Cards
+                .PlayedCards?
+                .OrderBy(c => c.Position)
+                .ToArray();
+        
+            if (playedCardStates == null || playedCardStates.Length == 0)
             {
                 _logger.LogError("No played cards found in state");
                 return;
             }
-
+        
             var context = new SpellContext();
             _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);
-
+        
             ExecuteAfter(() =>
             {
-                for (int i = 0; i < playedCardStates.Count(); i++)
+                for (int i = 0; i < playedCardStates.Length; i++)
                 {
-                    var cardState = playedCardStates.ElementAt(i);
+                    var cardState = playedCardStates[i];
                     var card = _cardsRoot.GetCardById(cardState.CardId);
                     var delay = i * CardAnimationDelay;
-
+        
                     ExecuteAfter(() => VisualizeCardExecution(card, context), delay);
                 }
-
-                ExecuteAfter(callback, CardAnimationDelay * playedCardStates.Count() + ClearPlayedHandDelay);
+        
+                ExecuteAfter(callback, CardAnimationDelay * playedCardStates.Length + ClearPlayedHandDelay);
             }, WaitAfterSubmit);
         }
 

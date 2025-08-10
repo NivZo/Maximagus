@@ -3,6 +3,7 @@ using Godot;
 using Maximagus.Scripts.Managers;
 using Maximagus.Scripts.Spells.Abstractions;
 using System;
+using System.Linq;
 
 namespace Scripts.Commands.Hand
 {
@@ -35,8 +36,18 @@ namespace Scripts.Commands.Hand
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            var position = _position >= 0 ? _position : currentState.Hand.CardsInHandCount;
-            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {position}");
+
+            // Determine default position at end of target container when not provided
+            int containerCount = _containerType switch
+            {
+                ContainerType.Hand => currentState.Cards.InHandCount,
+                ContainerType.PlayedCards => currentState.Cards.PlayedCards.Count(),
+                ContainerType.DiscardedCards => currentState.Cards.DiscardedCards.Count(),
+                _ => 0
+            };
+            var position = _position >= 0 ? _position : containerCount;
+
+            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to {_containerType} at position {position}");
 
             var newCardState = new CardState(
                 cardId: Guid.NewGuid().ToString(),
@@ -47,10 +58,10 @@ namespace Scripts.Commands.Hand
                 containerType: _containerType
             );
 
-            var newHandState = currentState.Hand.WithAddedCard(newCardState);
-            var newState = currentState.WithHand(newHandState);
+            var newCards = currentState.Cards.WithAddedCard(newCardState);
+            var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
+            GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to {_containerType} at position {position}");
 
             (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.1f).Timeout += () => token.Complete(CommandResult.Success(newState));
         }

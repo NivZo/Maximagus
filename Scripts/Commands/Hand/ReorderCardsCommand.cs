@@ -27,7 +27,7 @@ namespace Scripts.Commands.Hand
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            var currentCardIds = _commandProcessor.CurrentState.Hand.Cards.Select(c => c.CardId).ToHashSet();
+            var currentCardIds = _commandProcessor.CurrentState.Cards.HandCards.Select(c => c.CardId).ToHashSet();
             var newOrderSet = _newCardOrder.ToHashSet();
 
             if (!newOrderSet.IsSubsetOf(currentCardIds))
@@ -39,34 +39,10 @@ namespace Scripts.Commands.Hand
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            var currentHand = currentState.Hand;
-            var cardDict = currentHand.Cards.ToDictionary(c => c.CardId);
-            
-            // Create new cards with updated positions
-            var reorderedCards = new List<CardState>();
-            
-            for (int i = 0; i < _newCardOrder.Count; i++)
-            {
-                var cardId = _newCardOrder[i];
-                if (cardDict.TryGetValue(cardId, out var card))
-                {
-                    // Update the card's position to match its new index
-                    var updatedCard = card.WithPosition(i);
-                    reorderedCards.Add(updatedCard);
-                }
-            }
-            
-            // Add any cards that weren't in the order list
-            var missingCards = currentHand.Cards.Where(c => !_newCardOrder.Contains(c.CardId));
-            foreach (var missingCard in missingCards)
-            {
-                var updatedCard = missingCard.WithPosition(reorderedCards.Count);
-                reorderedCards.Add(updatedCard);
-            }
-            
-            // Create new hand state with reordered cards that have updated positions
-            var newHandState = new HandState(reorderedCards, currentHand.MaxHandSize, currentHand.IsLocked);
-            var newState = currentState.WithHand(newHandState);
+
+            // Use centralized CardsState to apply the new order to hand cards
+            var newCards = currentState.Cards.WithReorderedHandCards(_newCardOrder);
+            var newState = currentState.WithCards(newCards);
 
             token.Complete(CommandResult.Success(newState));
         }
