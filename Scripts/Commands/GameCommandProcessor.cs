@@ -33,66 +33,70 @@ namespace Scripts.Commands
                 return false;
             }
 
-            if (_isProcessingQueue)
+            lock (_queueLock)
             {
-                _commandQueue.Append(command);
-                return true;
-            }
-
-            try
+                if (_isProcessingQueue)
                 {
-                    lock (_queueLock)
-                    {
-                        _isProcessingQueue = true;
-                        var token = new CommandCompletionToken();
-                        token.Subscribe(OnTokenCompletion);
-                        command.Execute(token);
-                    }
+                    _commandQueue.Enqueue(command);
+                    return true;
+                }
 
+                try
+                {
+                    _isProcessingQueue = true;
+                    var token = new CommandCompletionToken();
+                    token.Subscribe(OnTokenCompletion);
+                    command.Execute(token);
                     return true;
                 }
                 catch (Exception ex)
                 {
+                    _isProcessingQueue = false;
                     _logger.LogError("Exception executing command", ex);
                     return false;
                 }
+            }
         }
 
         private void OnTokenCompletion(CommandResult result)
         {
             lock (_queueLock)
             {
-                var previousState = _currentState;                    
-
-                if (!result.IsSuccess)
+                try
                 {
-                    _logger.LogError($"Command failed: {result.ErrorMessage}");
-                    return;
-                }
+                    var previousState = _currentState;
 
-                if (result.NewState == null)
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogError($"Command failed: {result.ErrorMessage}");
+                        return;
+                    }
+
+                    if (result.NewState == null)
+                    {
+                        _logger.LogError("Command returned null state");
+                        return;
+                    }
+
+                    if (!result.NewState.IsValid())
+                    {
+                        _logger.LogError("Command resulted in invalid state");
+                        return;
+                    }
+
+                    _currentState = result.NewState;
+                    StateChanged?.Invoke(previousState, result.NewState);
+
+                    foreach (var followUpCommand in result.FollowUpCommands)
+                    {
+                        _commandQueue.Enqueue(followUpCommand);
+                    }
+                }
+                finally
                 {
-                    _logger.LogError("Command returned null state");
-                    return;
+                    _isProcessingQueue = false;
+                    ProcessNextQueuedCommand();
                 }
-
-                if (!result.NewState.IsValid())
-                {
-                    _logger.LogError("Command resulted in invalid state");
-                    return;
-                }
-
-                _isProcessingQueue = false;
-                _currentState = result.NewState;
-                StateChanged?.Invoke(previousState, result.NewState);
-
-                foreach (var followUpCommand in result.FollowUpCommands)
-                {
-                    _commandQueue.Enqueue(followUpCommand);
-                }
-
-
-                ProcessNextQueuedCommand();
             }
         }
 

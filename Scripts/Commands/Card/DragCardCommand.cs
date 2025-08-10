@@ -18,17 +18,15 @@ namespace Scripts.Commands.Card
 
         public override bool CanExecute()
         {
-            if (string.IsNullOrEmpty(_cardId)) return false;
-            
-            // Check if card exists in hand
+            if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
+            if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
+
             var cardExists = _commandProcessor.CurrentState.Hand.Cards.Any(card => card.CardId == _cardId);
             if (!cardExists) return false;
 
             var anyCardDragging = _commandProcessor.CurrentState.Hand.Cards.Any(card => card.IsDragging);
             if (anyCardDragging) return false;
-            
-            // Hand must not be locked
-            if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
+
 
             return true;
         }

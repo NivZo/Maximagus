@@ -21,14 +21,9 @@ namespace Scripts.Commands.Card
         public override bool CanExecute()
         {
             if (_commandProcessor.CurrentState == null) return false;
-
-            // Can only select cards during phases that allow player action
-            if (!_commandProcessor.CurrentState.Phase.CanPlayerAct) return false;
-
-            // Hand must not be locked
+            if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            // Card must exist in hand
             var cardExists = false;
             foreach (var card in _commandProcessor.CurrentState.Hand.Cards)
             {

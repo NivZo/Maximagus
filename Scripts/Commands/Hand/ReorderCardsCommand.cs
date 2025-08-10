@@ -24,24 +24,15 @@ namespace Scripts.Commands.Hand
 
         public override bool CanExecute()
         {
-            if (_commandProcessor.CurrentState == null) return false;
-
-            // Can only reorder during phases that allow player action
-            if (!_commandProcessor.CurrentState.Phase.CanPlayerAct) return false;
-
-            // Hand must not be locked
+            if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
             if (_commandProcessor.CurrentState.Hand.IsLocked) return false;
 
-            // All cards in the new order must exist in the current hand
             var currentCardIds = _commandProcessor.CurrentState.Hand.Cards.Select(c => c.CardId).ToHashSet();
             var newOrderSet = _newCardOrder.ToHashSet();
 
-            // Check that all cards in new order exist in current hand
             if (!newOrderSet.IsSubsetOf(currentCardIds))
                 return false;
 
-            // Check that we're not missing any cards (all current cards should be in new order)
-            // Allow partial reordering - cards not in the order will be appended
             return true;
         }
 

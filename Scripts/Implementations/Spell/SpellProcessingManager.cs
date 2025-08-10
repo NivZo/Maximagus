@@ -42,7 +42,7 @@ namespace Maximagus.Scripts.Spells.Implementations
                 cardState.Resource.Execute(context);
             }
             
-            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(2).Timeout += callback;
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(10).Timeout += callback;
         }
     }
 }

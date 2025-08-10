@@ -1,15 +1,19 @@
 using System;
+using System.Linq;
+using Scripts.Commands;
 
 public class HoverManager : IHoverManager
 {
-    public Card CurrentlyHoveringCard { get; private set; }
     private readonly ILogger _logger;
+    private IGameCommandProcessor _commandProcessor;
+    public Card CurrentlyHoveringCard { get; private set; }
     
     public bool IsHoveringActive => CurrentlyHoveringCard != null;
     
     public HoverManager()
     {
         _logger = ServiceLocator.GetService<ILogger>();
+        _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
     }
     
     public bool StartHover(Card card)
@@ -19,8 +23,8 @@ public class HoverManager : IHoverManager
             _logger.LogWarning("Attempted to start hover with null card");
             return false;
         }
-        
-        if (IsHoveringActive)
+
+        if (IsHoveringActive && _commandProcessor.CurrentState.Hand.Cards.Any(c => c.CardId == CurrentlyHoveringCard.CardId))
         {
             _logger.LogWarning($"Cannot start hover for {card.Name}, already hovering {CurrentlyHoveringCard.Name}");
             return false;

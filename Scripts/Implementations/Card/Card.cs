@@ -56,7 +56,7 @@ public partial class Card : Control, IOrderable
     private bool _isSelected => GetCardStateFromGameState()?.IsSelected ?? false;
     private bool _isDragging => GetCardStateFromGameState()?.IsDragging ?? false;
     private bool _isHovering => _hoverManager?.CurrentlyHoveringCard == this;
-    private bool _isInteractable => GetCardStateFromGameState()?.ContainerType == ContainerType.Hand;
+    private bool _isInteractable => GetCardStateFromGameState()?.ContainerType == ContainerType.Hand && _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.CardSelection;
 
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
@@ -264,8 +264,7 @@ public partial class Card : Control, IOrderable
     {
         if (!_isInteractable) return;
         
-        var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
-        if (_hoverManager?.IsHoveringActive == true || hasDraggingCard) return;
+        if (_commandProcessor.CurrentState.Hand.HasDraggingCard == true) return;
         if (_hoverManager?.StartHover(this) != true) return;
 
         // Visual-only effect: Start hover animations

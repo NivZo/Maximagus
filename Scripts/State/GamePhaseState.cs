@@ -23,18 +23,15 @@ namespace Scripts.State
     {
         public GamePhase CurrentPhase { get; }
         public int TurnNumber { get; }
-        public bool CanPlayerAct { get; }
         public string PhaseDescription { get; }
 
         public GamePhaseState(
             GamePhase currentPhase = GamePhase.GameStart,
             int turnNumber = 1,
-            bool canPlayerAct = true,
             string phaseDescription = "")
         {
             CurrentPhase = currentPhase;
             TurnNumber = Math.Max(1, turnNumber);
-            CanPlayerAct = canPlayerAct;
             PhaseDescription = phaseDescription ?? GetDefaultPhaseDescription(currentPhase);
         }
 
@@ -46,7 +43,6 @@ namespace Scripts.State
             return new GamePhaseState(
                 newPhase,
                 TurnNumber,
-                GetDefaultCanPlayerAct(newPhase),
                 GetDefaultPhaseDescription(newPhase));
         }
 
@@ -55,15 +51,7 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithNextTurn()
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber + 1, CanPlayerAct, PhaseDescription);
-        }
-
-        /// <summary>
-        /// Creates a new GamePhaseState with updated player action status
-        /// </summary>
-        public GamePhaseState WithPlayerActionStatus(bool canPlayerAct)
-        {
-            return new GamePhaseState(CurrentPhase, TurnNumber, canPlayerAct, PhaseDescription);
+            return new GamePhaseState(CurrentPhase, TurnNumber + 1, PhaseDescription);
         }
 
         /// <summary>
@@ -71,13 +59,13 @@ namespace Scripts.State
         /// </summary>
         public GamePhaseState WithDescription(string description)
         {
-            return new GamePhaseState(CurrentPhase, TurnNumber, CanPlayerAct, description);
+            return new GamePhaseState(CurrentPhase, TurnNumber, description);
         }
 
         /// <summary>
         /// Checks if the current phase allows card selection (only during CardSelection phase)
         /// </summary>
-        public bool AllowsCardSelection => CurrentPhase == GamePhase.CardSelection && CanPlayerAct;
+        public bool AllowsCardSelection => CurrentPhase == GamePhase.CardSelection;
 
         /// <summary>
         /// Checks if the game is in an active gameplay phase
@@ -135,7 +123,6 @@ namespace Scripts.State
             {
                 return CurrentPhase == other.CurrentPhase &&
                        TurnNumber == other.TurnNumber &&
-                       CanPlayerAct == other.CanPlayerAct &&
                        PhaseDescription == other.PhaseDescription;
             }
             return false;
@@ -143,7 +130,7 @@ namespace Scripts.State
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(CurrentPhase, TurnNumber, CanPlayerAct, PhaseDescription);
+            return HashCode.Combine(CurrentPhase, TurnNumber, PhaseDescription);
         }
     }
 }
