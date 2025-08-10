@@ -35,17 +35,18 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {_position}");
+            var position = _position >= 0 ? _position : currentState.Hand.Count;
+            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to GameState at position {position}");
 
             var newCardState = new CardState(
                 cardId: Guid.NewGuid().ToString(),
                 resource: _spellCardResource,
                 isSelected: false,
                 isDragging: false,
-                position: _position >= 0 ? _position : currentState.Hand.Count,
+                position: position,
                 containerType: _containerType
             );
 
@@ -54,9 +55,7 @@ namespace Scripts.Commands.Hand
 
             GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to GameState at position {newCardState.Position+1} successfully. Hand now has {newHandState.Count} cards");
 
-            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.1f).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
-
-            return CommandResult.Success(newState);
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.1f).Timeout += () => token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription()

@@ -32,7 +32,7 @@ namespace Scripts.Commands.Hand
             return false;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[RemoveCardCommand] Removing card {_cardId} from GameState");
@@ -43,7 +43,7 @@ namespace Scripts.Commands.Hand
 
             GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully. Hand now has {newHandState.Count} cards");
 
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription()

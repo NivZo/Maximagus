@@ -21,7 +21,7 @@ namespace Scripts.Commands.Hand
         public override bool CanExecute()
         {
             if (_commandProcessor.CurrentState.Phase.CurrentPhase != GamePhase.CardSelection) return false;
-            
+
             if (_commandProcessor.CurrentState == null) return false;
 
             if (!_commandProcessor.CurrentState.Phase.AllowsCardSelection) return false;
@@ -35,11 +35,10 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             _logger.LogInfo("[PlayHandCommand] Initiating spell casting with command result...");
 
-            // Pure state computation - no side effects
             var newHandState = _commandProcessor.CurrentState.Hand;
             foreach (var card in newHandState.Cards)
             {
@@ -57,10 +56,8 @@ namespace Scripts.Commands.Hand
 
             _logger.LogInfo($"[PlayHandCommand] Transitioned to SpellCasting phase. Hands remaining: {newPlayerState.RemainingHands}");
 
-            // Follow-up command to handle the actual spell processing
             var followUpCommands = new[] { new SpellCastCommand() };
-
-            return CommandResult.Success(newState, followUpCommands);
+            token.Complete(CommandResult.Success(newState, followUpCommands));
         }
 
         public override string GetDescription()

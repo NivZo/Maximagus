@@ -29,15 +29,14 @@ namespace Scripts.Commands.Game
         }
 
 
-        public override CommandResult ExecuteWithResult()
-        {   
+        public override void Execute(CommandCompletionToken token)
+        {
             _logger?.LogInfo($"[TurnStartCommand] Entered TurnStart phase");
 
             var cardsToDraw = _handManager.GetCardsToDraw();
             var drawCardCommands = new AddCardCommand[cardsToDraw];
             for (int i = 0; i < cardsToDraw; i++)
             {
-                _logger.LogInfo($"[TurnStartCommand] Drawing card {i + 1} of {cardsToDraw}");
                 drawCardCommands[i] = _handManager.GetDrawCardCommand();
             }
 
@@ -52,7 +51,7 @@ namespace Scripts.Commands.Game
 
             _logger?.LogInfo($"[TurnStartCommand] Turn started - cards drawn: {cardsToDraw}, final phase: {finalState.Phase.CurrentPhase}");
 
-            return CommandResult.Success(finalState, drawCardCommands);
+            token.Complete(CommandResult.Success(finalState, drawCardCommands));
         }
     }
 }

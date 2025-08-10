@@ -11,12 +11,10 @@ namespace Scripts.Commands
         protected readonly ILogger _logger;
         protected readonly IGameCommandProcessor _commandProcessor;
         public bool IsBlocking { get; init; } = false;
-        public bool IsQueued { get; init; } = false;
 
-        public GameCommand(bool isBlocking = false, bool isQueued = false)
+        public GameCommand(bool isBlocking = false)
         {
             IsBlocking = isBlocking;
-            IsQueued = isQueued;
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         }
@@ -29,7 +27,7 @@ namespace Scripts.Commands
         /// <summary>
         /// Executes the command and returns a CommandResult with new state and follow-up actions
         /// </summary>
-        public abstract CommandResult ExecuteWithResult();
+        public abstract void Execute(CommandCompletionToken token);
 
         /// <summary>
         /// Gets a description of what this command does

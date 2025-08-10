@@ -1,5 +1,7 @@
 
+using System;
+
 public interface ISpellProcessingManager
 {
-    void ProcessSpell();
+    void ProcessSpell(Action onComplete);
 }

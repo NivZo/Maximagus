@@ -45,7 +45,7 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             var currentHand = currentState.Hand;
@@ -77,7 +77,7 @@ namespace Scripts.Commands.Hand
             var newHandState = new HandState(reorderedCards, currentHand.MaxHandSize, currentHand.IsLocked);
             var newState = currentState.WithHand(newHandState);
 
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription()

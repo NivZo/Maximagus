@@ -34,7 +34,7 @@ namespace Scripts.Commands.Hand
             return true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             _logger?.LogInfo("[DiscardHandCommand] Executing discard command...");
@@ -60,7 +60,8 @@ namespace Scripts.Commands.Hand
                 drawCardCommands[i] = _handManager.GetDrawCardCommand();
             }
 
-            return CommandResult.Success(newState, drawCardCommands);
+            var result = CommandResult.Success(newState, drawCardCommands);
+            token.Complete(result);
         }
 
         public override string GetDescription()

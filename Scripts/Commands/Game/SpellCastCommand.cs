@@ -27,9 +27,8 @@ namespace Scripts.Commands.Game
             return _commandProcessor.CurrentState?.Phase?.CurrentPhase == GamePhase.SpellCasting;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
-            _spellProcessingManager.ProcessSpell();
 
             var currentState = _commandProcessor.CurrentState;
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnEnd);
@@ -37,10 +36,8 @@ namespace Scripts.Commands.Game
                 .WithPhase(newPhaseState);
 
             var followUpCommands = new[] { new TurnEndCommand() };
-
-            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(5).Timeout += _commandProcessor.NotifyBlockingCommandFinished;
-
-            return CommandResult.Success(newState, followUpCommands);
+            var callback = () => token.Complete(CommandResult.Success(newState, followUpCommands));
+            _spellProcessingManager.ProcessSpell(callback);
         }
 
         public override string GetDescription()

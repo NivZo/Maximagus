@@ -6,6 +6,7 @@ using Scripts.Commands;
 using Scripts.Config;
 using System.Linq;
 using System.Collections.Generic;
+using Scripts.State;
 
 public partial class Card : Control, IOrderable
 {
@@ -55,6 +56,7 @@ public partial class Card : Control, IOrderable
     private bool _isSelected => GetCardStateFromGameState()?.IsSelected ?? false;
     private bool _isDragging => GetCardStateFromGameState()?.IsDragging ?? false;
     private bool _isHovering => _hoverManager?.CurrentlyHoveringCard == this;
+    private bool _isInteractable => GetCardStateFromGameState()?.ContainerType == ContainerType.Hand;
 
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
@@ -207,7 +209,7 @@ public partial class Card : Control, IOrderable
     #endregion
 
     #region State Management
-    private Scripts.State.CardState GetCardStateFromGameState()
+    private CardState GetCardStateFromGameState()
     {
         return _commandProcessor?.CurrentState?.Hand?.Cards?.FirstOrDefault(c => c.CardId == CardId);
     }
@@ -223,12 +225,10 @@ public partial class Card : Control, IOrderable
                 return;
             }
 
-            if (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging)
+            if (!_isInteractable || (_tooltip.Visible && _commandProcessor.CurrentState.Hand.HasDraggingCard && !_isDragging))
             {
                 OnHoverEnded();
             }
-
-            // ZIndex = GetCardStateFromGameState()?.Position ?? LayerIndices.Base;
         }
         catch (Exception ex)
         {
@@ -240,6 +240,8 @@ public partial class Card : Control, IOrderable
     #region Input Handling (Non-State Affecting)
     private void OnGuiInput(InputEvent @event)
     {
+        if (!_isInteractable) return;
+
         try
         {
             if (@event is InputEventMouseButton mouseButtonEvent)
@@ -249,7 +251,7 @@ public partial class Card : Control, IOrderable
 
             if (_isDragging) return;
             if (@event is not InputEventMouseMotion mouseMotion) return;
-            
+
             HandleMouseHover(mouseMotion);
         }
         catch (Exception ex)
@@ -260,6 +262,8 @@ public partial class Card : Control, IOrderable
 
     private void OnMouseEntered()
     {
+        if (!_isInteractable) return;
+        
         var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
         if (_hoverManager?.IsHoveringActive == true || hasDraggingCard) return;
         if (_hoverManager?.StartHover(this) != true) return;
@@ -270,6 +274,8 @@ public partial class Card : Control, IOrderable
 
     private void OnMouseExited()
     {
+        if (!_isInteractable) return;
+        
         var hasDraggingCard = _commandProcessor.CurrentState.Hand.HasDraggingCard == true;
         
         if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard) return;

@@ -44,7 +44,7 @@ namespace Scripts.Commands.Card
             return cardExists;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[SelectCardCommand] Selecting card {_cardId} in GameState");
@@ -56,7 +56,7 @@ namespace Scripts.Commands.Card
 
             GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
 
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription()

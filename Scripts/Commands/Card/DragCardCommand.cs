@@ -33,7 +33,7 @@ namespace Scripts.Commands.Card
             return true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[StartDragCommand] Starting drag for card {_cardId}");
@@ -44,7 +44,7 @@ namespace Scripts.Commands.Card
 
             GD.Print($"[StartDragCommand] Card {_cardId} is now dragging");
 
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription() => $"Start dragging card: {_cardId}";
@@ -68,7 +68,7 @@ namespace Scripts.Commands.Card
             return cardState?.IsDragging == true;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[EndDragCommand] Ending drag for card {_cardId}");
@@ -78,7 +78,7 @@ namespace Scripts.Commands.Card
             
             GD.Print($"[EndDragCommand] Card {_cardId} drag ended");
 
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription() => $"End dragging card: {_cardId}";

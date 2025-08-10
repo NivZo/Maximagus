@@ -27,7 +27,7 @@ namespace Scripts.Commands.Game
         }
 
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             // First transition to TurnStart phase (intermediate phase for processing)
             var currentState = _commandProcessor.CurrentState;
@@ -43,7 +43,7 @@ namespace Scripts.Commands.Game
 
             _logger?.LogInfo($"[TurnEndCommand] Turn ended - cards played: {playedCards.Count()}, final phase: {finalState.Phase.CurrentPhase}");
 
-            return CommandResult.Success(finalState, [ new TurnStartCommand() ]);
+            token.Complete(CommandResult.Success(finalState, [ new TurnStartCommand() ]));
         }
     }
 }

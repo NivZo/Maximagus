@@ -32,12 +32,12 @@ namespace Scripts.Commands.Card
             return false;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             var newHandState = currentState.Hand.WithCardSelection(_cardId, false);
             var newState = currentState.WithHand(newHandState);
-            return CommandResult.Success(newState);
+            token.Complete(CommandResult.Success(newState));
         }
 
         public override string GetDescription()

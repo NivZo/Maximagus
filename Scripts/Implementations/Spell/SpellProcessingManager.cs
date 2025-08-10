@@ -6,6 +6,7 @@ using Maximagus.Scripts.Enums;
 using Scripts.State;
 using Maximagus.Scripts.Managers;
 using Scripts.Commands;
+using System;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
@@ -22,7 +23,7 @@ namespace Maximagus.Scripts.Spells.Implementations
             _statusEffectManager = ServiceLocator.GetService<IStatusEffectManager>();
         }
 
-        public void ProcessSpell()
+        public void ProcessSpell(Action callback)
         {
             var currentState = _commandProcessor.CurrentState;
             var playedCardStates = currentState.Hand.PlayedCards;
@@ -40,6 +41,8 @@ namespace Maximagus.Scripts.Spells.Implementations
             {
                 cardState.Resource.Execute(context);
             }
+            
+            (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(2).Timeout += callback;
         }
     }
 }

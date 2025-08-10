@@ -26,8 +26,7 @@ namespace Scripts.Commands
             ErrorMessage = errorMessage;
         }
 
-        public static CommandResult Success(IGameStateData newState,
-                                          IEnumerable<GameCommand> followUpCommands = null)
+        public static CommandResult Success(IGameStateData newState, IEnumerable<GameCommand> followUpCommands = null)
             => new(newState, followUpCommands);
 
         public static CommandResult Failure(string errorMessage)

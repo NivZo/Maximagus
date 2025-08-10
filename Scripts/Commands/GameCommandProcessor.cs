@@ -14,6 +14,7 @@ namespace Scripts.Commands
         private IGameStateData _currentState;
         private readonly Queue<GameCommand> _commandQueue = new();
         private bool _isProcessingQueue = false;
+        private object _queueLock = new();
 
         public GameCommandProcessor()
         {
@@ -26,19 +27,13 @@ namespace Scripts.Commands
 
         public bool ExecuteCommand(GameCommand command)
         {
-            if (command == null)
-            {
-                _logger.LogError("Cannot execute null command");
-                return false;
-            }
-            
             if (!command.CanExecute())
             {
                 _logger.LogWarning($"Command rejected: {command.GetDescription()}");
                 return false;
             }
 
-            if (_isProcessingQueue && command.IsQueued)
+            if (_isProcessingQueue)
             {
                 _commandQueue.Append(command);
                 return true;
@@ -46,44 +41,13 @@ namespace Scripts.Commands
 
             try
                 {
-                    var previousState = _currentState;
-                    var result = command.ExecuteWithResult();
-
-                    if (!result.IsSuccess)
-                    {
-                        _logger.LogError($"Command failed: {result.ErrorMessage}");
-                        return false;
-                    }
-
-                    if (result.NewState == null)
-                    {
-                        _logger.LogError("Command returned null state");
-                        return false;
-                    }
-
-                    if (!result.NewState.IsValid())
-                    {
-                        _logger.LogError("Command resulted in invalid state");
-                        return false;
-                    }
-
-                    _currentState = result.NewState;
-                    StateChanged?.Invoke(previousState, result.NewState);
-
-                    foreach (var followUpCommand in result.FollowUpCommands)
-                    {
-                        _commandQueue.Enqueue(followUpCommand);
-                    }
-
-                    if (command.IsBlocking)
+                    lock (_queueLock)
                     {
                         _isProcessingQueue = true;
+                        var token = new CommandCompletionToken();
+                        token.Subscribe(OnTokenCompletion);
+                        command.Execute(token);
                     }
-                    else
-                    {
-                        ProcessQueuedCommands();
-                    }
-
 
                     return true;
                 }
@@ -92,6 +56,44 @@ namespace Scripts.Commands
                     _logger.LogError("Exception executing command", ex);
                     return false;
                 }
+        }
+
+        private void OnTokenCompletion(CommandResult result)
+        {
+            lock (_queueLock)
+            {
+                var previousState = _currentState;                    
+
+                if (!result.IsSuccess)
+                {
+                    _logger.LogError($"Command failed: {result.ErrorMessage}");
+                    return;
+                }
+
+                if (result.NewState == null)
+                {
+                    _logger.LogError("Command returned null state");
+                    return;
+                }
+
+                if (!result.NewState.IsValid())
+                {
+                    _logger.LogError("Command resulted in invalid state");
+                    return;
+                }
+
+                _isProcessingQueue = false;
+                _currentState = result.NewState;
+                StateChanged?.Invoke(previousState, result.NewState);
+
+                foreach (var followUpCommand in result.FollowUpCommands)
+                {
+                    _commandQueue.Enqueue(followUpCommand);
+                }
+
+
+                ProcessNextQueuedCommand();
+            }
         }
 
         public void SetState(IGameStateData newState)
@@ -112,28 +114,17 @@ namespace Scripts.Commands
         public void NotifyBlockingCommandFinished()
         {
             _isProcessingQueue = false;
-            ProcessQueuedCommands();
+            ProcessNextQueuedCommand();
         }
 
         
-        private void ProcessQueuedCommands()
+        private void ProcessNextQueuedCommand()
         {
             if (_isProcessingQueue) return;
+            if (_commandQueue.Count == 0) return;
 
-            _isProcessingQueue = true;
-            try
-            {
-                GameCommand queuedCommand = null;
-                while (_commandQueue.Count > 0 && queuedCommand?.IsBlocking != true)
-                {
-                    queuedCommand = _commandQueue.Dequeue();
-                    ExecuteCommand(queuedCommand);
-                }
-            }
-            finally
-            {
-                _isProcessingQueue = false;
-            }
+            var queuedCommand = _commandQueue.Dequeue();
+            ExecuteCommand(queuedCommand);
         }
     }
 }

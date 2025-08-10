@@ -13,7 +13,7 @@ namespace Scripts.Commands.Game
             return _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.GameStart;
         }
 
-        public override CommandResult ExecuteWithResult()
+        public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
             GD.Print("[StartGameCommand] Starting game...");
@@ -23,7 +23,7 @@ namespace Scripts.Commands.Game
 
             var followUpCommands = new[] { new TurnStartCommand() };
 
-            return CommandResult.Success(newState, followUpCommands);
+            token.Complete(CommandResult.Success(newState, followUpCommands));
         }
     }
 }
