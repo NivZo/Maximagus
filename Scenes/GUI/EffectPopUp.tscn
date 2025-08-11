@@ -1,0 +1,96 @@
+[gd_scene load_steps=7 format=3 uid="uid://dmiyup5qkn2vb"]
+
+[ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_k6d38"]
+[ext_resource type="Script" uid="uid://m4vjxsv5hbu" path="res://Scripts/EffectPopUp.cs" id="2_30mic"]
+
+[sub_resource type="Curve" id="Curve_30mic"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -5.83367, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_j16rq"]
+curve = SubResource("Curve_30mic")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_30mic"]
+particle_flag_disable_z = true
+angle_min = -20.0
+angle_max = 20.0
+spread = 180.0
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, 0, 0)
+damping_min = 40.0
+damping_max = 60.0
+attractor_interaction_enabled = false
+scale_min = 4.0
+scale_max = 8.0
+scale_curve = SubResource("CurveTexture_j16rq")
+
+[sub_resource type="Theme" id="Theme_bpvxn"]
+
+[node name="EffectPopUp" type="Control"]
+custom_minimum_size = Vector2(144, 90)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -72.0
+offset_top = -45.0
+offset_right = 72.0
+offset_bottom = 45.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_k6d38")
+script = ExtResource("2_30mic")
+
+[node name="Background" type="ColorRect" parent="."]
+self_modulate = Color(1, 1, 1, 0.423529)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = 33.0
+offset_right = -48.0
+offset_bottom = -33.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(24, 12)
+
+[node name="Particles" type="GPUParticles2D" parent="."]
+self_modulate = Color(1, 1, 1, 0.705882)
+position = Vector2(72, 41)
+emitting = false
+amount = 24
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.5
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_30mic")
+
+[node name="ContentLabel" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.167
+anchor_top = 0.278
+anchor_right = 0.833
+anchor_bottom = 0.722
+offset_left = -0.0480022
+offset_top = -1.02
+offset_right = 0.0479889
+offset_bottom = 1.02
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(48, 24)
+theme = SubResource("Theme_bpvxn")
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+bbcode_enabled = true
+text = "+8 [b]Fire[/b]"
+fit_content = true
+scroll_active = false
+shortcut_keys_enabled = false
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true

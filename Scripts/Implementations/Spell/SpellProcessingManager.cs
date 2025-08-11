@@ -10,7 +10,7 @@ namespace Maximagus.Scripts.Spells.Implementations
     {
         private const float WaitAfterSubmit = 2f;
         private const float CardAnimationDuration = 1f;
-        private const float CardAnimationDelay = 2f;
+        private const float CardAnimationDelay = 1.5f;
         private const float ClearPlayedHandDelay = 2f;
 
         private ILogger _logger;
@@ -26,7 +26,7 @@ namespace Maximagus.Scripts.Spells.Implementations
             _cardsRoot = ServiceLocator.GetService<CardsRoot>();
         }
 
-        public void ProcessSpell(Action callback)
+        public void ProcessSpell(Action onFinishCallback)
         {
             var currentState = _commandProcessor.CurrentState;
         
@@ -45,7 +45,7 @@ namespace Maximagus.Scripts.Spells.Implementations
             var context = new SpellContext();
             _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);
         
-            ExecuteAfter(() =>
+            TimerUtils.ExecuteAfter(() =>
             {
                 for (int i = 0; i < playedCardStates.Length; i++)
                 {
@@ -53,10 +53,10 @@ namespace Maximagus.Scripts.Spells.Implementations
                     var card = _cardsRoot.GetCardById(cardState.CardId);
                     var delay = i * CardAnimationDelay;
         
-                    ExecuteAfter(() => VisualizeCardExecution(card, context), delay);
+                    TimerUtils.ExecuteAfter(() => VisualizeCardExecution(card, context), delay);
                 }
         
-                ExecuteAfter(callback, CardAnimationDelay * playedCardStates.Length + ClearPlayedHandDelay);
+                TimerUtils.ExecuteAfter(onFinishCallback, CardAnimationDelay * playedCardStates.Length + ClearPlayedHandDelay);
             }, WaitAfterSubmit);
         }
 
@@ -64,12 +64,7 @@ namespace Maximagus.Scripts.Spells.Implementations
         {
             card.AnimateScale(1.4f, CardAnimationDuration, Tween.TransitionType.Elastic);
             card.Resource.Execute(spellContext);
-        }
-
-        private void ExecuteAfter(Action action, float delay)
-        {
-            var timer = (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(delay);
-            timer.Timeout += action;
+            EffectPopUp.Create(card, new(0, -card.Size.Y * .6f), "+ 2 Fire");
         }
     }
 }

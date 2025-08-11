@@ -45,7 +45,7 @@ namespace Scripts.Commands.Hand
             // Move selected Hand cards to PlayedCards and clear selection in hand
             var selectedIds = currentState.Cards.SelectedInHand.Select(c => c.CardId).ToArray();
             var moved = currentState.Cards.WithMovedToContainer(selectedIds, ContainerType.PlayedCards);
-            var newCards = moved.WithClearedSelectionInHand();
+            var newCards = moved.WithClearedSelection();
 
             var newPlayerState = currentState.Player.WithHandUsed();
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.SpellCasting);

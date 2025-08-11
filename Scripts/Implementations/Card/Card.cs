@@ -22,8 +22,8 @@ public partial class Card : Control, IOrderable
     [ExportGroup("Animation Settings")]
     [Export] public float HoverScale = 1.1f;
     [Export] public float DragScale = 1.3f;
-    [Export] public float ClickAnimationDuration = 1f;
-    [Export] public float HoverAnimationDuration = 0.5f;
+    [Export] public float ClickAnimationDuration = 0.3f;
+    [Export] public float HoverAnimationDuration = 0.3f;
     [Export] public float RotationResetDuration = 0.5f;
     [Export] public float DragRotationResetDuration = 0.3f;
     [Export] public float ScaleResetDuration = 0.55f;

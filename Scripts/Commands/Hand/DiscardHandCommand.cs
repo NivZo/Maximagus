@@ -43,7 +43,7 @@ namespace Scripts.Commands.Hand
 
             // Move selected hand cards to Discarded, then clear any hand selections
             var moved = currentState.Cards.WithMovedToContainer(selectedCardIds, ContainerType.DiscardedCards);
-            var newCards = moved.WithClearedSelectionInHand();
+            var newCards = moved.WithClearedSelection();
 
             var newPlayerState = currentState.Player.WithDiscardUsed();
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.CardSelection);

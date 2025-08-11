@@ -86,9 +86,9 @@ namespace Scripts.State
             return new CardsState(list);
         }
 
-        public CardsState WithClearedSelectionInHand()
+        public CardsState WithClearedSelection()
         {
-            var list = Cards.Select(c => c.ContainerType == ContainerType.Hand ? c.WithSelection(false) : c).ToList();
+            var list = Cards.Select(c => c.WithSelection(false)).ToList();
             return new CardsState(list);
         }
 
