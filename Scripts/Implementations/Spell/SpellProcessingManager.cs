@@ -8,10 +8,10 @@ namespace Maximagus.Scripts.Spells.Implementations
 {
     public partial class SpellProcessingManager : ISpellProcessingManager
     {
-        private const float WaitAfterSubmit = 2f;
-        private const float CardAnimationDuration = 1f;
-        private const float CardAnimationDelay = 1.5f;
-        private const float ClearPlayedHandDelay = 2f;
+        private const float WaitAfterSubmit = 1f;
+        private const float CardAnimationDuration = .75f;
+        private const float CardAnimationDelay = 1f;
+        private const float ClearPlayedHandDelay = 1f;
 
         private ILogger _logger;
         private IGameCommandProcessor _commandProcessor;
@@ -64,7 +64,7 @@ namespace Maximagus.Scripts.Spells.Implementations
         {
             card.AnimateScale(1.4f, CardAnimationDuration, Tween.TransitionType.Elastic);
             card.Resource.Execute(spellContext);
-            EffectPopUp.Create(card, new(0, -card.Size.Y * .6f), "+ 2 Fire");
+            EffectPopUp.Create(card.GetCenter() + new Vector2(0, -card.Size.Y * .8f), "+ 2 Fire");
         }
     }
 }

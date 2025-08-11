@@ -13,20 +13,20 @@ public partial class Card : Control, IOrderable
     private static readonly string CARD_SCENE = "res://Scenes/Card/Card.tscn";
 
     [ExportGroup("Visual Settings")]
-    [Export] public float AngleXMax = 15.0f;
-    [Export] public float AngleYMax = 15.0f;
-    [Export] public float AngleIdleRatio = 0.15f;
+    [Export] public float AngleXMax = 12.0f;
+    [Export] public float AngleYMax = 12.0f;
+    [Export] public float AngleIdleRatio = 0.12f;
     [Export] public float MaxOffsetShadow = 50.0f;
     [Export] public float SelectionVerticalOffset = -64.0f;
 
     [ExportGroup("Animation Settings")]
     [Export] public float HoverScale = 1.1f;
-    [Export] public float DragScale = 1.3f;
-    [Export] public float ClickAnimationDuration = 0.3f;
-    [Export] public float HoverAnimationDuration = 0.3f;
+    [Export] public float DragScale = 1.2f;
+    [Export] public float ClickAnimationDuration = 0.2f;
+    [Export] public float HoverAnimationDuration = 0.8f;
     [Export] public float RotationResetDuration = 0.5f;
     [Export] public float DragRotationResetDuration = 0.3f;
-    [Export] public float ScaleResetDuration = 0.55f;
+    [Export] public float ScaleResetDuration = 0.4f;
     [Export] public float DestroyDuration = 2.0f;
     [Export] public float ShadowFadeDuration = 1.0f;
 
@@ -53,24 +53,25 @@ public partial class Card : Control, IOrderable
     private TextureRect _shadowTexture;
     private Tooltip _tooltip;
 
-    private bool _isSelected => GetCardStateFromGameState()?.IsSelected ?? false;
-    private bool _isDragging => GetCardStateFromGameState()?.IsDragging ?? false;
+    private bool _isSelected => _lastCardState?.IsSelected ?? false;
+    private bool _isDragging => _lastCardState?.IsDragging ?? false;
     private bool _isHovering => _hoverManager?.CurrentlyHoveringCard == this;
-    private bool _isInteractable => GetCardStateFromGameState()?.ContainerType == ContainerType.Hand && _commandProcessor.CurrentState.Phase.CurrentPhase == GamePhase.CardSelection;
+    private bool _isInteractable => _lastCardState?.ContainerType == ContainerType.Hand && _lastGameState.Phase.CurrentPhase == GamePhase.CardSelection;
 
+    private IGameStateData _lastGameState;
+    private CardState _lastCardState;
     private Vector2 _distanceFromMouse;
     private Vector2 _initialMousePosition;
     private bool _mousePressed = false;
-    private const float DRAG_THRESHOLD = GameConfig.DRAG_THRESHOLD;
-
     private bool _requiresPerspectiveReset = false;
     private float _idleAnimationTime = 0;
     private float _angularVelocity = 0f;
     private Vector2 _lastPosition;
     private Vector2 _velocity;
     private Vector2 _shadowBasePosition;
-    private readonly Dictionary<string, Tween> _propertyTweens = new();
 
+    private const float DRAG_THRESHOLD = GameConfig.DRAG_THRESHOLD;
+    private readonly Dictionary<string, Tween> _propertyTweens = new();
     private const string SHADER_X_ROT_PROPERTY = "shader_x_rot";
     private const string SHADER_Y_ROT_PROPERTY = "shader_y_rot";
 
@@ -102,7 +103,6 @@ public partial class Card : Control, IOrderable
         {
             if (!Visible) return;
             
-            SyncWithGameState();
             HandleMovementToTarget((float)delta);
             UpdateVisualEffects((float)delta);
             
@@ -137,6 +137,7 @@ public partial class Card : Control, IOrderable
         _logger = ServiceLocator.GetService<ILogger>();
         _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+        _commandProcessor.StateChanged += (_, newState) => SyncWithGameState(newState);
     }
 
     private void InitializeComponents()
@@ -204,28 +205,29 @@ public partial class Card : Control, IOrderable
     {
         Resource = spellCardResource;
         _artTexture.Texture = spellCardResource.CardArt;
-        _tooltip = Tooltip.Create(this, new(0, -Size.Y), spellCardResource.CardName, spellCardResource.CardDescription);
+        _tooltip = Tooltip.Create(() => TargetPosition + new Vector2(-Size.X/2, -Size.Y*1.5f), spellCardResource.CardName, spellCardResource.CardDescription);
     }
     #endregion
 
     #region State Management
-    private CardState GetCardStateFromGameState()
+    private void SetCardStateFromGameState()
     {
-        return _commandProcessor?.CurrentState?.Cards?.Cards?.FirstOrDefault(c => c.CardId == CardId);
+        _lastCardState = _lastGameState?.Cards?.Cards?.FirstOrDefault(c => c.CardId == CardId);
     }
 
-    private void SyncWithGameState()
+    private void SyncWithGameState(IGameStateData newState)
     {
         try
         {
-            var cardState = GetCardStateFromGameState();
-            if (cardState == null)
+            _lastGameState = newState;
+            SetCardStateFromGameState();
+            if (_lastCardState == null)
             {
                 QueueFree();
                 return;
             }
 
-            if (_tooltip.Visible && _commandProcessor.CurrentState.Cards.HasDragging && !_isDragging)
+            if (_tooltip.Visible && newState.Cards.HasDragging && !_isDragging)
             {
                 OnHoverEnded();
             }
@@ -270,7 +272,7 @@ public partial class Card : Control, IOrderable
     {
         if (!_isInteractable) return;
         
-        if (_commandProcessor.CurrentState.Cards.HasDragging == true) return;
+        if (_lastGameState.Cards.HasDragging == true) return;
         if (_hoverManager?.StartHover(this) != true) return;
 
         // Visual-only effect: Start hover animations
@@ -281,7 +283,7 @@ public partial class Card : Control, IOrderable
     {
         if (!_isInteractable) return;
         
-        var hasDraggingCard = _commandProcessor.CurrentState.Cards.HasDragging == true;
+        var hasDraggingCard = _lastGameState.Cards.HasDragging == true;
         
         if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard) return;
 
@@ -327,7 +329,7 @@ public partial class Card : Control, IOrderable
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
-        var hasDraggingCard = _commandProcessor.CurrentState.Cards.HasDragging == true;
+        var hasDraggingCard = _lastGameState.Cards.HasDragging == true;
         
         if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard || _isDragging) return;
 
@@ -339,7 +341,7 @@ public partial class Card : Control, IOrderable
     #region Game Commands (State Affecting)
     private void HandleClick()
     {
-        var isSelected = GetCardStateFromGameState()?.IsSelected ?? false;
+        var isSelected = _lastCardState?.IsSelected ?? false;
         GameCommand command;
         if (isSelected)
         {
@@ -358,7 +360,7 @@ public partial class Card : Control, IOrderable
         if (!_mousePressed || _isDragging) 
             return;
         
-        if (_commandProcessor.CurrentState.Cards.HasDragging == true)
+        if (_lastGameState.Cards.HasDragging == true)
             return;
 
         Vector2 currentMousePos = GetGlobalMousePosition();
@@ -556,7 +558,7 @@ public partial class Card : Control, IOrderable
     {
         if (_isDragging) return;
 
-        ZIndex = GetCardStateFromGameState()?.Position ?? LayerIndices.Base;
+        ZIndex = _lastCardState?.Position ?? LayerIndices.Base;
         ResetPerspective();
         ResetScale();
         _tooltip?.HideTooltip();

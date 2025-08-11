@@ -21,11 +21,11 @@ public partial class EffectPopUp : Control
         _contentLabel = GetNode<RichTextLabel>("ContentLabel");
     }
 
-    public static EffectPopUp Create(Control parent, Vector2 offset, string content)
+    public static EffectPopUp Create(Vector2 globalPosition, string content)
     {
         var effectPopUp = GD.Load<PackedScene>(SCENE_PATH).Instantiate<EffectPopUp>();
-        parent.AddChild(effectPopUp);
-        effectPopUp.GlobalPosition = parent.GetCenter() + offset - effectPopUp.Size / 2f;
+        ServiceLocator.GetService<CardsRoot>().AddChild(effectPopUp);
+        effectPopUp.GlobalPosition = globalPosition - effectPopUp.Size / 2f;
         effectPopUp.GetNode<RichTextLabel>("ContentLabel").Text = content;
         effectPopUp.Visible = false;
 
@@ -41,12 +41,12 @@ public partial class EffectPopUp : Control
         _particles.Emitting = true;
         _bg.Rotation = (GD.Randf() * 2 - 1) * Mathf.Pi * .1f;
 
-        this.AnimateScale(1, .2f, Tween.TransitionType.Elastic);
+        this.AnimateScale(1, .3f, Tween.TransitionType.Elastic);
         TimerUtils.ExecuteAfter(HideEffectPopUp, DisplayDuration);
     }
 
     public void HideEffectPopUp()
     {
-        this.AnimateScale(0, .2f, Tween.TransitionType.Elastic).Finished += QueueFree;
+        this.AnimateScale(0, .3f, Tween.TransitionType.Cubic).Finished += QueueFree;
     }
 }

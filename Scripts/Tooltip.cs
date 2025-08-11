@@ -11,6 +11,7 @@ public partial class Tooltip : Control
     private RichTextLabel _contentLabel;
     private TextureRect _middle;
     private TextureRect _bottom;
+    private Func<Vector2> _getPosition;
 
     private const int CONTENT_FONT_SIZE = 12;
 
@@ -24,24 +25,39 @@ public partial class Tooltip : Control
         _bottom = GetNode<TextureRect>("TooltipBottom");
     }
 
-    public static Tooltip Create(Control parent, Vector2 offset, string title, string content)
+    public static Tooltip Create(Func<Vector2> getPosition, string title, string content)
     {
         var tooltip = GD.Load<PackedScene>(SCENE_PATH).Instantiate<Tooltip>();
-        parent.AddChild(tooltip);
-        tooltip.GlobalPosition = parent.GetCenter() + offset - tooltip.Size / 2f;
+        ServiceLocator.GetService<CardsRoot>().AddChild(tooltip);
         tooltip.GetNode<RichTextLabel>("TooltipTop/TitleLabel").Text = title;
         tooltip.GetNode<RichTextLabel>("ContentLabel").Text = content;
         tooltip.FitHeight();
         tooltip.Visible = false;
+        tooltip._getPosition = getPosition;
 
         return tooltip;
     }
 
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        if (Visible)
+        {
+            GlobalPosition = _getPosition();
+        }
+    }
+
     public void ShowTooltip()
     {
-        Scale = new(.9f, .9f);
-        Visible = true;
-        this.AnimateScale(1, .2f, Tween.TransitionType.Elastic);
+        GlobalPosition = _getPosition();
+
+        if (!Visible)
+        {
+            Scale = new(.9f, .9f);
+            Visible = true;
+            this.AnimateScale(1, .2f, Tween.TransitionType.Elastic);
+        }
+
     }
 
     public void HideTooltip()

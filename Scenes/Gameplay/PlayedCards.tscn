@@ -16,4 +16,3 @@ CardsRotationMultiplier = 0.0
 
 [node name="CardsContainer" parent="." instance=ExtResource("2_57f1u")]
 layout_mode = 1
-Debug = true
