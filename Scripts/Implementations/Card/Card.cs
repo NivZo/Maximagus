@@ -23,7 +23,7 @@ public partial class Card : Control, IOrderable
     [Export] public float HoverScale = 1.1f;
     [Export] public float DragScale = 1.2f;
     [Export] public float ClickAnimationDuration = 0.2f;
-    [Export] public float HoverAnimationDuration = 0.8f;
+    [Export] public float HoverAnimationDuration = 0.5f;
     [Export] public float RotationResetDuration = 0.5f;
     [Export] public float DragRotationResetDuration = 0.3f;
     [Export] public float ScaleResetDuration = 0.4f;
@@ -33,7 +33,7 @@ public partial class Card : Control, IOrderable
     [ExportGroup("Movement Physics")]
     [Export(PropertyHint.Range, "0, 100, 1")] public float MoveSpeedFactor = 5f;
     [Export(PropertyHint.Range, "0, 100, 1")] public float DragMoveSpeedFactor = 8f;
-    
+
     [ExportGroup("Sway Physics")]
     [Export(PropertyHint.Range, "0, 500, 1")] public float Stiffness { get; set; } = 150f;
     [Export(PropertyHint.Range, "0, 50, 0.1")] public float Damping { get; set; } = 10f;
@@ -41,7 +41,6 @@ public partial class Card : Control, IOrderable
     [Export(PropertyHint.Range, "0, 90, 1")] public float MaxRotationDegrees { get; set; } = 15f;
 
     private ILogger _logger;
-    private IHoverManager _hoverManager;
     private IGameCommandProcessor _commandProcessor;
 
     public string CardId { get; private set; }
@@ -55,7 +54,7 @@ public partial class Card : Control, IOrderable
 
     private bool _isSelected => _lastCardState?.IsSelected ?? false;
     private bool _isDragging => _lastCardState?.IsDragging ?? false;
-    private bool _isHovering => _hoverManager?.CurrentlyHoveringCard == this;
+    private bool _isHovering => _lastCardState?.IsHovering ?? false;
     private bool _isInteractable => _lastCardState?.ContainerType == ContainerType.Hand && _lastGameState.Phase.CurrentPhase == GamePhase.CardSelection;
 
     private IGameStateData _lastGameState;
@@ -89,6 +88,7 @@ public partial class Card : Control, IOrderable
             SetupEventHandlers();
             SetupVisualSettings();
             SetupCardResource(Resource);
+            SyncWithGameState(_commandProcessor.CurrentState);
         }
         catch (Exception ex)
         {
@@ -102,10 +102,10 @@ public partial class Card : Control, IOrderable
         try
         {
             if (!Visible) return;
-            
+
             HandleMovementToTarget((float)delta);
             UpdateVisualEffects((float)delta);
-            
+
             if (_mousePressed && !_isDragging)
             {
                 CheckDragThreshold();
@@ -135,7 +135,6 @@ public partial class Card : Control, IOrderable
     private void SetupServices()
     {
         _logger = ServiceLocator.GetService<ILogger>();
-        _hoverManager = ServiceLocator.GetService<IHoverManager>();
         _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         _commandProcessor.StateChanged += (_, newState) => SyncWithGameState(newState);
     }
@@ -165,7 +164,7 @@ public partial class Card : Control, IOrderable
         _idleAnimationTime += (float)new Random().NextDouble() * 20 - 10;
         AngleXMax = Mathf.DegToRad(AngleXMax);
         AngleYMax = Mathf.DegToRad(AngleYMax);
-        
+
         PivotOffset = Size / 2;
         _textures.PivotOffset = Size / 2;
     }
@@ -205,7 +204,7 @@ public partial class Card : Control, IOrderable
     {
         Resource = spellCardResource;
         _artTexture.Texture = spellCardResource.CardArt;
-        _tooltip = Tooltip.Create(() => TargetPosition + new Vector2(-Size.X/2, -Size.Y*1.5f), spellCardResource.CardName, spellCardResource.CardDescription);
+        _tooltip = Tooltip.Create(() => TargetPosition + new Vector2(-Size.X / 2, -Size.Y * 1.5f), spellCardResource.CardName, spellCardResource.CardDescription);
     }
     #endregion
 
@@ -223,24 +222,13 @@ public partial class Card : Control, IOrderable
             SetCardStateFromGameState();
             if (_lastCardState == null)
             {
-                QueueFree();
+                Destroy();
                 return;
             }
-
-            if (_tooltip.Visible && newState.Cards.HasDragging && !_isDragging)
-            {
-                OnHoverEnded();
-            }
-
-            if (Scale != Vector2.One && this.GetRunningScaleTween() == null && !_isInteractable)
-            {
-                ResetScale();
-            }
-
         }
         catch (Exception ex)
         {
-            _logger?.LogError($"Error syncing with GameState: {ex.Message}", ex);
+            _logger?.LogError($"Error syncing {CardId} with GameState: {ex.Message}", ex);
         }
     }
     #endregion
@@ -271,25 +259,24 @@ public partial class Card : Control, IOrderable
     private void OnMouseEntered()
     {
         if (!_isInteractable) return;
-        
-        if (_lastGameState.Cards.HasDragging == true) return;
-        if (_hoverManager?.StartHover(this) != true) return;
 
-        // Visual-only effect: Start hover animations
+        if (_lastGameState.Cards.HasDragging == true) return;
+        var success = _commandProcessor.ExecuteCommand(new StartHoverCommand(CardId));
+        if (!success) return;
+
         OnHoverStarted();
     }
 
     private void OnMouseExited()
     {
         if (!_isInteractable) return;
-        
+
         var hasDraggingCard = _lastGameState.Cards.HasDragging == true;
-        
-        if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard) return;
 
-        _hoverManager?.EndHover(this);
+        if ((_lastCardState?.IsHovering != true) || hasDraggingCard) return;
 
-        // Visual-only effect: End hover animations
+        _commandProcessor.ExecuteCommand(new EndHoverCommand(CardId));
+
         OnHoverEnded();
     }
 
@@ -323,15 +310,15 @@ public partial class Card : Control, IOrderable
         {
             HandleClick();
         }
-        
+
         _mousePressed = false;
     }
 
     private void HandleMouseHover(InputEventMouseMotion mouseMotion)
     {
         var hasDraggingCard = _lastGameState.Cards.HasDragging == true;
-        
-        if (_hoverManager?.CurrentlyHoveringCard != this || hasDraggingCard || _isDragging) return;
+
+        if ((_lastCardState?.IsHovering != true) || hasDraggingCard || _isDragging) return;
 
         var localPosition = mouseMotion.Position;
         OnMouseMoved(localPosition);
@@ -351,21 +338,21 @@ public partial class Card : Control, IOrderable
         {
             command = new SelectCardCommand(CardId);
         }
-        
+
         _commandProcessor.ExecuteCommand(command);
     }
 
     private void CheckDragThreshold()
     {
-        if (!_mousePressed || _isDragging) 
+        if (!_mousePressed || _isDragging)
             return;
-        
+
         if (_lastGameState.Cards.HasDragging == true)
             return;
 
         Vector2 currentMousePos = GetGlobalMousePosition();
         float distance = _initialMousePosition.DistanceTo(currentMousePos);
-        
+
         if (distance > DRAG_THRESHOLD)
         {
             _distanceFromMouse = currentMousePos - this.GetCenter();
@@ -377,7 +364,7 @@ public partial class Card : Control, IOrderable
     {
         var command = new StartDragCommand(CardId);
         var success = _commandProcessor.ExecuteCommand(command);
-        
+
         if (success)
         {
             OnDragStarted();
@@ -388,7 +375,7 @@ public partial class Card : Control, IOrderable
     {
         var command = new EndDragCommand(CardId);
         var success = _commandProcessor.ExecuteCommand(command);
-        
+
         if (success)
         {
             OnDragEnded();
@@ -407,7 +394,7 @@ public partial class Card : Control, IOrderable
         var currentCenter = this.GetCenter();
         var offset = Size / 2 * (Vector2.One - Scale);
         var targetCenter = GetTargetCenter() + offset;
-        
+
         if (currentCenter != targetCenter)
         {
             float lerpSpeed = _isDragging ? DragMoveSpeedFactor : MoveSpeedFactor;
@@ -449,7 +436,7 @@ public partial class Card : Control, IOrderable
                 _logger?.LogError($"Error accessing SelectionVerticalOffset: {ex.Message}", ex);
             }
         }
-        
+
         // TargetPosition is now set directly by OrderedContainer
         var targetCenter = TargetPosition + offset;
         return targetCenter;
@@ -495,7 +482,7 @@ public partial class Card : Control, IOrderable
     {
         if (_isHovering && !_isDragging) return;
         if (_requiresPerspectiveReset) return;
-        
+
         float sine = Mathf.Sin(_idleAnimationTime);
         float cosine = Mathf.Cos(_idleAnimationTime) - 1;
         float rotX = Mathf.RadToDeg(Mathf.LerpAngle(0, AngleXMax * AngleIdleRatio, sine)) - AngleXMax * AngleIdleRatio * .5f;
@@ -568,11 +555,11 @@ public partial class Card : Control, IOrderable
     {
         KillAllTweens();
         ResetPerspective();
-        
+
         // Update pivot offset to center for scaling
         PivotOffset = Size / 2;
         _textures.PivotOffset = Size / 2;
-        
+
         this.AnimateScale(DragScale, HoverAnimationDuration, Tween.TransitionType.Elastic);
 
         _lastPosition = GlobalPosition;
@@ -597,7 +584,7 @@ public partial class Card : Control, IOrderable
             _requiresPerspectiveReset = true;
             xRotTween.Finished += () => _requiresPerspectiveReset = false;
         }
-        
+
         SetupPerspectiveRectSize();
     }
 
@@ -624,7 +611,8 @@ public partial class Card : Control, IOrderable
         _propertyTweens[propertyKey] = newTween;
 
         // Set up cleanup when tween finishes
-        newTween.Finished += () => {
+        newTween.Finished += () =>
+        {
             if (_propertyTweens.ContainsKey(propertyKey) && _propertyTweens[propertyKey] == newTween)
             {
                 _propertyTweens.Remove(propertyKey);
@@ -658,4 +646,10 @@ public partial class Card : Control, IOrderable
         _propertyTweens.Clear();
     }
     #endregion
+
+    private void Destroy()
+    {
+        if (IsInstanceValid(_tooltip) && (!_tooltip?.IsQueuedForDeletion() ?? false)) _tooltip.QueueFree();
+        if (IsInstanceValid(this) && !IsQueuedForDeletion()) QueueFree();
+    }
 }

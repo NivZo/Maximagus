@@ -188,3 +188,17 @@ The card system now has a clean, simplified architecture:
 - **State-driven**: All card behavior driven by game state changes
 
 No more intermediate CardSlot component - the architecture is now more direct and maintainable.
+## 2025-08-12 — Hover state migrated to GameState
+
+- Hover is now tracked in CardState (IsHovering) and managed via CardsState helpers.
+- Added hover commands: StartHoverCommand and EndHoverCommand for pure state updates.
+- Card input now dispatches hover commands; visuals react to state.
+- Start drag clears hover to avoid inconsistent states.
+- Removed HoverManager usage and registration; excluded deprecated files from build.
+
+Files:
+- State model: [Scripts/State/CardState.cs](Scripts/State/CardState.cs), [Scripts/State/CardsState.cs](Scripts/State/CardsState.cs)
+- Commands: [Scripts/Commands/Card/HoverCardCommand.cs](Scripts/Commands/Card/HoverCardCommand.cs), [Scripts/Commands/Card/DragCardCommand.cs](Scripts/Commands/Card/DragCardCommand.cs)
+- Card behavior: [Scripts/Implementations/Card/Card.cs](Scripts/Implementations/Card/Card.cs)
+- Service registration cleanup: [Scripts/Implementations/Infra/ServiceLocator.cs](Scripts/Implementations/Infra/ServiceLocator.cs)
+- Build excludes (safe to delete deprecated files): [Maximagus.csproj](Maximagus.csproj)

@@ -23,7 +23,6 @@ public static class ServiceLocator
         // Script services
         RegisterService<ILogger, GodotLogger>();
         RegisterService<IEventBus, SimpleEventBus>();
-        RegisterService<IHoverManager, HoverManager>();
         RegisterService<IHandManager, HandManager>();
         RegisterService<IStatusEffectManager, StatusEffectManager>();
         RegisterService<ISpellProcessingManager, SpellProcessingManager>();

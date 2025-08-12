@@ -53,9 +53,9 @@ public partial class Tooltip : Control
 
         if (!Visible)
         {
-            Scale = new(.9f, .9f);
+            // Scale = new(.4f, .4f);
             Visible = true;
-            this.AnimateScale(1, .2f, Tween.TransitionType.Elastic);
+            // this.AnimateScale(1, .4f, Tween.TransitionType.Elastic);
         }
 
     }

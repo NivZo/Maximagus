@@ -29,6 +29,9 @@ namespace Scripts.State
         public CardState DraggingInHand => HandCards.FirstOrDefault(c => c.IsDragging);
         public bool HasDragging => Cards.Any(c => c.IsDragging);
 
+        public CardState HoveringInHand => HandCards.FirstOrDefault(c => c.IsHovering);
+        public bool HasHovering => Cards.Any(c => c.IsHovering);
+        
         // Mutations (immutable - return new instance)
         public CardsState WithAddedCard(CardState card)
         {
@@ -81,8 +84,21 @@ namespace Scripts.State
         public CardsState WithCardDragging(string cardId, bool isDragging)
         {
             if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
-
+        
             var list = Cards.Select(c => c.CardId == cardId ? c.WithDrag(isDragging) : c).ToList();
+            return new CardsState(list);
+        }
+
+        public CardsState WithCardHovering(string cardId, bool isHovering)
+        {
+            if (string.IsNullOrEmpty(cardId)) throw new ArgumentNullException(nameof(cardId));
+
+            var list = Cards.Select(c =>
+                c.CardId == cardId
+                    ? c.WithHover(isHovering)
+                    : (isHovering ? c.WithHover(false) : c)
+            ).ToList();
+
             return new CardsState(list);
         }
 
@@ -163,9 +179,11 @@ namespace Scripts.State
                 var draggingCount = Cards.Count(c => c.IsDragging);
                 if (draggingCount > 1) return false;
 
-                // Card IDs must be unique
+                var hoveringCount = Cards.Count(c => c.IsHovering);
+                if (hoveringCount > 1) return false;
+        
                 if (Cards.Select(c => c.CardId).Distinct().Count() != Cards.Count) return false;
-
+        
                 return true;
             }
             catch

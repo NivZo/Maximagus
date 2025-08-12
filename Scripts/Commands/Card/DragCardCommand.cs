@@ -36,8 +36,10 @@ namespace Scripts.Commands.Card
             var currentState = _commandProcessor.CurrentState;
             GD.Print($"[StartDragCommand] Starting drag for card {_cardId}");
             
-            // Update the specific card to be dragging
-            var newCards = currentState.Cards.WithCardDragging(_cardId, true);
+            // Clear hover state and set dragging
+            var newCards = currentState.Cards
+                .WithCardHovering(_cardId, false)
+                .WithCardDragging(_cardId, true);
             var newState = currentState.WithCards(newCards);
 
             GD.Print($"[StartDragCommand] Card {_cardId} is now dragging");
