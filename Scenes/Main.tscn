@@ -4,11 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://ckavg7gkrawa" path="res://Scripts/Parallax.cs" id="3_rgh2o"]
 [ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
-[ext_resource type="PackedScene" uid="uid://b5mg28jbg6a0" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
+[ext_resource type="PackedScene" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
 [ext_resource type="Texture2D" uid="uid://blklk0m08hgfi" path="res://Assets/Art/HealthbarFrame.png" id="6_v1gob"]
 [ext_resource type="Script" uid="uid://cl6w5qjdwe1yn" path="res://Scripts/CardsRoot.cs" id="7_jw32o"]
-[ext_resource type="PackedScene" uid="uid://wynxvlgqi4fm" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
+[ext_resource type="PackedScene" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")

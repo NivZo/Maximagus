@@ -15,7 +15,7 @@ public partial class Card : Control, IOrderable
     [ExportGroup("Visual Settings")]
     [Export] public float AngleXMax = 12.0f;
     [Export] public float AngleYMax = 12.0f;
-    [Export] public float AngleIdleRatio = 0.12f;
+    [Export] public float AngleIdleRatio = 0.6f;
     [Export] public float MaxOffsetShadow = 50.0f;
     [Export] public float SelectionVerticalOffset = -64.0f;
 
