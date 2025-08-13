@@ -102,6 +102,12 @@ namespace Scripts.State
             return new CardsState(list);
         }
 
+        public CardsState WithClearedHover()
+        {
+            var list = Cards.Select(c => c.WithHover(false)).ToList();
+            return new CardsState(list);
+        }
+
         public CardsState WithClearedSelection()
         {
             var list = Cards.Select(c => c.WithSelection(false)).ToList();

@@ -225,6 +225,11 @@ public partial class Card : Control, IOrderable
                 Destroy();
                 return;
             }
+
+            if (_tooltip?.Visible == true && !_isHovering)
+            {
+                OnHoverEnded();
+            }
         }
         catch (Exception ex)
         {
