@@ -3,7 +3,7 @@ using Godot;
 public partial class EffectPopUp : Control
 {
     private const string SCENE_PATH = "res://Scenes/GUI/EffectPopUp.tscn";
-    private const float DisplayDuration = 1f;
+    private const float DisplayDuration = .5f;
 
     private RichTextLabel _contentLabel;
     private ColorRect _bg;
@@ -18,15 +18,20 @@ public partial class EffectPopUp : Control
 
         _bg = GetNode<ColorRect>("Background");
         _particles = GetNode<GpuParticles2D>("Particles");
+        _particles.Lifetime = DisplayDuration;
         _contentLabel = GetNode<RichTextLabel>("ContentLabel");
     }
 
-    public static EffectPopUp Create(Vector2 globalPosition, string content)
+    public static EffectPopUp Create(Vector2 globalPosition, string content, Color color)
     {
         var effectPopUp = GD.Load<PackedScene>(SCENE_PATH).Instantiate<EffectPopUp>();
         ServiceLocator.GetService<CardsRoot>().AddChild(effectPopUp);
         effectPopUp.GlobalPosition = globalPosition - effectPopUp.Size / 2f;
-        effectPopUp.GetNode<RichTextLabel>("ContentLabel").Text = content;
+
+        var label = effectPopUp.GetNode<RichTextLabel>("ContentLabel");
+        label.Text = content;
+        label.Modulate = color;
+        effectPopUp._particles.Modulate = color;
         effectPopUp.Visible = false;
 
         effectPopUp.ShowEffectPopUp();

@@ -12,7 +12,23 @@ namespace Maximagus.Resources.Definitions.Actions
         [Export] public bool IsConsumedOnUse { get; set; }
         [Export] public Array<SpellModifierCondition> SpellModifierConditions { get; set; }
         [Export] public ModifierType ModifierType { get; set; }
+        [Export] public DamageType Element { get; set; }
         [Export] public float Value { get; set; }
+
+        public override string GetPopUpEffectText(SpellContext context) => ModifierType switch
+        {
+            ModifierType.Add => $"+{Value}",
+            ModifierType.Multiply => $"x{Value}",
+            ModifierType.Set => $"={Value}",
+            _ => string.Empty
+        };
+        public override Color PopUpEffectColor => Element switch
+        {
+            DamageType.Fire => new Color(1, 0.5f, 0),
+            DamageType.Frost => new Color(0, 0.5f, 1),
+            DamageType.PerChill => new Color(0, 0.5f, 1),
+            _ => new Color(1, 1, 1)
+        };
 
         public override void Execute(SpellContext context)
         {

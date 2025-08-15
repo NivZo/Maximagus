@@ -40,6 +40,21 @@ namespace Maximagus.Scripts.Spells.Implementations
             ActiveModifiers.Add(modifier);
         }
 
+        public float ApplyDamageModifiersWithoutConsuming(DamageActionResource damageAction)
+        {
+            float modifiedDamage = damageAction.GetRawDamage();
+
+            foreach (var modifier in ActiveModifiers)
+            {
+                if (modifier.CanApply(damageAction))
+                {
+                    modifiedDamage = modifier.Apply(modifiedDamage);
+                }
+            }
+
+            return modifiedDamage;
+        }
+
         public float ApplyDamageModifiers(DamageActionResource damageAction)
         {
             float modifiedDamage = damageAction.GetRawDamage();

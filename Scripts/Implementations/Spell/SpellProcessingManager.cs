@@ -3,6 +3,8 @@ using System.Linq;
 using Maximagus.Scripts.Enums;
 using Scripts.Commands;
 using System;
+using Scripts.State;
+using Maximagus.Resources.Definitions.Actions;
 
 namespace Maximagus.Scripts.Spells.Implementations
 {
@@ -42,29 +44,36 @@ namespace Maximagus.Scripts.Spells.Implementations
                 return;
             }
         
-            var context = new SpellContext();
-            _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);
-        
+
+
             TimerUtils.ExecuteAfter(() =>
             {
-                for (int i = 0; i < playedCardStates.Length; i++)
+                var context = new SpellContext();
+                _statusEffectManager.TriggerEffects(StatusEffectTrigger.OnSpellCast);
+
+                var actions = playedCardStates
+                    .SelectMany<CardState, (Card Card, ActionResource Action)>(state => state.Resource.Actions.Select(action => (_cardsRoot.GetCardById(state.CardId), action)))
+                    .ToArray();
+
+                var cardPositions = actions.DistinctBy(action => action.Card).ToDictionary(action => action.Card, action => action.Card.GetCenter() - new Vector2(0, .8f * action.Card.Size.Y));
+
+                for (int i = 0; i < actions.Length; i++)
                 {
-                    var cardState = playedCardStates[i];
-                    var card = _cardsRoot.GetCardById(cardState.CardId);
+                    var (card, action) = actions[i];
                     var delay = i * CardAnimationDelay;
-        
-                    TimerUtils.ExecuteAfter(() => VisualizeCardExecution(card, context), delay);
+
+                    TimerUtils.ExecuteAfter(() => VisualizeCardExecution(card, action, cardPositions[card], context), delay);
                 }
         
-                TimerUtils.ExecuteAfter(onFinishCallback, CardAnimationDelay * playedCardStates.Length + ClearPlayedHandDelay);
+                TimerUtils.ExecuteAfter(onFinishCallback, CardAnimationDelay * actions.Length + ClearPlayedHandDelay);
             }, WaitAfterSubmit);
         }
 
-        private void VisualizeCardExecution(Card card, SpellContext spellContext)
+        private void VisualizeCardExecution(Card card, ActionResource action, Vector2 position, SpellContext spellContext)
         {
             card.AnimateScale(1.4f, CardAnimationDuration, Tween.TransitionType.Elastic);
+            EffectPopUp.Create(position, action.GetPopUpEffectText(spellContext) , action.PopUpEffectColor);
             card.Resource.Execute(spellContext);
-            EffectPopUp.Create(card.GetCenter() + new Vector2(0, -card.Size.Y * .8f), "+ 2 Fire");
         }
     }
 }

@@ -11,6 +11,15 @@ namespace Maximagus.Resources.Definitions.Actions
         [Export] public DamageType DamageType { get; set; }
         [Export] public int Amount { get; set; }
 
+        public override string GetPopUpEffectText(SpellContext context) => $"-{context.ApplyDamageModifiersWithoutConsuming(this)}";
+        public override Color PopUpEffectColor => DamageType switch
+        {
+            DamageType.Fire => new Color(1, 0.5f, 0),
+            DamageType.Frost => new Color(0, 0.5f, 1),
+            DamageType.PerChill => new Color(0, 0.5f, 1),
+            _ => new Color(1, 1, 1)
+        };
+
         public override void Execute(SpellContext context)
         {
             var finalDamage = context.ApplyDamageModifiers(this);
