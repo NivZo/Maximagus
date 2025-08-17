@@ -12,7 +12,7 @@ namespace Maximagus.Scripts.Spells.Implementations
     {
         private const float WaitAfterSubmit = 1f;
         private const float CardAnimationDuration = .75f;
-        private const float CardAnimationDelay = 1f;
+        private const float CardAnimationDelay = 1.5f;
         private const float ClearPlayedHandDelay = 1f;
 
         private ILogger _logger;
@@ -72,8 +72,10 @@ namespace Maximagus.Scripts.Spells.Implementations
         private void VisualizeCardExecution(Card card, ActionResource action, Vector2 position, SpellContext spellContext)
         {
             card.AnimateScale(1.4f, CardAnimationDuration, Tween.TransitionType.Elastic);
-            EffectPopUp.Create(position, action.GetPopUpEffectText(spellContext) , action.PopUpEffectColor);
+            EffectPopUp.Create(position, action.GetPopUpEffectText(spellContext), action.PopUpEffectColor);
             card.Resource.Execute(spellContext);
+
+            TimerUtils.ExecuteAfter(() => card.AnimateScale(1, CardAnimationDuration/2f, Tween.TransitionType.Back), CardAnimationDuration + .2f);
         }
     }
 }
