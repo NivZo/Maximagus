@@ -15,4 +15,3 @@ script = ExtResource("1_3p1lq")
 
 [node name="CardsContainer" parent="." instance=ExtResource("3_fkehq")]
 layout_mode = 1
-Debug = true

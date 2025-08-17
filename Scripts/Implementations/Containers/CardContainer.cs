@@ -155,20 +155,26 @@ public abstract partial class CardContainer : Control
         {
             var currentCards = Cards.ToArray();
 
-            var desiredOrder = orderedStateCards
+            var desiredOrderMapping = orderedStateCards
                 .Select((card, index) => new { card.CardId, DesiredIndex = index })
                 .ToDictionary(x => x.CardId, x => x.DesiredIndex);
 
             for (int i = 0; i < _cardsContainer.Count; i++)
             {
                 var card = _cardsContainer[i] as Card;
-                var desiredIndex = desiredOrder.GetValueOrDefault(card?.CardId, _cardsContainer.Count);
+                var desiredIndex = desiredOrderMapping.GetValueOrDefault(card?.CardId, _cardsContainer.Count);
                 if (desiredIndex != i)
                 {
                     _cardsContainer.MoveElement(i, desiredIndex);
-                    _cardsRoot.MoveChild(card, desiredIndex);
                     card.ZIndex = desiredIndex;
                 }
+            }
+
+            var orderedCards = currentCards.Select((card, i) => (Card: card, Index: i)).OrderBy(indexedCard => desiredOrderMapping[indexedCard.Card.CardId]);
+
+            foreach (var indexedCard in orderedCards)
+            {
+                _cardsRoot.MoveChild(indexedCard.Card, indexedCard.Index);
             }
         }
         catch (Exception ex)
