@@ -1,14 +1,15 @@
-[gd_scene load_steps=11 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=12 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://dloaehlse2xt8" path="res://Scripts/Main.cs" id="1_rgh2o"]
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://ckavg7gkrawa" path="res://Scripts/Parallax.cs" id="3_rgh2o"]
 [ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
-[ext_resource type="PackedScene" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
+[ext_resource type="PackedScene" uid="uid://b5mg28jbg6a0" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
 [ext_resource type="Texture2D" uid="uid://blklk0m08hgfi" path="res://Assets/Art/HealthbarFrame.png" id="6_v1gob"]
 [ext_resource type="Script" uid="uid://cl6w5qjdwe1yn" path="res://Scripts/CardsRoot.cs" id="7_jw32o"]
-[ext_resource type="PackedScene" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
+[ext_resource type="PackedScene" uid="uid://wynxvlgqi4fm" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
+[ext_resource type="Texture2D" uid="uid://dy6hdmfv4qef1" path="res://Assets/Art/BorderDot.png" id="10_bmxlf"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
@@ -71,11 +72,11 @@ stretch_mode = 1
 
 [node name="PlayedCards" parent="." instance=ExtResource("4_jw32o")]
 layout_mode = 1
-offset_left = 216.0
+offset_left = 320.0
 offset_top = 320.0
-offset_right = -216.0
+offset_right = -320.0
 offset_bottom = -264.0
-pivot_offset = Vector2(360, 32)
+pivot_offset = Vector2(256, 32)
 
 [node name="Hand" parent="." instance=ExtResource("3_kln2b")]
 layout_mode = 1
@@ -84,12 +85,11 @@ anchor_left = 0.444
 anchor_top = 0.889148
 anchor_right = 0.556
 anchor_bottom = 0.987765
-offset_left = -319.488
-offset_top = -0.16803
-offset_right = 319.488
-offset_bottom = -0.0720215
-pivot_offset = Vector2(384, 32)
-metadata/_edit_use_anchors_ = true
+offset_left = -255.488
+offset_top = -0.167908
+offset_right = 255.488
+offset_bottom = -0.0717163
+pivot_offset = Vector2(320, 32)
 
 [node name="Shaders" type="CanvasLayer" parent="."]
 
@@ -109,11 +109,12 @@ anchor_left = 0.5
 anchor_top = 0.025
 anchor_right = 0.5
 anchor_bottom = 0.21
-offset_left = -410.0
+offset_left = -320.0
 offset_top = -0.200001
-offset_right = 410.0
+offset_right = 320.0
 offset_bottom = -0.0800018
 texture = ExtResource("6_v1gob")
+expand_mode = 1
 
 [node name="CardsRoot" type="Node" parent="."]
 script = ExtResource("7_jw32o")
@@ -129,3 +130,186 @@ offset_left = 423.096
 offset_top = -30.696
 offset_right = 542.096
 offset_bottom = 30.304
+
+[node name="Borders" type="Node" parent="."]
+
+[node name="VLL" type="ColorRect" parent="Borders"]
+offset_left = 4.0
+offset_top = 12.0
+offset_right = 8.0
+offset_bottom = 636.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="VLR" type="ColorRect" parent="Borders"]
+offset_left = 192.0
+offset_top = 12.0
+offset_right = 196.0
+offset_bottom = 636.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="VRL" type="ColorRect" parent="Borders"]
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -196.0
+offset_top = 12.0
+offset_right = -192.0
+offset_bottom = 636.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="VRR" type="ColorRect" parent="Borders"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -8.0
+offset_top = 12.0
+offset_right = -4.0
+offset_bottom = 636.0
+grow_horizontal = 0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HLTop" type="ColorRect" parent="Borders"]
+offset_left = 12.0
+offset_top = 4.0
+offset_right = 188.0
+offset_bottom = 8.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HLMiddle" type="ColorRect" parent="Borders"]
+offset_left = 12.0
+offset_top = 252.0
+offset_right = 188.0
+offset_bottom = 256.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HLBottom" type="ColorRect" parent="Borders"]
+offset_left = 12.0
+offset_top = 640.0
+offset_right = 188.0
+offset_bottom = 644.0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HMTop" type="ColorRect" parent="Borders"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 200.0
+offset_top = 4.0
+offset_right = -200.0
+offset_bottom = 8.0
+grow_horizontal = 2
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HMBottom" type="ColorRect" parent="Borders"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 200.0
+offset_top = 640.0
+offset_right = -200.0
+offset_bottom = 644.0
+grow_horizontal = 2
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HRTop" type="ColorRect" parent="Borders"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -188.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = 8.0
+grow_horizontal = 0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HRMiddle" type="ColorRect" parent="Borders"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -188.0
+offset_top = 252.0
+offset_right = -12.0
+offset_bottom = 256.0
+grow_horizontal = 0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="HRBottom" type="ColorRect" parent="Borders"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -188.0
+offset_top = 640.0
+offset_right = -12.0
+offset_bottom = 644.0
+grow_horizontal = 0
+color = Color(0.85098, 0.835294, 0.756863, 1)
+
+[node name="DLTop" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+offset_right = 12.0
+offset_bottom = 12.0
+texture = ExtResource("10_bmxlf")
+
+[node name="DL2Top" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+offset_left = 188.0
+offset_right = 200.0
+offset_bottom = 12.0
+texture = ExtResource("10_bmxlf")
+
+[node name="DLBottom" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+offset_top = 636.0
+offset_right = 12.0
+offset_bottom = 648.0
+texture = ExtResource("10_bmxlf")
+
+[node name="DL2Bottom" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+offset_left = 188.0
+offset_top = 636.0
+offset_right = 200.0
+offset_bottom = 648.0
+texture = ExtResource("10_bmxlf")
+
+[node name="DRTop" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_right = -188.0
+offset_bottom = 12.0
+grow_horizontal = 0
+texture = ExtResource("10_bmxlf")
+
+[node name="DR2Top" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -12.0
+offset_bottom = 12.0
+grow_horizontal = 0
+texture = ExtResource("10_bmxlf")
+
+[node name="DRBottom" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 636.0
+offset_right = -188.0
+offset_bottom = 648.0
+grow_horizontal = 0
+texture = ExtResource("10_bmxlf")
+
+[node name="DR2Bottom" type="TextureRect" parent="Borders"]
+self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -12.0
+offset_top = 636.0
+offset_bottom = 648.0
+grow_horizontal = 0
+texture = ExtResource("10_bmxlf")

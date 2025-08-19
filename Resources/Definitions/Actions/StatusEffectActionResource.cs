@@ -17,7 +17,7 @@ namespace Maximagus.Resources.Definitions.Actions
         {
             StatusEffectActionType.Add => $"+{Stacks} {StatusEffect.EffectType}",
             StatusEffectActionType.Multiply => $"x{Stacks} {StatusEffect.EffectType}",
-            StatusEffectActionType.Set => $"-{ServiceLocator.GetService<IStatusEffectManager>().GetStacksOfEffect(StatusEffect.EffectType)} {StatusEffect.EffectType}",
+            StatusEffectActionType.Set => $"{StatusEffect.EffectType} Removed",
             _ => string.Empty
         };
         public override Color PopUpEffectColor => StatusEffect.EffectType switch
