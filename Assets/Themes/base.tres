@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=3 format=3 uid="uid://bky1darji2kb4"]
 
-[ext_resource type="FontFile" uid="uid://ck34cg1c1kj02" path="res://Assets/Fonts/Adventurer.ttf" id="1_x1wxt"]
+[ext_resource type="FontFile" uid="uid://bk36g5hjdkns7" path="res://Assets/Fonts/8bitlim.ttf" id="1_x1wxt"]
 
 [sub_resource type="FontVariation" id="FontVariation_x1wxt"]
 base_font = ExtResource("1_x1wxt")
