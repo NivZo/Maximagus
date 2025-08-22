@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=13 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://dloaehlse2xt8" path="res://Scripts/Main.cs" id="1_rgh2o"]
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
@@ -6,10 +6,11 @@
 [ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
 [ext_resource type="PackedScene" uid="uid://b5mg28jbg6a0" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
-[ext_resource type="Texture2D" uid="uid://blklk0m08hgfi" path="res://Assets/Art/HealthbarFrame.png" id="6_v1gob"]
 [ext_resource type="Script" uid="uid://cl6w5qjdwe1yn" path="res://Scripts/CardsRoot.cs" id="7_jw32o"]
 [ext_resource type="PackedScene" uid="uid://wynxvlgqi4fm" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
 [ext_resource type="Texture2D" uid="uid://dy6hdmfv4qef1" path="res://Assets/Art/BorderDot.png" id="10_bmxlf"]
+[ext_resource type="PackedScene" uid="uid://ddemmax8jnlg2" path="res://Scenes/GUI/RedrawIndicator.tscn" id="11_4kpch"]
+[ext_resource type="PackedScene" uid="uid://bi4qgf8t5dit4" path="res://Scenes/GUI/EnergyIndicator.tscn" id="12_grg3l"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
@@ -45,7 +46,17 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_rgh2o")
 
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.117469, 0.10341, 0.0929488, 1)
+
 [node name="Parallax" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -102,20 +113,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Healthbar" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.025
-anchor_right = 0.5
-anchor_bottom = 0.21
-offset_left = -320.0
-offset_top = -0.200001
-offset_right = 320.0
-offset_bottom = -0.0800018
-texture = ExtResource("6_v1gob")
-expand_mode = 1
-
 [node name="CardsRoot" type="Node" parent="."]
 script = ExtResource("7_jw32o")
 
@@ -141,20 +138,21 @@ offset_bottom = 636.0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="VLR" type="ColorRect" parent="Borders"]
-offset_left = 192.0
+offset_left = 224.0
 offset_top = 12.0
-offset_right = 196.0
+offset_right = 228.0
 offset_bottom = 636.0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="VRL" type="ColorRect" parent="Borders"]
-anchors_preset = -1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -196.0
+offset_left = -228.0
 offset_top = 12.0
-offset_right = -192.0
+offset_right = -224.0
 offset_bottom = 636.0
+grow_horizontal = 0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="VRR" type="ColorRect" parent="Borders"]
@@ -171,30 +169,30 @@ color = Color(0.85098, 0.835294, 0.756863, 1)
 [node name="HLTop" type="ColorRect" parent="Borders"]
 offset_left = 12.0
 offset_top = 4.0
-offset_right = 188.0
+offset_right = 220.0
 offset_bottom = 8.0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="HLMiddle" type="ColorRect" parent="Borders"]
 offset_left = 12.0
-offset_top = 252.0
-offset_right = 188.0
-offset_bottom = 256.0
+offset_top = 440.0
+offset_right = 220.0
+offset_bottom = 444.0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="HLBottom" type="ColorRect" parent="Borders"]
 offset_left = 12.0
 offset_top = 640.0
-offset_right = 188.0
+offset_right = 220.0
 offset_bottom = 644.0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
 [node name="HMTop" type="ColorRect" parent="Borders"]
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 200.0
+offset_left = 232.0
 offset_top = 4.0
-offset_right = -200.0
+offset_right = -232.0
 offset_bottom = 8.0
 grow_horizontal = 2
 color = Color(0.85098, 0.835294, 0.756863, 1)
@@ -202,9 +200,9 @@ color = Color(0.85098, 0.835294, 0.756863, 1)
 [node name="HMBottom" type="ColorRect" parent="Borders"]
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 200.0
+offset_left = 232.0
 offset_top = 640.0
-offset_right = -200.0
+offset_right = -232.0
 offset_bottom = 644.0
 grow_horizontal = 2
 color = Color(0.85098, 0.835294, 0.756863, 1)
@@ -213,7 +211,7 @@ color = Color(0.85098, 0.835294, 0.756863, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -188.0
+offset_left = -220.0
 offset_top = 4.0
 offset_right = -12.0
 offset_bottom = 8.0
@@ -224,10 +222,10 @@ color = Color(0.85098, 0.835294, 0.756863, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -188.0
-offset_top = 252.0
+offset_left = -220.0
+offset_top = 440.0
 offset_right = -12.0
-offset_bottom = 256.0
+offset_bottom = 444.0
 grow_horizontal = 0
 color = Color(0.85098, 0.835294, 0.756863, 1)
 
@@ -235,7 +233,7 @@ color = Color(0.85098, 0.835294, 0.756863, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -188.0
+offset_left = -220.0
 offset_top = 640.0
 offset_right = -12.0
 offset_bottom = 644.0
@@ -250,8 +248,8 @@ texture = ExtResource("10_bmxlf")
 
 [node name="DL2Top" type="TextureRect" parent="Borders"]
 self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
-offset_left = 188.0
-offset_right = 200.0
+offset_left = 220.0
+offset_right = 232.0
 offset_bottom = 12.0
 texture = ExtResource("10_bmxlf")
 
@@ -264,9 +262,9 @@ texture = ExtResource("10_bmxlf")
 
 [node name="DL2Bottom" type="TextureRect" parent="Borders"]
 self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
-offset_left = 188.0
+offset_left = 220.0
 offset_top = 636.0
-offset_right = 200.0
+offset_right = 232.0
 offset_bottom = 648.0
 texture = ExtResource("10_bmxlf")
 
@@ -275,8 +273,8 @@ self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
-offset_right = -188.0
+offset_left = -232.0
+offset_right = -220.0
 offset_bottom = 12.0
 grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
@@ -296,9 +294,9 @@ self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
+offset_left = -232.0
 offset_top = 636.0
-offset_right = -188.0
+offset_right = -220.0
 offset_bottom = 648.0
 grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
@@ -313,3 +311,17 @@ offset_top = 636.0
 offset_bottom = 648.0
 grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
+
+[node name="RedrawIndicator" parent="." instance=ExtResource("11_4kpch")]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 576.0
+offset_right = 16.0
+offset_bottom = 576.0
+
+[node name="EnergyIndicator" parent="." instance=ExtResource("12_grg3l")]
+layout_mode = 1
+offset_left = 128.0
+offset_top = 576.0
+offset_right = 128.448
+offset_bottom = 575.824

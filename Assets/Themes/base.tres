@@ -9,7 +9,5 @@ spacing_glyph = 1
 
 [resource]
 RichTextLabel/colors/default_color = Color(1, 1, 1, 1)
-RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 1)
-RichTextLabel/constants/outline_size = 4
 RichTextLabel/fonts/bold_font = SubResource("FontVariation_x1wxt")
 RichTextLabel/fonts/normal_font = ExtResource("1_x1wxt")

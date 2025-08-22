@@ -167,6 +167,9 @@ public partial class Card : Control, IOrderable
 
         PivotOffset = Size / 2;
         _textures.PivotOffset = Size / 2;
+
+        var front = _textures.GetNode<TextureRect>("Card/Front");
+        front.SelfModulate = Resource.Actions.First().PopUpEffectColor;
     }
 
     #endregion

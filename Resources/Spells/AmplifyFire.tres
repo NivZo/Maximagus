@@ -9,6 +9,7 @@ script = ExtResource("1_eiung")
 IsConsumedOnUse = true
 SpellModifierConditions = Array[int]([0])
 ModifierType = 1
+Element = 1
 Value = 2.0
 metadata/_custom_type_script = "uid://cxk5lpt8xky65"
 
