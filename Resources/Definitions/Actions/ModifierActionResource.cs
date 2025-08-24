@@ -28,48 +28,13 @@ namespace Maximagus.Resources.Definitions.Actions
 
         public override string GetPopUpEffectText(IGameStateData gameState)
         {
-            try
+            return ModifierType switch
             {
-                // Get the base modifier text
-                var baseText = ModifierType switch
-                {
-                    ModifierType.Add => $"+{Value}",
-                    ModifierType.Multiply => $"x{Value}",
-                    ModifierType.Set => $"={Value}",
-                    _ => string.Empty
-                };
-                
-                // For consumable modifiers, we could enhance the display to show if it was consumed
-                // But for now, modifiers are added to the spell state and the popup shows the modifier value
-                // The consumption happens later when damage actions are executed
-                
-                // Try to get snapshot information to see if this modifier was added successfully
-                var snapshot = SnapshotLookupHelper.TryGetSnapshotForAction(gameState, ActionId, "ModifierActionResource");
-                
-                if (snapshot != null)
-                {
-                    // We could check if the modifier was successfully added by comparing
-                    // the modifier count before and after, but for now just show the base text
-                    GD.Print($"[ModifierActionResource] Using snapshot for modifier popup: {baseText} (action: {ActionId})");
-                    return baseText;
-                }
-                
-                GD.Print($"[ModifierActionResource] Using base text for modifier popup: {baseText} (action: {ActionId})");
-                return baseText;
-            }
-            catch (Exception ex)
-            {
-                GD.Print($"[ModifierActionResource] Error getting popup text: {ex.Message}");
-                
-                // Fallback to simple display
-                return ModifierType switch
-                {
-                    ModifierType.Add => $"+{Value}",
-                    ModifierType.Multiply => $"x{Value}",
-                    ModifierType.Set => $"={Value}",
-                    _ => string.Empty
-                };
-            }
+                ModifierType.Add => $"+{Value}",
+                ModifierType.Multiply => $"x{Value}",
+                ModifierType.Set => $"={Value}",
+                _ => string.Empty
+            };
         }
 
         public override Color PopUpEffectColor => Element switch
