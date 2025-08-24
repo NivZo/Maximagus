@@ -14,6 +14,8 @@ namespace Maximagus.Scripts.Managers
     {        
         private ILogger _logger;
         private IGameCommandProcessor _commandProcessor;
+
+        private Deck _deck;
         
         public ImmutableArray<SpellCardResource> Cards => _commandProcessor.CurrentState.Cards.HandCards.Select(card => card.Resource).ToImmutableArray();
         public ImmutableArray<SpellCardResource> SelectedCards => _commandProcessor.CurrentState.Cards.SelectedInHand.Select(card => card.Resource).ToImmutableArray();
@@ -25,6 +27,8 @@ namespace Maximagus.Scripts.Managers
         {
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+
+            _deck = new Deck(20);
         }
 
         public int GetCardsToDraw()
@@ -34,8 +38,7 @@ namespace Maximagus.Scripts.Managers
 
         public AddCardCommand GetDrawCardCommand()
         {
-            var deck = new Deck();
-            var resource = deck.GetNext();
+            var resource = _deck.GetNext();
             var command = new AddCardCommand(resource, ContainerType.Hand);
             return command;
         }

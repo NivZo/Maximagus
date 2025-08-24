@@ -1,7 +1,9 @@
 using Godot;
 using Godot.Collections;
 using Maximagus.Resources.Definitions.Actions;
-using Maximagus.Scripts.Spells.Implementations;
+using Scripts.Commands;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Maximagus.Scripts.Spells.Abstractions
 {
@@ -15,12 +17,9 @@ namespace Maximagus.Scripts.Spells.Abstractions
 
         [Export] public Array<ActionResource> Actions { get; set; }
 
-        public void Execute(SpellContext context)
+        public IEnumerable<GameCommand> CreateExecutionCommands(string cardId)
         {
-            foreach (var action in Actions)
-            {
-                action.Execute(context);
-            }
+            return Actions.Select(action => action.CreateExecutionCommand(cardId));
         }
     }
 }

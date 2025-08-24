@@ -38,8 +38,8 @@ namespace Maximagus.Scripts.Enums
     public enum StatusEffectActionType
     {
         Add,
-        Multiply,
         Set,
+        Remove,
     }
 
     public enum SpellModifierCondition

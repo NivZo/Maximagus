@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using Maximagus.Scripts.Spells.Abstractions;
+using System.Linq;
 
 namespace Maximagus.Scripts.Managers
 {
@@ -11,8 +12,9 @@ namespace Maximagus.Scripts.Managers
     {
         // Remove static instance since we'll use ServiceLocator instead
 
-        private readonly Dictionary<string, SpellCardResource> _spellCardResources = new();
+        private SpellCardResource[] _spellCardResources;
         private readonly ILogger _logger;
+        private int _currentIndex = 0;
 
         public ResourceManager()
         {
@@ -31,81 +33,73 @@ namespace Maximagus.Scripts.Managers
                 "res://Resources/Spells/FrostShards.tres",
                 "res://Resources/Spells/Firebolt.tres",
                 "res://Resources/Spells/AmplifyFire.tres",
-                "res://Resources/Spells/Shatter.tres"
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
+                "res://Resources/Spells/FrostShards.tres",
+                "res://Resources/Spells/Firebolt.tres",
+                "res://Resources/Spells/AmplifyFire.tres",
+                "res://Resources/Spells/Shatter.tres",
             };
 
-            foreach (var path in spellPaths)
-            {
-                try
-                {
-                    var resource = ResourceLoader.Load<SpellCardResource>(path);
-                    if (resource != null)
-                    {
-                        _spellCardResources[resource.CardResourceId] = resource;
-                        GD.Print($"[ResourceManager] Preloaded spell resource: {resource.CardName} (ID: {resource.CardResourceId})");
-                    }
-                    else
-                    {
-                        _logger?.LogError($"Failed to load spell resource: {path}");
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    _logger?.LogError($"Error loading resource: {path}", ex);
-                }
-            }
+            _spellCardResources = spellPaths.Select(path => ResourceLoader.Load<SpellCardResource>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep)).ToArray();
 
-            GD.Print($"[ResourceManager] Preloaded {_spellCardResources.Count} spell resources");
-        }
-
-        /// <summary>
-        /// Gets a spell card resource by its ID
-        /// </summary>
-        /// <param name="resourceId">The ID of the resource to get</param>
-        /// <returns>The SpellCardResource or null if not found</returns>
-        public SpellCardResource GetSpellCardResource(string resourceId)
-        {
-            if (string.IsNullOrEmpty(resourceId))
-            {
-                _logger?.LogWarning("Attempted to get spell card resource with null or empty ID");
-                return null;
-            }
-
-            if (_spellCardResources.TryGetValue(resourceId, out var resource))
-            {
-                return resource;
-            }
-
-            _logger?.LogWarning($"Spell card resource not found: {resourceId}");
-            return null;
+            GD.Print($"[ResourceManager] Preloaded {_spellCardResources.Length} spell resources");
         }
 
         /// <summary>
         /// Gets a random spell card resource
         /// </summary>
         /// <returns>A random SpellCardResource</returns>
-        public SpellCardResource GetRandomSpellCardResource()
+        public SpellCardResource GetNextSpellCardResource()
         {
-            if (_spellCardResources.Count == 0)
+            if (_spellCardResources.Length == 0)
             {
                 _logger?.LogError("No spell card resources available");
                 return null;
             }
 
-            var keys = new System.Collections.Generic.List<string>(_spellCardResources.Keys);
-            var randomIndex = new System.Random().Next(keys.Count);
-            var randomKey = keys[randomIndex];
-            
-            return _spellCardResources[randomKey];
-        }
-
-        /// <summary>
-        /// Gets all available spell card resources
-        /// </summary>
-        /// <returns>An IEnumerable of all SpellCardResources</returns>
-        public IEnumerable<SpellCardResource> GetAllSpellCardResources()
-        {
-            return _spellCardResources.Values;
+            var resource = _spellCardResources[_currentIndex];
+            _currentIndex = (_currentIndex + 1) % _spellCardResources.Length;
+            return resource;
         }
     }
 }

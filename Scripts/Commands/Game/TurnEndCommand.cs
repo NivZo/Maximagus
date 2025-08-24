@@ -5,6 +5,8 @@ using Scripts.Config;
 using Scripts.Commands;
 using Maximagus.Scripts.Managers;
 using Scripts.Commands.Hand;
+using Scripts.Commands.Spell;
+using Maximagus.Scripts.Enums;
 
 namespace Scripts.Commands.Game
 {
@@ -35,7 +37,12 @@ namespace Scripts.Commands.Game
             var playedCards = currentState.Cards.PlayedCards.Select(c => c.CardId).ToArray();
             var newCardsState = currentState.Cards.WithMovedToContainer(playedCards, ContainerType.DiscardedCards);
 
-            // Transition to CardSelection phase (natural end state)
+            // Create status effect commands for end of turn
+            var triggerEndOfTurnCommand = new TriggerStatusEffectsCommand(StatusEffectTrigger.EndOfTurn);
+            var processEndOfTurnDecayCommand = new ProcessStatusEffectDecayCommand(StatusEffectDecayMode.EndOfTurn);
+            var processReduceByOneDecayCommand = new ProcessStatusEffectDecayCommand(StatusEffectDecayMode.ReduceByOneEndOfTurn);
+
+            // Transition to TurnStart phase (natural end state)
             var newPhaseState = _commandProcessor.CurrentState.Phase.WithPhase(GamePhase.TurnStart);
             var finalState = _commandProcessor.CurrentState
                 .WithCards(newCardsState)
@@ -43,7 +50,16 @@ namespace Scripts.Commands.Game
 
             _logger?.LogInfo($"[TurnEndCommand] Turn ended - cards played: {playedCards.Count()}, final phase: {finalState.Phase.CurrentPhase}");
 
-            token.Complete(CommandResult.Success(finalState, [ new TurnStartCommand() ]));
+            // Execute status effect processing before transitioning to next turn
+            var followUpCommands = new GameCommand[] 
+            {
+                triggerEndOfTurnCommand,
+                processEndOfTurnDecayCommand,
+                processReduceByOneDecayCommand,
+                new TurnStartCommand()
+            };
+
+            token.Complete(CommandResult.Success(finalState, followUpCommands));
         }
     }
 }

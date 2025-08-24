@@ -2,47 +2,91 @@ using System;
 using System.Linq;
 using Scripts.State;
 using Scripts.Commands;
+using Scripts.Commands.Spell;
 using Godot;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Implementations;
-using Maximagus.Scripts.Managers;
+using System.Collections.Generic;
+using Maximagus.Resources.Definitions.Actions;
 
 namespace Scripts.Commands.Game
 {
     /// <summary>
     /// Command to handle the spell casting phase - processes the spell effects
-    /// Enters SpellCasting phase, processes spell, and naturally transitions to TurnEnd
+    /// Creates a command chain for spell processing: StartSpell -> ExecuteCardActions -> CompleteSpell -> TurnEnd
     /// </summary>
     public class SpellCastCommand : GameCommand
     {
-        private readonly ISpellProcessingManager _spellProcessingManager;
-
         public SpellCastCommand() : base(true)
         {
-            _spellProcessingManager = ServiceLocator.GetService<ISpellProcessingManager>();
         }
 
         public override bool CanExecute()
         {
-            return _commandProcessor.CurrentState?.Phase?.CurrentPhase == GamePhase.SpellCasting;
+            var currentState = _commandProcessor.CurrentState;
+            if (currentState?.Phase?.CurrentPhase != GamePhase.SpellCasting)
+                return false;
+
+            // Must have played cards to cast a spell
+            var playedCards = currentState.Cards.PlayedCards?.ToArray();
+            if (playedCards == null || playedCards.Length == 0)
+            {
+                _logger.LogWarning("[SpellCastCommand] Cannot cast spell - no played cards found");
+                return false;
+            }
+
+            return true;
         }
 
         public override void Execute(CommandCompletionToken token)
         {
-
             var currentState = _commandProcessor.CurrentState;
-            var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnEnd);
-            var newState = currentState
-                .WithPhase(newPhaseState);
+            
+            // Get played cards ordered by position
+            var playedCards = currentState.Cards.PlayedCards
+                .OrderBy(c => c.Position)
+                .ToArray();
 
-            var followUpCommands = new[] { new TurnEndCommand() };
-            var callback = () => token.Complete(CommandResult.Success(newState, followUpCommands));
-            _spellProcessingManager.ProcessSpell(callback);
+            GD.Print($"[SpellCastCommand] Starting snapshot-based spell processing with {playedCards.Length} cards");
+
+            // Create command chain for spell processing
+            var commandChain = new List<GameCommand>
+            {
+                // 1. Start the spell
+                new StartSpellCommand()
+            };
+
+            // 2. Pre-calculate all actions for the entire spell using EncounterState snapshots
+            // This generates and stores complete snapshots for all actions
+            var allActions = playedCards.SelectMany(c => c.Resource.Actions).ToList();
+            commandChain.Add(new PreCalculateSpellCommand(allActions));
+
+            // 3. Execute each card action sequentially using pre-calculated snapshots
+            // Each ExecuteCardActionCommand will fetch and apply its corresponding snapshot
+            foreach (var cardState in playedCards)
+            {
+                foreach (var action in cardState.Resource.Actions)
+                {
+                    commandChain.Add(new ExecuteCardActionCommand(action, cardState.CardId));
+                }
+            }
+
+            // 4. Complete the spell and clean up snapshots
+            var castCardResources = playedCards.Select(c => c.Resource).ToList();
+            commandChain.Add(new CompleteSpellCommand(castCardResources, true));
+
+            // 5. Transition to TurnEnd phase
+            var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnEnd);
+            var newState = currentState.WithPhase(newPhaseState);
+            commandChain.Add(new TurnEndCommand());
+
+            GD.Print($"[SpellCastCommand] Created snapshot-based command chain with {commandChain.Count} commands");
+
+            token.Complete(CommandResult.Success(newState, commandChain));
         }
 
         public override string GetDescription()
         {
-            return "Process spell casting";
+            return "Process spell casting with command chain";
         }
     }
 }

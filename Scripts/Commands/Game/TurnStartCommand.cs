@@ -5,6 +5,8 @@ using Scripts.Config;
 using Scripts.Commands;
 using Maximagus.Scripts.Managers;
 using Scripts.Commands.Hand;
+using Scripts.Commands.Spell;
+using Maximagus.Scripts.Enums;
 
 namespace Scripts.Commands.Game
 {
@@ -40,6 +42,9 @@ namespace Scripts.Commands.Game
                 drawCardCommands[i] = _handManager.GetDrawCardCommand();
             }
 
+            // Create status effect trigger command for start of turn
+            var triggerStartOfTurnCommand = new TriggerStatusEffectsCommand(StatusEffectTrigger.StartOfTurn);
+
             // Get the updated hand state after drawing
             var newHandState = _commandProcessor.CurrentState.Hand;
 
@@ -51,7 +56,12 @@ namespace Scripts.Commands.Game
 
             _logger?.LogInfo($"[TurnStartCommand] Turn started - cards drawn: {cardsToDraw}, final phase: {finalState.Phase.CurrentPhase}");
 
-            token.Complete(CommandResult.Success(finalState, drawCardCommands));
+            // Combine draw card commands with status effect trigger
+            var allCommands = new GameCommand[drawCardCommands.Length + 1];
+            Array.Copy(drawCardCommands, allCommands, drawCardCommands.Length);
+            allCommands[drawCardCommands.Length] = triggerStartOfTurnCommand;
+
+            token.Complete(CommandResult.Success(finalState, allCommands));
         }
     }
 }

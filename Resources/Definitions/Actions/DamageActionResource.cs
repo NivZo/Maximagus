@@ -1,7 +1,11 @@
 
+using System;
 using Godot;
 using Maximagus.Scripts.Enums;
-using Maximagus.Scripts.Spells.Implementations;
+using Scripts.State;
+using Scripts.Commands;
+using Scripts.Commands.Spell;
+using Scripts.Utilities;
 
 namespace Maximagus.Resources.Definitions.Actions
 {
@@ -11,7 +15,38 @@ namespace Maximagus.Resources.Definitions.Actions
         [Export] public DamageType DamageType { get; set; }
         [Export] public int Amount { get; set; }
 
-        public override string GetPopUpEffectText(SpellContext context) => $"-{context.ApplyDamageModifiersWithoutConsuming(this)}";
+        public DamageActionResource()
+        {
+            ResourceLocalToScene = true;
+        }
+
+        public override string GetPopUpEffectText(IGameStateData gameState)
+        {
+            try
+            {
+                // Try to get snapshot-based damage calculation
+                var snapshot = SnapshotLookupHelper.TryGetSnapshotForAction(gameState, ActionId, "DamageActionResource");
+                
+                if (snapshot != null)
+                {
+                    // Use the pre-calculated damage from the snapshot
+                    var finalDamage = snapshot.ActionResult.FinalDamage;
+                    GD.Print($"[DamageActionResource] Using snapshot damage for popup: {finalDamage} (action: {ActionId})");
+                    return $"-{finalDamage:F0}";
+                }
+                
+                // Fallback to base damage if no snapshot is available
+                GD.Print($"[DamageActionResource] Using base damage for popup: {Amount} (action: {ActionId})");
+                return $"-{Amount}";
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't crash the UI
+                GD.Print($"[DamageActionResource] Error getting popup text from snapshot: {ex.Message}");
+                return $"-{Amount}";
+            }
+        }
+
         public override Color PopUpEffectColor => DamageType switch
         {
             DamageType.Fire => new Color(1, 0.5f, 0),
@@ -20,37 +55,9 @@ namespace Maximagus.Resources.Definitions.Actions
             _ => new Color(1, 1, 1)
         };
 
-        public override void Execute(SpellContext context)
+        public override GameCommand CreateExecutionCommand(string cardId)
         {
-            var finalDamage = context.ApplyDamageModifiers(this);
-
-            GD.Print($"Dealt {finalDamage} damage of type {DamageType}.");
-            context.TotalDamageDealt += finalDamage;
-
-            if (finalDamage > 0)
-            {
-                var damageDealtContextProperty = DamageType switch
-                {
-                    DamageType.Fire => ContextProperty.FireDamageDealt,
-                    DamageType.Frost => ContextProperty.FrostDamageDealt,
-                    DamageType.PerChill => ContextProperty.FrostDamageDealt,
-                    _ => throw new System.Exception($"No context property implemented for damage type {DamageType}")
-                };
-
-                context.ModifyProperty(damageDealtContextProperty, finalDamage, ContextPropertyOperation.Add);
-            }
-        }
-
-        public int GetRawDamage()
-        {
-            return DamageType switch
-            {
-                DamageType.None => Amount,
-                DamageType.Fire => Amount,
-                DamageType.Frost => Amount,
-                DamageType.PerChill => Amount * ServiceLocator.GetService<IStatusEffectManager>().GetStacksOfEffect(StatusEffectType.Chill),
-                _ => Amount,
-            };
+            return new ExecuteCardActionCommand(this, cardId);
         }
     }
 }

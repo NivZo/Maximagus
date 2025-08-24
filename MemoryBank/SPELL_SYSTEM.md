@@ -1,7 +1,9 @@
 # Spell System
 
-The spell system is the core of the gameplay. It is orchestrated by the `SpellProcessor` and relies on a `SpellContext` to manage the state of a spell as it is being cast.
+The spell system is the core of the gameplay. It uses a command-driven architecture where spell processing is managed through the centralized GameState and GameCommandProcessor.
 
-- **`SpellCardResource`**: An abstract base class for all spell cards. It defines the basic properties of a card, such as its type (Action, Modifier, Utility) and execution priority. Concrete card implementations inherit from this class.
-- **`SpellContext`**: A context object that is created for each spell. It holds the state of the spell as it resolves, including active modifiers, queued effects, and other relevant data. Cards can read from and write to the context, allowing for complex interactions.
-- **`SpellProcessor`**: The main orchestrator of the spell system. It takes a list of `SpellCardResource` objects, sorts them by priority, and executes them in order. It also manages the lifecycle of the `SpellContext`.
+- **`SpellCardResource`**: An abstract base class for all spell cards. It defines the basic properties of a card, such as its type (Action, Modifier, Utility) and execution priority. Cards create execution commands rather than executing directly.
+- **`SpellState`**: A centralized state object that tracks active spell progress, including modifiers, properties, damage dealt, and spell history. This replaces the old SpellContext system.
+- **`SpellLogicManager`**: A static manager class containing pure functions for spell calculations and state updates. Handles damage calculations, modifier application, and property updates.
+- **`GameCommandProcessor`**: The main orchestrator of the spell system. Processes spell commands sequentially, maintaining state consistency and enabling proper error handling and rollback capabilities.
+- **Spell Commands**: Individual commands like `StartSpellCommand`, `ExecuteCardActionCommand`, and `CompleteSpellCommand` that handle specific aspects of spell processing through the command system.

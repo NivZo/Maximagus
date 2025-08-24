@@ -27,6 +27,16 @@ namespace Scripts.State
         GamePhaseState Phase { get; }
 
         /// <summary>
+        /// Current spell state including active spell context and history
+        /// </summary>
+        SpellState Spell { get; }
+
+        /// <summary>
+        /// Current status effects state including all active status effects
+        /// </summary>
+        StatusEffectsState StatusEffects { get; }
+
+        /// <summary>
         /// Creates a new game state with updated cards state
         /// </summary>
         IGameStateData WithCards(CardsState newCardsState);
@@ -45,6 +55,16 @@ namespace Scripts.State
         /// Creates a new game state with updated phase state
         /// </summary>
         IGameStateData WithPhase(GamePhaseState newPhaseState);
+
+        /// <summary>
+        /// Creates a new game state with updated spell state
+        /// </summary>
+        IGameStateData WithSpell(SpellState newSpellState);
+
+        /// <summary>
+        /// Creates a new game state with updated status effects state
+        /// </summary>
+        IGameStateData WithStatusEffects(StatusEffectsState newStatusEffectsState);
 
         /// <summary>
         /// Validates that the current state is consistent and valid

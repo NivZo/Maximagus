@@ -103,7 +103,9 @@ public partial class Main : Control
 				cards: cardsState,
 				hand: handState,
 				player: new PlayerState(),
-				phase: gamePhaseState
+				phase: gamePhaseState,
+				spell: SpellState.CreateInitial(),
+				statusEffects: StatusEffectsState.CreateInitial()
 			);
 			
 			_commandProcessor.SetState(gameState);

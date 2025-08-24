@@ -7,6 +7,7 @@ using Scripts.Config;
 using System.Linq;
 using System.Collections.Generic;
 using Scripts.State;
+using Maximagus.Resources.Definitions.Actions;
 
 public partial class Card : Control, IOrderable
 {
@@ -43,8 +44,8 @@ public partial class Card : Control, IOrderable
     private ILogger _logger;
     private IGameCommandProcessor _commandProcessor;
 
-    public string CardId { get; private set; }
-    public SpellCardResource Resource { get; private set; }
+    public string CardId { get; internal set; }
+    public SpellCardResource Resource { get; internal set; }
 
     private Control _textures;
     private TextureRect _cardTexture;
@@ -68,6 +69,10 @@ public partial class Card : Control, IOrderable
     private Vector2 _lastPosition;
     private Vector2 _velocity;
     private Vector2 _shadowBasePosition;
+    
+    // State tracking for popup effects
+    private int _lastSpellActionIndex = -1;
+    private float _lastSpellTotalDamage = 0f;
 
     private const float DRAG_THRESHOLD = GameConfig.DRAG_THRESHOLD;
     private readonly Dictionary<string, Tween> _propertyTweens = new();
@@ -221,6 +226,7 @@ public partial class Card : Control, IOrderable
     {
         try
         {
+            var previousState = _lastGameState;
             _lastGameState = newState;
             SetCardStateFromGameState();
             if (_lastCardState == null)
@@ -233,12 +239,130 @@ public partial class Card : Control, IOrderable
             {
                 OnHoverEnded();
             }
+
+            if (previousState != null)
+            {
+                ActionActivationOnGameStateChanged(previousState, newState);
+            }
         }
         catch (Exception ex)
         {
             _logger?.LogError($"Error syncing {CardId} with GameState: {ex.Message}", ex);
         }
     }
+    #endregion
+
+    #region State Change Handling
+    
+    /// <summary>
+    /// Handles game state changes to detect when popup effects should be shown
+    /// </summary>
+    internal void ActionActivationOnGameStateChanged(IGameStateData previousState, IGameStateData newState)
+    {
+        try
+        {
+            // Only show popup effects for cards that are currently being played
+            if (!ShouldCheckForActionActivation(newState))
+                return;
+
+            // Check if this card's action was just executed
+            var justExecutedAction = GetCardActionExecuted(previousState, newState);
+            if (justExecutedAction != null)
+            {
+                CreateActionActivationEffect(newState, justExecutedAction);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"Error handling state change for card {CardId}: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Determines if this card should show popup effects based on state changes
+    /// </summary>
+    private bool ShouldCheckForActionActivation(IGameStateData newState)
+    {
+        // Only show effects during spell processing
+        if (!newState.Spell.IsActive)
+            return false;
+
+        // Only show effects for cards that are currently in the played cards collection
+        var playedCard = newState.Cards.PlayedCards?.FirstOrDefault(c => c.CardId == CardId);
+        if (playedCard == null)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines if this card's action was just executed based on spell state changes
+    /// </summary>
+    private ActionResource GetCardActionExecuted(IGameStateData previousState, IGameStateData newState)
+    {
+        // Check if the spell action index advanced
+        var currentActionIndex = newState.Spell.CurrentActionIndex;
+        var previousActionIndex = previousState.Spell.CurrentActionIndex;
+
+        // If action index advanced, check if it corresponds to this card's action
+        if (currentActionIndex > previousActionIndex)
+        {
+            // Get all played cards ordered by position to match execution order
+            var lastPlayedAction = newState.Cards.PlayedCards
+                .OrderBy(c => c.Position)
+                .SelectMany(c => c.Resource.Actions.Select(a => new { c.CardId, Action = a }))
+                .ElementAt(currentActionIndex-1);
+            
+            if (lastPlayedAction.CardId == CardId)
+            {
+                return lastPlayedAction.Action;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Creates popup effects based on the current spell state (immediate visual response)
+    /// </summary>
+    private void CreateActionActivationEffect(IGameStateData gameState, ActionResource action)
+    {
+        try
+        {
+            // Original timing constants
+            const float CardAnimationDuration = 0.75f;
+
+            ShowPopupEffectForAction(action, gameState);
+                
+            // Animate the card scale to show it's being executed (original timing)
+            this.AnimateScale(1.4f, CardAnimationDuration, Tween.TransitionType.Elastic);
+            TimerUtils.ExecuteAfter(() => this.AnimateScale(1f, CardAnimationDuration / 2f, Tween.TransitionType.Back), CardAnimationDuration + 0.2f);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"Error creating popup effect for card {CardId}: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Shows a popup effect for a specific action
+    /// </summary>
+    protected virtual void ShowPopupEffectForAction(ActionResource action, IGameStateData gameState)
+    {
+        try
+        {
+            var popupText = action.GetPopUpEffectText(gameState);
+            var popupColor = action.PopUpEffectColor;
+            var popupPosition = this.GetCenter() - new Vector2(0, 0.8f * Size.Y);
+
+            EffectPopUp.Create(popupPosition, popupText, popupColor);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError($"Error showing popup effect for action: {ex.Message}", ex);
+        }
+    }
+
     #endregion
 
     #region Input Handling (Non-State Affecting)

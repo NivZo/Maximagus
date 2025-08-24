@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=14 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://dloaehlse2xt8" path="res://Scripts/Main.cs" id="1_rgh2o"]
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://wynxvlgqi4fm" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
 [ext_resource type="Texture2D" uid="uid://dy6hdmfv4qef1" path="res://Assets/Art/BorderDot.png" id="10_bmxlf"]
 [ext_resource type="PackedScene" uid="uid://ddemmax8jnlg2" path="res://Scenes/GUI/RedrawIndicator.tscn" id="11_4kpch"]
+[ext_resource type="PackedScene" uid="uid://bvqld7rwxnqys" path="res://Scenes/GUI/StatusEffectIndicator.tscn" id="12_frkhe"]
 [ext_resource type="PackedScene" uid="uid://bi4qgf8t5dit4" path="res://Scenes/GUI/EnergyIndicator.tscn" id="12_grg3l"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
@@ -325,3 +326,10 @@ offset_left = 128.0
 offset_top = 576.0
 offset_right = 128.448
 offset_bottom = 575.824
+
+[node name="StatusEffectIndicator" parent="." instance=ExtResource("12_frkhe")]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 36.0
+offset_right = 16.448
+offset_bottom = 35.824

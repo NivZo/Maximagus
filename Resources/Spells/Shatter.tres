@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 [sub_resource type="Resource" id="Resource_ludp6"]
 script = ExtResource("1_8biyy")
 StatusEffect = ExtResource("2_3r3pg")
-ActionType = 2
+ActionType = 1
 Stacks = 0
 metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 

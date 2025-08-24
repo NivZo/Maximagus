@@ -14,7 +14,7 @@
         {
             "name": "Launch", "type": "coreclr",
             "request": "launch", "preLaunchTask": "build",
-            "program": "C:/Users/nivzohar/Geek/Godot_v4.4-stable_mono_win64/Godot_v4.4-stable_mono_win64.exe",
+            "program": "C:/Godot/Godot 4.4.1/Godot_v4.4.1-stable_mono_win64.exe",
             "console": "internalConsole","stopAtEntry": false
         }
     ]
