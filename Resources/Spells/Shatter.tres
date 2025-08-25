@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_fk7u1"]
 script = ExtResource("1_ludp6")
 DamageType = 3
-Amount = 2
+Amount = 3
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [sub_resource type="Resource" id="Resource_ludp6"]
@@ -23,7 +23,7 @@ metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 script = ExtResource("3_euegq")
 CardResourceId = "shatter"
 CardName = "Shatter"
-CardDescription = "Deal 2 [b]Frost[/b] damage for each [b]Chill[/b]
+CardDescription = "Deal 3 [b]Frost[/b] damage for each [b]Chill[/b]
 Remove all [b]Chill[/b]"
 CardArt = ExtResource("2_pgbnt")
 Actions = Array[Resource]([SubResource("Resource_fk7u1"), SubResource("Resource_ludp6")])

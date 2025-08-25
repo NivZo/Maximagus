@@ -44,21 +44,6 @@ grow_vertical = 2
 theme = ExtResource("1_k6d38")
 script = ExtResource("2_30mic")
 
-[node name="Background" type="ColorRect" parent="."]
-visible = false
-self_modulate = Color(1, 1, 1, 0.0941176)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 48.0
-offset_top = 33.0
-offset_right = -48.0
-offset_bottom = -33.0
-grow_horizontal = 2
-grow_vertical = 2
-pivot_offset = Vector2(24, 12)
-
 [node name="Particles" type="GPUParticles2D" parent="."]
 self_modulate = Color(1, 1, 1, 0.705882)
 position = Vector2(72, 41)

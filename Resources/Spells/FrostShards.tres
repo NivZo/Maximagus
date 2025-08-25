@@ -9,13 +9,13 @@
 [sub_resource type="Resource" id="Resource_y114i"]
 script = ExtResource("1_6fwmh")
 DamageType = 2
-Amount = 4
+Amount = 3
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [sub_resource type="Resource" id="Resource_xcfaj"]
 script = ExtResource("1_6fwmh")
 DamageType = 2
-Amount = 4
+Amount = 3
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [sub_resource type="Resource" id="Resource_0vcwd"]

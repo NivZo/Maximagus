@@ -6,17 +6,13 @@ public partial class EffectPopUp : Control
     private const float DisplayDuration = .5f;
 
     private RichTextLabel _contentLabel;
-    private ColorRect _bg;
     private GpuParticles2D _particles;
-
-    private const int CONTENT_FONT_SIZE = 12;
 
     public override void _Ready()
     {
         base._Ready();
         PivotOffset = Size / 2f;
 
-        _bg = GetNode<ColorRect>("Background");
         _particles = GetNode<GpuParticles2D>("Particles");
         _particles.Lifetime = DisplayDuration;
         _contentLabel = GetNode<RichTextLabel>("ContentLabel");
@@ -30,8 +26,8 @@ public partial class EffectPopUp : Control
 
         var label = effectPopUp.GetNode<RichTextLabel>("ContentLabel");
         label.Text = content;
-        label.Modulate = color;
-        effectPopUp._particles.Modulate = color;
+        label.Modulate = color.Lightened(.15f);
+        effectPopUp._particles.Modulate = color.Darkened(.5f);
         effectPopUp.Visible = false;
 
         effectPopUp.ShowEffectPopUp();
@@ -44,7 +40,6 @@ public partial class EffectPopUp : Control
         Scale = new(.8f, .8f);
         Visible = true;
         _particles.Emitting = true;
-        _bg.Rotation = (GD.Randf() * 2 - 1) * Mathf.Pi * .1f;
 
         this.AnimateScale(1, .3f, Tween.TransitionType.Elastic);
         TimerUtils.ExecuteAfter(HideEffectPopUp, DisplayDuration);
