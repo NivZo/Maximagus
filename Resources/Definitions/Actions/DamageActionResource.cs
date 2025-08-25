@@ -12,6 +12,8 @@ namespace Maximagus.Resources.Definitions.Actions
     [GlobalClass]
     public partial class DamageActionResource : ActionResource
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         [Export] public DamageType DamageType { get; set; }
         [Export] public int Amount { get; set; }
 
@@ -29,16 +31,16 @@ namespace Maximagus.Resources.Definitions.Actions
                 if (snapshot != null)
                 {
                     var finalDamage = snapshot.ActionResult.FinalDamage;
-                    GD.Print($"[DamageActionResource] Using snapshot damage for popup: {finalDamage} (action: {ActionId})");
+                    _logger.LogInfo($"[DamageActionResource] Using snapshot damage for popup: {finalDamage} (action: {ActionId})");
                     return $"-{finalDamage:F0}";
                 }
                 
-                GD.Print($"[DamageActionResource] Using base damage for popup: {Amount} (action: {ActionId})");
+                _logger.LogInfo($"[DamageActionResource] Using base damage for popup: {Amount} (action: {ActionId})");
                 return $"-{Amount}";
             }
             catch (Exception ex)
             {
-                GD.Print($"[DamageActionResource] Error getting popup text from snapshot: {ex.Message}");
+                _logger.LogInfo($"[DamageActionResource] Error getting popup text from snapshot: {ex.Message}");
                 return $"-{Amount}";
             }
         }

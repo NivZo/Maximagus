@@ -35,7 +35,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[TriggerStatusEffectsCommand] Triggering status effects for: {_trigger}");
+            _logger.LogInfo($"[TriggerStatusEffectsCommand] Triggering status effects for: {_trigger}");
             
             try
             {
@@ -44,12 +44,12 @@ namespace Scripts.Commands.Spell
                 
                 if (effectsToTrigger.Length == 0)
                 {
-                    GD.Print($"[TriggerStatusEffectsCommand] No effects to trigger for {_trigger}");
+                    _logger.LogInfo($"[TriggerStatusEffectsCommand] No effects to trigger for {_trigger}");
                     token.Complete(CommandResult.Success(currentState));
                     return;
                 }
 
-                GD.Print($"[TriggerStatusEffectsCommand] Found {effectsToTrigger.Length} effects to trigger");
+                _logger.LogInfo($"[TriggerStatusEffectsCommand] Found {effectsToTrigger.Length} effects to trigger");
 
                 // Use StatusEffectLogicManager to trigger effects
                 var newStatusEffectsState = StatusEffectLogicManager.TriggerEffects(
@@ -58,7 +58,7 @@ namespace Scripts.Commands.Spell
 
                 var newState = currentState.WithStatusEffects(newStatusEffectsState);
 
-                GD.Print($"[TriggerStatusEffectsCommand] Successfully triggered status effects for {_trigger}");
+                _logger.LogInfo($"[TriggerStatusEffectsCommand] Successfully triggered status effects for {_trigger}");
                 
                 token.Complete(CommandResult.Success(newState));
             }

@@ -13,6 +13,8 @@ namespace Maximagus.Scripts.Managers
 
     public static class SpellLogicManager
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         /// <summary>
         /// Pre-calculates an action with complete EncounterState snapshot creation.
         /// This creates a complete snapshot containing both the action result and the resulting encounter state.
@@ -60,7 +62,7 @@ namespace Maximagus.Scripts.Managers
             var actionIndex = 0;
             
             var allActions = playedCards.SelectMany(c => c.Resource.Actions ?? Enumerable.Empty<ActionResource>()).ToList();
-            GD.Print($"[SpellLogicManager] Pre-calculating spell with {allActions.Count} actions using EncounterState snapshots");
+            _logger.LogInfo($"[SpellLogicManager] Pre-calculating spell with {allActions.Count} actions using EncounterState snapshots");
 
             foreach (var playedCard in playedCards)
             {
@@ -68,7 +70,7 @@ namespace Maximagus.Scripts.Managers
                 
                 foreach (var action in playedCard.Resource.Actions)
                 {
-                    GD.Print("\n-----------------------------------------------------------------------");
+                    _logger.LogInfo("\n-----------------------------------------------------------------------");
                     
                     // Update the encounter state with the current action index
                     currentEncounterState = currentEncounterState.WithActionIndex(actionIndex);
@@ -80,14 +82,14 @@ namespace Maximagus.Scripts.Managers
                     // Use the resulting state for the next action
                     currentEncounterState = snapshot.ResultingState;
                     
-                    GD.Print($"[SpellLogicManager] Created snapshot for action {actionIndex}: {action.GetType().Name} -> {snapshot.ActionResult.FinalDamage} damage");
-                    GD.Print("-----------------------------------------------------------------------");
+                    _logger.LogInfo($"[SpellLogicManager] Created snapshot for action {actionIndex}: {action.GetType().Name} -> {snapshot.ActionResult.FinalDamage} damage");
+                    _logger.LogInfo("-----------------------------------------------------------------------");
                     
                     actionIndex++;
                 }
             }
 
-            GD.Print($"[SpellLogicManager] Completed spell pre-calculation with {snapshots.Count} snapshots");
+            _logger.LogInfo($"[SpellLogicManager] Completed spell pre-calculation with {snapshots.Count} snapshots");
             return snapshots.ToImmutable();
         }
 
@@ -108,7 +110,7 @@ namespace Maximagus.Scripts.Managers
             if (!snapshot.IsValid())
                 throw new ArgumentException("Invalid snapshot provided", nameof(snapshot));
 
-            GD.Print($"[SpellLogicManager] Applying encounter snapshot: {snapshot.ActionKey}");
+            _logger.LogInfo($"[SpellLogicManager] Applying encounter snapshot: {snapshot.ActionKey}");
             
             // Get the spell state from the snapshot
             var snapshotSpellState = snapshot.ResultingState.Spell;
@@ -203,7 +205,7 @@ namespace Maximagus.Scripts.Managers
                 throw new ArgumentNullException(nameof(gameState));
 
             var activeModifiers = gameState.Spell.ActiveModifiers;
-            GD.Print($"[Spell Casting Refactor] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
+            _logger.LogInfo($"[Spell Casting Refactor] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
 
             var baseDamage = GetRawDamage(damageAction, gameState);
             var modifiedDamage = baseDamage;
@@ -215,12 +217,12 @@ namespace Maximagus.Scripts.Managers
                 {
                     var oldDamage = modifiedDamage;
                     modifiedDamage = modifier.Apply(modifiedDamage);
-                    GD.Print($"[Spell Casting Refactor] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
+                    _logger.LogInfo($"[Spell Casting Refactor] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
                     
                     if (modifier.IsConsumedOnUse)
                     {
                         modifiersToRemove.Add(modifier);
-                        GD.Print($"[Spell Casting Refactor] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
+                        _logger.LogInfo($"[Spell Casting Refactor] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
                     }
                 }
             }
@@ -235,7 +237,7 @@ namespace Maximagus.Scripts.Managers
                 }
             }
 
-            GD.Print($"[Spell Casting Refactor] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
+            _logger.LogInfo($"[Spell Casting Refactor] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
             return (modifiedDamage, remainingModifiers);
         }
 
@@ -253,7 +255,7 @@ namespace Maximagus.Scripts.Managers
                 throw new ArgumentNullException(nameof(encounterState));
 
             var activeModifiers = encounterState.Spell.ActiveModifiers;
-            GD.Print($"[EncounterState] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
+            _logger.LogInfo($"[EncounterState] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
 
             var baseDamage = GetRawDamage(damageAction, encounterState);
             var modifiedDamage = baseDamage;
@@ -265,12 +267,12 @@ namespace Maximagus.Scripts.Managers
                 {
                     var oldDamage = modifiedDamage;
                     modifiedDamage = modifier.Apply(modifiedDamage);
-                    GD.Print($"[EncounterState] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
+                    _logger.LogInfo($"[EncounterState] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
                     
                     if (modifier.IsConsumedOnUse)
                     {
                         modifiersToRemove.Add(modifier);
-                        GD.Print($"[EncounterState] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
+                        _logger.LogInfo($"[EncounterState] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
                     }
                 }
             }
@@ -285,7 +287,7 @@ namespace Maximagus.Scripts.Managers
                 }
             }
 
-            GD.Print($"[EncounterState] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
+            _logger.LogInfo($"[EncounterState] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
             return (modifiedDamage, remainingModifiers);
         }
 
@@ -297,7 +299,7 @@ namespace Maximagus.Scripts.Managers
             if (modifier == null)
                 throw new ArgumentNullException(nameof(modifier));
 
-            GD.Print($"[Spell Casting Refactor] AddModifier: Adding {modifier.Type} {modifier.Value} {modifier.Element} modifier");
+            _logger.LogInfo($"[Spell Casting Refactor] AddModifier: Adding {modifier.Type} {modifier.Value} {modifier.Element} modifier");
             return currentState.WithAddedModifier(modifier);
         }
 
@@ -324,7 +326,7 @@ namespace Maximagus.Scripts.Managers
                 _ => currentValue
             };
 
-            GD.Print($"[Spell Casting Refactor] UpdateProperty: {key} {operation} {floatValue} ({currentValue} -> {newValue})");
+            _logger.LogInfo($"[Spell Casting Refactor] UpdateProperty: {key} {operation} {floatValue} ({currentValue} -> {newValue})");
             return currentState.WithProperty(key, Variant.From(newValue));
         }
 

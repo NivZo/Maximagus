@@ -55,7 +55,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[ApplyStatusEffectCommand] Applying {_actionType} {_stacks} stacks of {_statusEffect.EffectType}");
+            _logger.LogInfo($"[ApplyStatusEffectCommand] Applying {_actionType} {_stacks} stacks of {_statusEffect.EffectType}");
             
             try
             {
@@ -68,7 +68,7 @@ namespace Scripts.Commands.Spell
 
                 var newState = currentState.WithStatusEffects(newStatusEffectsState);
 
-                GD.Print($"[ApplyStatusEffectCommand] Successfully applied status effect. Total stacks: {newStatusEffectsState.GetStacksOfEffect(_statusEffect.EffectType)}");
+                _logger.LogInfo($"[ApplyStatusEffectCommand] Successfully applied status effect. Total stacks: {newStatusEffectsState.GetStacksOfEffect(_statusEffect.EffectType)}");
                 
                 token.Complete(CommandResult.Success(newState));
             }

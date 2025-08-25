@@ -61,7 +61,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[UpdateSpellPropertyCommand] Updating property {_propertyKey} with operation {_operation} and value {_value}");
+            _logger.LogInfo($"[UpdateSpellPropertyCommand] Updating property {_propertyKey} with operation {_operation} and value {_value}");
             
             try
             {
@@ -75,7 +75,7 @@ namespace Scripts.Commands.Spell
                 var newState = currentState.WithSpell(newSpellState);
                 
                 var newValue = newSpellState.GetProperty(_propertyKey, 0f);
-                GD.Print($"[UpdateSpellPropertyCommand] Property {_propertyKey} updated to {newValue}");
+                _logger.LogInfo($"[UpdateSpellPropertyCommand] Property {_propertyKey} updated to {newValue}");
                 
                 token.Complete(CommandResult.Success(newState));
             }

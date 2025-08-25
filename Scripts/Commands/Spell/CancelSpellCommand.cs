@@ -39,7 +39,7 @@ namespace Scripts.Commands.Spell
             var currentState = _commandProcessor.CurrentState;
             var currentSpell = currentState.Spell;
             
-            GD.Print($"[CancelSpellCommand] Cancelling active spell - Reason: {_reason}");
+            _logger.LogInfo($"[CancelSpellCommand] Cancelling active spell - Reason: {_reason}");
             
             try
             {
@@ -50,7 +50,7 @@ namespace Scripts.Commands.Spell
                 var newSpellState = SpellState.CreateInitial();
                 var newState = currentState.WithSpell(newSpellState);
 
-                GD.Print($"[CancelSpellCommand] Spell cancelled successfully");
+                _logger.LogInfo($"[CancelSpellCommand] Spell cancelled successfully");
                 
                 token.Complete(CommandResult.Success(newState));
             }
@@ -85,7 +85,7 @@ namespace Scripts.Commands.Spell
                     if (!string.IsNullOrEmpty(spellId))
                     {
                         EncounterSnapshotManager.ClearSnapshots(spellId);
-                        GD.Print($"[CancelSpellCommand] Cleaned up snapshots for cancelled spell {spellId}");
+                        _logger.LogInfo($"[CancelSpellCommand] Cleaned up snapshots for cancelled spell {spellId}");
                     }
                 }
                 

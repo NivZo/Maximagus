@@ -14,6 +14,8 @@ namespace Maximagus.Resources.Definitions.Actions
     [GlobalClass]
     public partial class ModifierActionResource : ActionResource
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         [Export] public bool IsConsumedOnUse { get; set; }
         [Export] public Array<SpellModifierCondition> SpellModifierConditions { get; set; }
         [Export] public ModifierType ModifierType { get; set; }
@@ -84,7 +86,7 @@ namespace Maximagus.Resources.Definitions.Actions
                 ModifierType.Set => Value,
                 _ => baseDamage,
             };
-            GD.Print($"Applying modifier - from base {baseDamage} to {modifiedDamage}");
+            _logger.LogInfo($"Applying modifier - from base {baseDamage} to {modifiedDamage}");
             return modifiedDamage;
         }
     }

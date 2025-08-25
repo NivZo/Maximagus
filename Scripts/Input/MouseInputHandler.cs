@@ -12,9 +12,11 @@ namespace Scripts.Input
         private InputToCommandMapper _inputMapper;
         private Vector2 _lastMousePosition;
         private bool _isTrackingMouse;
+        private ILogger _logger;
 
         public override void _Ready()
         {
+            _logger = ServiceLocator.GetService<ILogger>();
             // Set to process input for global mouse events
             SetProcessInput(true);
         }
@@ -276,7 +278,7 @@ namespace Scripts.Input
         {
             // TODO: Store and use custom hit test function
             // For now, this is a placeholder for future integration
-            GD.Print("Custom hit test function registered");
+            _logger.LogInfo("Custom hit test function registered");
         }
     }
 }

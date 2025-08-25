@@ -15,9 +15,11 @@ namespace Tests
     /// </summary>
     public static class TestRunner
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         public static void RunAllSpellStateTests()
         {
-            GD.Print("=== Running Spell State Infrastructure Tests ===");
+            _logger.LogInfo("=== Running Spell State Infrastructure Tests ===");
             
             try
             {
@@ -25,112 +27,112 @@ namespace Tests
                 ModifierDataTests.RunAllTests();
                 SpellHistoryEntryTests.RunAllTests();
                 
-                GD.Print("=== All Spell State Infrastructure Tests Passed! ===");
+                _logger.LogInfo("=== All Spell State Infrastructure Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllStatusEffectStateTests()
         {
-            GD.Print("=== Running Status Effect State Infrastructure Tests ===");
+            _logger.LogInfo("=== Running Status Effect State Infrastructure Tests ===");
             
             try
             {
                 StatusEffectInstanceDataTests.RunAllTests();
                 StatusEffectsStateTests.RunAllTests();
                 
-                GD.Print("=== All Status Effect State Infrastructure Tests Passed! ===");
+                _logger.LogInfo("=== All Status Effect State Infrastructure Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllGameStateTests()
         {
-            GD.Print("=== Running GameState Tests ===");
+            _logger.LogInfo("=== Running GameState Tests ===");
             
             try
             {
                 GameStateTests.RunAllTests();
                 
-                GD.Print("=== All GameState Tests Passed! ===");
+                _logger.LogInfo("=== All GameState Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllEncounterStateTests()
         {
-            GD.Print("=== Running EncounterState Infrastructure Tests ===");
+            _logger.LogInfo("=== Running EncounterState Infrastructure Tests ===");
             
             try
             {
                 // EncounterState tests temporarily disabled due to missing test framework dependencies
-                GD.Print("EncounterState tests implementation complete but disabled for compilation");
+                _logger.LogInfo("EncounterState tests implementation complete but disabled for compilation");
                 
-                GD.Print("=== All EncounterState Infrastructure Tests Passed! ===");
+                _logger.LogInfo("=== All EncounterState Infrastructure Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllSpellLogicManagerTests()
         {
-            GD.Print("=== Running SpellLogicManager Tests ===");
+            _logger.LogInfo("=== Running SpellLogicManager Tests ===");
             
             try
             {
                 SpellLogicManagerTests.RunAllTests();
                 
-                GD.Print("=== All SpellLogicManager Tests Passed! ===");
+                _logger.LogInfo("=== All SpellLogicManager Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllStatusEffectLogicManagerTests()
         {
-            GD.Print("=== Running StatusEffectLogicManager Tests ===");
+            _logger.LogInfo("=== Running StatusEffectLogicManager Tests ===");
             
             try
             {
                 // StatusEffectLogicManager tests temporarily disabled due to missing test framework dependencies
-                GD.Print("StatusEffectLogicManager tests implementation complete but disabled for compilation");
+                _logger.LogInfo("StatusEffectLogicManager tests implementation complete but disabled for compilation");
                 
-                GD.Print("=== All StatusEffectLogicManager Tests Passed! ===");
+                _logger.LogInfo("=== All StatusEffectLogicManager Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllSpellCommandTests()
         {
-            GD.Print("=== Running Spell Command Tests ===");
+            _logger.LogInfo("=== Running Spell Command Tests ===");
             
             try
             {
@@ -140,19 +142,19 @@ namespace Tests
                 UpdateSpellPropertyCommandTests.RunAllTests();
                 AddSpellModifierCommandTests.RunAllTests();
                 
-                GD.Print("=== All Spell Command Tests Passed! ===");
+                _logger.LogInfo("=== All Spell Command Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllStatusEffectCommandTests()
         {
-            GD.Print("=== Running Status Effect Command Tests ===");
+            _logger.LogInfo("=== Running Status Effect Command Tests ===");
             
             try
             {
@@ -160,91 +162,91 @@ namespace Tests
                 TriggerStatusEffectsCommandTests.RunAllTests();
                 ProcessStatusEffectDecayCommandTests.RunAllTests();
                 
-                GD.Print("=== All Status Effect Command Tests Passed! ===");
+                _logger.LogInfo("=== All Status Effect Command Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllActionResourceTests()
         {
-            GD.Print("=== Running ActionResource Tests ===");
+            _logger.LogInfo("=== Running ActionResource Tests ===");
             
             try
             {
                 ActionResourceTests.RunAllTests();
                 
-                GD.Print("=== All ActionResource Tests Passed! ===");
+                _logger.LogInfo("=== All ActionResource Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllSpellCardResourceTests()
         {
-            GD.Print("=== Running SpellCardResource Tests ===");
+            _logger.LogInfo("=== Running SpellCardResource Tests ===");
             
             try
             {
                 SpellCardResourceTests.RunAllTests();
                 
-                GD.Print("=== All SpellCardResource Tests Passed! ===");
+                _logger.LogInfo("=== All SpellCardResource Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllStatusEffectResourceTests()
         {
-            GD.Print("=== Running StatusEffectResource Tests ===");
+            _logger.LogInfo("=== Running StatusEffectResource Tests ===");
             
             try
             {
                 StatusEffectResourceTests.RunAllTests();
                 
-                GD.Print("=== All StatusEffectResource Tests Passed! ===");
+                _logger.LogInfo("=== All StatusEffectResource Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllCardVisualStateIntegrationTests()
         {
-            GD.Print("=== Running Card Visual State Integration Tests ===");
+            _logger.LogInfo("=== Running Card Visual State Integration Tests ===");
             
             try
             {
                 CardVisualStateIntegrationTests.RunAllTests();
                 
-                GD.Print("=== All Card Visual State Integration Tests Passed! ===");
+                _logger.LogInfo("=== All Card Visual State Integration Tests Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         public static void RunAllComprehensiveIntegrationTests()
         {
-            GD.Print("=== Running Comprehensive Integration Tests ===");
+            _logger.LogInfo("=== Running Comprehensive Integration Tests ===");
             
             try
             {
@@ -257,12 +259,12 @@ namespace Tests
                 // - Visual effects creation through state changes
                 // - Regression tests to verify identical behavior to original system
                 
-                GD.Print("=== Comprehensive Integration Tests Implementation Complete ===");
+                _logger.LogInfo("=== Comprehensive Integration Tests Implementation Complete ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }

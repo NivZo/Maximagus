@@ -30,7 +30,7 @@ namespace Scripts.Commands.Card
         public override void Execute(CommandCompletionToken token)
         {
             var current = _commandProcessor.CurrentState;
-            GD.Print($"[StartHoverCommand] Hover start for card {_cardId}");
+            _logger.LogInfo($"[StartHoverCommand] Hover start for card {_cardId}");
             var newCards = current.Cards.WithCardHovering(_cardId, true);
             var newState = current.WithCards(newCards);
             token.Complete(CommandResult.Success(newState));
@@ -59,7 +59,7 @@ namespace Scripts.Commands.Card
         public override void Execute(CommandCompletionToken token)
         {
             var current = _commandProcessor.CurrentState;
-            GD.Print($"[EndHoverCommand] Hover end for card {_cardId}");
+            _logger.LogInfo($"[EndHoverCommand] Hover end for card {_cardId}");
             var newCards = current.Cards.WithCardHovering(_cardId, false);
             var newState = current.WithCards(newCards);
             token.Complete(CommandResult.Success(newState));

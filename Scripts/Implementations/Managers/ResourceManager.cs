@@ -82,7 +82,7 @@ namespace Maximagus.Scripts.Managers
 
             _spellCardResources = spellPaths.Select(path => ResourceLoader.Load<SpellCardResource>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep)).ToArray();
 
-            GD.Print($"[ResourceManager] Preloaded {_spellCardResources.Length} spell resources");
+            _logger.LogInfo($"[ResourceManager] Preloaded {_spellCardResources.Length} spell resources");
         }
 
         /// <summary>

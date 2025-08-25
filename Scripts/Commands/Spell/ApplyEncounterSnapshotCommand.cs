@@ -47,7 +47,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[ApplyEncounterSnapshotCommand] Applying snapshot for spell {_spellId}, action {_actionKey}");
+            _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Applying snapshot for spell {_spellId}, action {_actionKey}");
             
             try
             {
@@ -61,10 +61,10 @@ namespace Scripts.Commands.Spell
                     
                     // Debug information to help troubleshoot missing snapshots
                     var allSnapshots = EncounterSnapshotManager.GetAllSnapshots(_spellId);
-                    GD.Print($"[ApplyEncounterSnapshotCommand] Available snapshots for spell {_spellId}: {allSnapshots.Length}");
+                    _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Available snapshots for spell {_spellId}: {allSnapshots.Length}");
                     foreach (var availableSnapshot in allSnapshots)
                     {
-                        GD.Print($"  - {availableSnapshot.ActionKey} (Created: {availableSnapshot.CreatedAt:HH:mm:ss.fff})");
+                        _logger.LogInfo($"  - {availableSnapshot.ActionKey} (Created: {availableSnapshot.CreatedAt:HH:mm:ss.fff})");
                     }
                     
                     token.Complete(CommandResult.Failure(errorMessage));
@@ -76,7 +76,7 @@ namespace Scripts.Commands.Spell
                 {
                     var errorMessage = $"Invalid snapshot for spell {_spellId}, action {_actionKey}";
                     _logger.LogError($"[ApplyEncounterSnapshotCommand] {errorMessage}");
-                    GD.Print($"[ApplyEncounterSnapshotCommand] Snapshot details: {snapshot}");
+                    _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Snapshot details: {snapshot}");
                     token.Complete(CommandResult.Failure(errorMessage));
                     return;
                 }
@@ -93,7 +93,7 @@ namespace Scripts.Commands.Spell
                 // Apply the snapshot to the current game state
                 var newState = SpellLogicManager.ApplyEncounterSnapshot(currentState, snapshot);
 
-                GD.Print($"[ApplyEncounterSnapshotCommand] Successfully applied snapshot: " +
+                _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Successfully applied snapshot: " +
                          $"Action {_actionKey} -> {snapshot.ActionResult.FinalDamage} damage, " +
                          $"Action Index: {snapshot.ResultingState.ActionIndex}");
                 
@@ -105,7 +105,7 @@ namespace Scripts.Commands.Spell
             catch (Exception ex)
             {
                 _logger.LogError($"[ApplyEncounterSnapshotCommand] Error applying snapshot: {ex.Message}");
-                GD.Print($"[ApplyEncounterSnapshotCommand] Exception details: {ex}");
+                _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Exception details: {ex}");
                 token.Complete(CommandResult.Failure($"Failed to apply encounter snapshot: {ex.Message}"));
             }
         }
@@ -117,7 +117,7 @@ namespace Scripts.Commands.Spell
                 // Validate that the spell is still active
                 if (!currentState.Spell.IsActive)
                 {
-                    GD.Print("[ApplyEncounterSnapshotCommand] State transition validation failed: No active spell");
+                    _logger.LogInfo("[ApplyEncounterSnapshotCommand] State transition validation failed: No active spell");
                     return false;
                 }
 
@@ -125,7 +125,7 @@ namespace Scripts.Commands.Spell
                 var expectedActionIndex = currentState.Spell.CurrentActionIndex;
                 if (snapshot.ResultingState.ActionIndex != expectedActionIndex + 1)
                 {
-                    GD.Print($"[ApplyEncounterSnapshotCommand] State transition validation failed: " +
+                    _logger.LogInfo($"[ApplyEncounterSnapshotCommand] State transition validation failed: " +
                              $"Expected action index {expectedActionIndex + 1}, got {snapshot.ResultingState.ActionIndex}");
                     return false;
                 }
@@ -134,7 +134,7 @@ namespace Scripts.Commands.Spell
             }
             catch (Exception ex)
             {
-                GD.Print($"[ApplyEncounterSnapshotCommand] Error validating state transition: {ex.Message}");
+                _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Error validating state transition: {ex.Message}");
                 return false;
             }
         }
@@ -143,15 +143,15 @@ namespace Scripts.Commands.Spell
         {
             try
             {
-                GD.Print($"[ApplyEncounterSnapshotCommand] State Changes:");
-                GD.Print($"  Action Index: {oldState.Spell.CurrentActionIndex} -> {newState.Spell.CurrentActionIndex}");
-                GD.Print($"  Total Damage: {oldState.Spell.TotalDamageDealt} -> {newState.Spell.TotalDamageDealt}");
-                GD.Print($"  Status Effects Count: {oldState.StatusEffects.ActiveEffects.Length} -> {newState.StatusEffects.ActiveEffects.Length}");
-                GD.Print($"  Snapshot Result: {snapshot.ActionResult.FinalDamage} damage, {snapshot.ActionResult.ConsumedModifiers.Length} modifiers consumed");
+                _logger.LogInfo($"[ApplyEncounterSnapshotCommand] State Changes:");
+                _logger.LogInfo($"  Action Index: {oldState.Spell.CurrentActionIndex} -> {newState.Spell.CurrentActionIndex}");
+                _logger.LogInfo($"  Total Damage: {oldState.Spell.TotalDamageDealt} -> {newState.Spell.TotalDamageDealt}");
+                _logger.LogInfo($"  Status Effects Count: {oldState.StatusEffects.ActiveEffects.Length} -> {newState.StatusEffects.ActiveEffects.Length}");
+                _logger.LogInfo($"  Snapshot Result: {snapshot.ActionResult.FinalDamage} damage, {snapshot.ActionResult.ConsumedModifiers.Length} modifiers consumed");
             }
             catch (Exception ex)
             {
-                GD.Print($"[ApplyEncounterSnapshotCommand] Error logging state changes: {ex.Message}");
+                _logger.LogInfo($"[ApplyEncounterSnapshotCommand] Error logging state changes: {ex.Message}");
             }
         }
 

@@ -10,6 +10,8 @@ namespace Maximagus.Resources.Definitions.StatusEffects
     [GlobalClass]
     public partial class StatusEffectResource : Resource
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         [Export] public StatusEffectType EffectType { get; set; }
         [Export] public string EffectName { get; set; }
         [Export] public string Description { get; set; }
@@ -59,7 +61,7 @@ namespace Maximagus.Resources.Definitions.StatusEffects
             var displayText = GetDisplayText(stacks);
             
             // Log the effect trigger for debugging/display purposes
-            GD.Print($"Status Effect Triggered: {displayText}");
+            _logger.LogInfo($"Status Effect Triggered: {displayText}");
         }
 
         /// <summary>

@@ -48,7 +48,7 @@ namespace Scripts.Commands.Spell
             var currentState = _commandProcessor.CurrentState;
             var currentSpell = currentState.Spell;
             
-            GD.Print($"[CompleteSpellCommand] Completing spell - Success: {_wasSuccessful}, Total Damage: {currentSpell.TotalDamageDealt}");
+            _logger.LogInfo($"[CompleteSpellCommand] Completing spell - Success: {_wasSuccessful}, Total Damage: {currentSpell.TotalDamageDealt}");
             
             try
             {
@@ -69,7 +69,7 @@ namespace Scripts.Commands.Spell
                 var newSpellState = currentSpell.WithCompletedSpell(historyEntry);
                 var newState = currentState.WithSpell(newSpellState);
 
-                GD.Print($"[CompleteSpellCommand] Spell completed and moved to history. History count: {newSpellState.History.Length}");
+                _logger.LogInfo($"[CompleteSpellCommand] Spell completed and moved to history. History count: {newSpellState.History.Length}");
                 
                 token.Complete(CommandResult.Success(newState));
             }
@@ -114,7 +114,7 @@ namespace Scripts.Commands.Spell
                     if (!string.IsNullOrEmpty(spellId))
                     {
                         EncounterSnapshotManager.ClearSnapshots(spellId);
-                        GD.Print($"[CompleteSpellCommand] Cleaned up snapshots for spell {spellId}");
+                        _logger.LogInfo($"[CompleteSpellCommand] Cleaned up snapshots for spell {spellId}");
                     }
                 }
             }

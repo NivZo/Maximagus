@@ -34,7 +34,7 @@ namespace Scripts.Commands.Card
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print($"[StartDragCommand] Starting drag for card {_cardId}");
+            _logger.LogInfo($"[StartDragCommand] Starting drag for card {_cardId}");
             
             // Clear hover state and set dragging
             var newCards = currentState.Cards
@@ -42,7 +42,7 @@ namespace Scripts.Commands.Card
                 .WithCardDragging(_cardId, true);
             var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[StartDragCommand] Card {_cardId} is now dragging");
+            _logger.LogInfo($"[StartDragCommand] Card {_cardId} is now dragging");
 
             token.Complete(CommandResult.Success(newState));
         }
@@ -72,12 +72,12 @@ namespace Scripts.Commands.Card
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print($"[EndDragCommand] Ending drag for card {_cardId}");
+            _logger.LogInfo($"[EndDragCommand] Ending drag for card {_cardId}");
 
             var newCards = currentState.Cards.WithCardDragging(_cardId, false);
             var newState = currentState.WithCards(newCards);
             
-            GD.Print($"[EndDragCommand] Card {_cardId} drag ended");
+            _logger.LogInfo($"[EndDragCommand] Card {_cardId} drag ended");
 
             token.Complete(CommandResult.Success(newState));
         }

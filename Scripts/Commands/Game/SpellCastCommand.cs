@@ -46,7 +46,7 @@ namespace Scripts.Commands.Game
                 .OrderBy(c => c.Position)
                 .ToArray();
 
-            GD.Print($"[SpellCastCommand] Starting snapshot-based spell processing with {playedCards.Length} cards");
+            _logger.LogInfo($"[SpellCastCommand] Starting snapshot-based spell processing with {playedCards.Length} cards");
 
             // Create command chain for spell processing
             var commandChain = new List<GameCommand>
@@ -79,7 +79,7 @@ namespace Scripts.Commands.Game
             var newState = currentState.WithPhase(newPhaseState);
             commandChain.Add(new TurnEndCommand());
 
-            GD.Print($"[SpellCastCommand] Created snapshot-based command chain with {commandChain.Count} commands");
+            _logger.LogInfo($"[SpellCastCommand] Created snapshot-based command chain with {commandChain.Count} commands");
 
             token.Complete(CommandResult.Success(newState, commandChain));
         }

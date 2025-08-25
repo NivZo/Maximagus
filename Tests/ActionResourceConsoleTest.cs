@@ -11,9 +11,11 @@ namespace Tests
     /// </summary>
     public partial class ActionResourceConsoleTest : RefCounted
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         public static void RunConsoleTest()
         {
-            GD.Print("=== ActionResource Console Test ===");
+            _logger.LogInfo("=== ActionResource Console Test ===");
             
             try
             {
@@ -21,19 +23,19 @@ namespace Tests
                 TestModifierActionResourceCreation();
                 TestStatusEffectActionResourceCreation();
                 
-                GD.Print("=== ActionResource Console Test Passed! ===");
+                _logger.LogInfo("=== ActionResource Console Test Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"ActionResource Console Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"ActionResource Console Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         private static void TestDamageActionResourceCreation()
         {
-            GD.Print("Testing DamageActionResource command creation...");
+            _logger.LogInfo("Testing DamageActionResource command creation...");
             
             var damageAction = new DamageActionResource
             {
@@ -59,12 +61,12 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ DamageActionResource created command successfully: {description}");
+            _logger.LogInfo($"  ✓ DamageActionResource created command successfully: {description}");
         }
 
         private static void TestModifierActionResourceCreation()
         {
-            GD.Print("Testing ModifierActionResource command creation...");
+            _logger.LogInfo("Testing ModifierActionResource command creation...");
             
             var modifierAction = new ModifierActionResource
             {
@@ -92,12 +94,12 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ ModifierActionResource created command successfully: {description}");
+            _logger.LogInfo($"  ✓ ModifierActionResource created command successfully: {description}");
         }
 
         private static void TestStatusEffectActionResourceCreation()
         {
-            GD.Print("Testing StatusEffectActionResource command creation...");
+            _logger.LogInfo("Testing StatusEffectActionResource command creation...");
             
             var statusEffect = new StatusEffectResource
             {
@@ -130,7 +132,7 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ StatusEffectActionResource created command successfully: {description}");
+            _logger.LogInfo($"  ✓ StatusEffectActionResource created command successfully: {description}");
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[ProcessStatusEffectDecayCommand] Processing decay for mode: {_decayMode}");
+            _logger.LogInfo($"[ProcessStatusEffectDecayCommand] Processing decay for mode: {_decayMode}");
             
             try
             {
@@ -50,7 +50,7 @@ namespace Scripts.Commands.Spell
                 var newState = currentState.WithStatusEffects(newStatusEffectsState);
 
                 var newEffectsCount = newStatusEffectsState.ActiveEffects.Length;
-                GD.Print($"[ProcessStatusEffectDecayCommand] Decay processed. Effects before: {currentEffectsCount}, after: {newEffectsCount}");
+                _logger.LogInfo($"[ProcessStatusEffectDecayCommand] Decay processed. Effects before: {currentEffectsCount}, after: {newEffectsCount}");
                 
                 token.Complete(CommandResult.Success(newState));
             }

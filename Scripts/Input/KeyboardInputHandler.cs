@@ -10,9 +10,11 @@ namespace Scripts.Input
     public partial class KeyboardInputHandler : Node
     {
         private InputToCommandMapper _inputMapper;
+        private ILogger _logger;
 
         public override void _Ready()
         {
+            _logger = ServiceLocator.GetService<ILogger>();
             // Set to process unhandled input to catch global keyboard events
             SetProcessUnhandledInput(true);
         }
@@ -42,9 +44,9 @@ namespace Scripts.Input
             var inputData = ProcessKeyboardEvent(@event);
             if (inputData != null)
             {
-                GD.Print($"[KeyboardInputHandler] Processing key: {inputData.KeyCode}");
+                _logger.LogInfo($"[KeyboardInputHandler] Processing key: {inputData.KeyCode}");
                 var processed = _inputMapper.ProcessInput(inputData);
-                GD.Print($"[KeyboardInputHandler] Command processed: {processed}");
+                _logger.LogInfo($"[KeyboardInputHandler] Command processed: {processed}");
                 if (processed)
                 {
                     // Mark the event as handled to prevent further processing
@@ -176,7 +178,7 @@ namespace Scripts.Input
         {
             // TODO: Implement custom shortcut storage and processing
             // For now, shortcuts are hardcoded in IsGlobalShortcut
-            GD.Print($"Custom shortcut registered: {keyCode} + {modifiers} -> {action}");
+            _logger.LogInfo($"Custom shortcut registered: {keyCode} + {modifiers} -> {action}");
         }
 
         /// <summary>

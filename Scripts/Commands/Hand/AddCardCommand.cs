@@ -47,7 +47,7 @@ namespace Scripts.Commands.Hand
             };
             var position = _position >= 0 ? _position : containerCount;
 
-            GD.Print($"[AddCardCommand] Adding card {_spellCardResource.CardName} to {_containerType} at position {position}");
+            _logger.LogInfo($"[AddCardCommand] Adding card {_spellCardResource.CardName} to {_containerType} at position {position}");
 
             var newCardState = new CardState(
                 cardId: Guid.NewGuid().ToString(),
@@ -61,7 +61,7 @@ namespace Scripts.Commands.Hand
             var newCards = currentState.Cards.WithAddedCard(newCardState);
             var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[AddCardCommand] Card {_spellCardResource.CardName} added to {_containerType} at position {position}");
+            _logger.LogInfo($"[AddCardCommand] Card {_spellCardResource.CardName} added to {_containerType} at position {position}");
 
             (Engine.GetMainLoop() as SceneTree).Root.GetTree().CreateTimer(.1f).Timeout += () => token.Complete(CommandResult.Success(newState));
         }

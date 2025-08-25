@@ -56,7 +56,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[ExecuteCardActionCommand] Executing {_action.GetType().Name} for card {_cardId} using snapshot-based approach");
+            _logger.LogInfo($"[ExecuteCardActionCommand] Executing {_action.GetType().Name} for card {_cardId} using snapshot-based approach");
             
             // Execute the action using pre-calculated snapshots
             ExecuteActionWithSnapshots(currentState, token);
@@ -77,10 +77,10 @@ namespace Scripts.Commands.Spell
                     _logger.LogError($"[ExecuteCardActionCommand] {errorMessage}");
                     
                     // Debug: Print available spell properties
-                    GD.Print("[ExecuteCardActionCommand] Available spell properties:");
+                    _logger.LogInfo("[ExecuteCardActionCommand] Available spell properties:");
                     foreach (var prop in currentState.Spell.Properties)
                     {
-                        GD.Print($"  {prop.Key}: {prop.Value}");
+                        _logger.LogInfo($"  {prop.Key}: {prop.Value}");
                     }
                     
                     throw new InvalidOperationException(errorMessage);
@@ -89,7 +89,7 @@ namespace Scripts.Commands.Spell
                 // Generate the action key for this specific action
                 var actionKey = GenerateActionKey(currentState);
 
-                GD.Print($"[ExecuteCardActionCommand] Looking for snapshot: spell={spellId}, action={actionKey}");
+                _logger.LogInfo($"[ExecuteCardActionCommand] Looking for snapshot: spell={spellId}, action={actionKey}");
 
                 // Retrieve and apply the pre-calculated snapshot
                 var snapshot = EncounterSnapshotManager.GetSnapshotForAction(spellId, actionKey);
@@ -101,10 +101,10 @@ namespace Scripts.Commands.Spell
                     
                     // Debug: List all available snapshots for this spell
                     var allSnapshots = EncounterSnapshotManager.GetAllSnapshots(spellId);
-                    GD.Print($"[ExecuteCardActionCommand] Available snapshots for spell {spellId}: {allSnapshots.Length}");
+                    _logger.LogInfo($"[ExecuteCardActionCommand] Available snapshots for spell {spellId}: {allSnapshots.Length}");
                     foreach (var availableSnapshot in allSnapshots)
                     {
-                        GD.Print($"  - {availableSnapshot.ActionKey} (Created: {availableSnapshot.CreatedAt:HH:mm:ss.fff})");
+                        _logger.LogInfo($"  - {availableSnapshot.ActionKey} (Created: {availableSnapshot.CreatedAt:HH:mm:ss.fff})");
                     }
                     
                     throw new InvalidOperationException(errorMessage);
@@ -115,7 +115,7 @@ namespace Scripts.Commands.Spell
                 {
                     var errorMessage = $"Invalid snapshot for spell {spellId}, action {actionKey}";
                     _logger.LogError($"[ExecuteCardActionCommand] {errorMessage}");
-                    GD.Print($"[ExecuteCardActionCommand] Snapshot details: {snapshot}");
+                    _logger.LogInfo($"[ExecuteCardActionCommand] Snapshot details: {snapshot}");
                     throw new InvalidOperationException(errorMessage);
                 }
 
@@ -130,7 +130,7 @@ namespace Scripts.Commands.Spell
                 // Apply the snapshot to get the new state
                 var newState = SpellLogicManager.ApplyEncounterSnapshot(currentState, snapshot);
 
-                GD.Print($"[ExecuteCardActionCommand] Applied snapshot for action {actionKey}: " +
+                _logger.LogInfo($"[ExecuteCardActionCommand] Applied snapshot for action {actionKey}: " +
                          $"{snapshot.ActionResult.FinalDamage} damage, " +
                          $"Action Index: {snapshot.ResultingState.ActionIndex}");
                 
@@ -146,7 +146,7 @@ namespace Scripts.Commands.Spell
             catch (Exception ex)
             {
                 _logger.LogError($"[ExecuteCardActionCommand] Error executing action with snapshots: {ex.Message}");
-                GD.Print($"[ExecuteCardActionCommand] Exception details: {ex}");
+                _logger.LogInfo($"[ExecuteCardActionCommand] Exception details: {ex}");
                 token.Complete(CommandResult.Failure($"Failed to execute card action: {ex.Message}"));
             }
         }
@@ -158,7 +158,7 @@ namespace Scripts.Commands.Spell
                 // Validate that the spell is still active
                 if (!currentState.Spell.IsActive)
                 {
-                    GD.Print("[ExecuteCardActionCommand] Validation failed: No active spell");
+                    _logger.LogInfo("[ExecuteCardActionCommand] Validation failed: No active spell");
                     return false;
                 }
 
@@ -168,7 +168,7 @@ namespace Scripts.Commands.Spell
                 
                 if (expectedActionIndex != currentActionIndex + 1)
                 {
-                    GD.Print($"[ExecuteCardActionCommand] Validation failed: " +
+                    _logger.LogInfo($"[ExecuteCardActionCommand] Validation failed: " +
                              $"Expected action index {currentActionIndex + 1}, snapshot has {expectedActionIndex}");
                     return false;
                 }
@@ -177,7 +177,7 @@ namespace Scripts.Commands.Spell
             }
             catch (Exception ex)
             {
-                GD.Print($"[ExecuteCardActionCommand] Error validating action execution: {ex.Message}");
+                _logger.LogInfo($"[ExecuteCardActionCommand] Error validating action execution: {ex.Message}");
                 return false;
             }
         }
@@ -186,18 +186,18 @@ namespace Scripts.Commands.Spell
         {
             try
             {
-                GD.Print($"[ExecuteCardActionCommand] Action Execution Details:");
-                GD.Print($"  Action: {_action.GetType().Name} (ID: {_action.ActionId})");
-                GD.Print($"  Card: {_cardId}");
-                GD.Print($"  Action Index: {oldState.Spell.CurrentActionIndex} -> {newState.Spell.CurrentActionIndex}");
-                GD.Print($"  Total Damage: {oldState.Spell.TotalDamageDealt} -> {newState.Spell.TotalDamageDealt}");
-                GD.Print($"  This Action Damage: {snapshot.ActionResult.FinalDamage}");
-                GD.Print($"  Modifiers Consumed: {snapshot.ActionResult.ConsumedModifiers.Length}");
-                GD.Print($"  Status Effects: {oldState.StatusEffects.ActiveEffects.Length} -> {newState.StatusEffects.ActiveEffects.Length}");
+                _logger.LogInfo($"[ExecuteCardActionCommand] Action Execution Details:");
+                _logger.LogInfo($"  Action: {_action.GetType().Name} (ID: {_action.ActionId})");
+                _logger.LogInfo($"  Card: {_cardId}");
+                _logger.LogInfo($"  Action Index: {oldState.Spell.CurrentActionIndex} -> {newState.Spell.CurrentActionIndex}");
+                _logger.LogInfo($"  Total Damage: {oldState.Spell.TotalDamageDealt} -> {newState.Spell.TotalDamageDealt}");
+                _logger.LogInfo($"  This Action Damage: {snapshot.ActionResult.FinalDamage}");
+                _logger.LogInfo($"  Modifiers Consumed: {snapshot.ActionResult.ConsumedModifiers.Length}");
+                _logger.LogInfo($"  Status Effects: {oldState.StatusEffects.ActiveEffects.Length} -> {newState.StatusEffects.ActiveEffects.Length}");
             }
             catch (Exception ex)
             {
-                GD.Print($"[ExecuteCardActionCommand] Error logging action execution: {ex.Message}");
+                _logger.LogInfo($"[ExecuteCardActionCommand] Error logging action execution: {ex.Message}");
             }
         }
 

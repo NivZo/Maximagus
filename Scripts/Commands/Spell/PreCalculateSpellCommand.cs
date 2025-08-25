@@ -52,7 +52,7 @@ namespace Scripts.Commands.Spell
                 return;
             }
             
-            GD.Print($"[PreCalculateSpellCommand] Pre-calculating EncounterState snapshots for {playedCards.Length} cards");
+            _logger.LogInfo($"[PreCalculateSpellCommand] Pre-calculating EncounterState snapshots for {playedCards.Length} cards");
             
             // Log detailed information about the spell being pre-calculated
             LogSpellPreCalculationStart(currentState, playedCards);
@@ -103,7 +103,7 @@ namespace Scripts.Commands.Spell
                 var updatedSpellState = currentState.Spell.WithProperty("SnapshotSpellId", Variant.From(spellId));
                 var newState = currentState.WithSpell(updatedSpellState);
 
-                GD.Print($"[PreCalculateSpellCommand] Successfully generated and stored {snapshots.Length} EncounterState snapshots for spell {spellId}");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Successfully generated and stored {snapshots.Length} EncounterState snapshots for spell {spellId}");
                 
                 // Log detailed snapshot information for debugging
                 LogSnapshotDetails(spellId, snapshots);
@@ -113,7 +113,7 @@ namespace Scripts.Commands.Spell
             catch (Exception ex)
             {
                 _logger.LogError($"[PreCalculateSpellCommand] Error pre-calculating spell snapshots: {ex.Message}");
-                GD.Print($"[PreCalculateSpellCommand] Exception details: {ex}");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Exception details: {ex}");
                 token.Complete(CommandResult.Failure($"Failed to pre-calculate spell snapshots: {ex.Message}"));
             }
         }
@@ -122,23 +122,23 @@ namespace Scripts.Commands.Spell
         {
             try
             {
-                GD.Print($"[PreCalculateSpellCommand] Spell Pre-Calculation Details:");
-                GD.Print($"  Active Spell: {gameState.Spell.IsActive}");
-                GD.Print($"  Current Action Index: {gameState.Spell.CurrentActionIndex}");
-                GD.Print($"  Total Damage So Far: {gameState.Spell.TotalDamageDealt}");
-                GD.Print($"  Status Effects Count: {gameState.StatusEffects.ActiveEffects.Length}");
-                GD.Print($"  Cards to Process: {playedCards.Length}");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Spell Pre-Calculation Details:");
+                _logger.LogInfo($"  Active Spell: {gameState.Spell.IsActive}");
+                _logger.LogInfo($"  Current Action Index: {gameState.Spell.CurrentActionIndex}");
+                _logger.LogInfo($"  Total Damage So Far: {gameState.Spell.TotalDamageDealt}");
+                _logger.LogInfo($"  Status Effects Count: {gameState.StatusEffects.ActiveEffects.Length}");
+                _logger.LogInfo($"  Cards to Process: {playedCards.Length}");
                 
                 for (int i = 0; i < playedCards.Length; i++)
                 {
                     var card = playedCards[i];
                     var actionCount = card.Resource.Actions?.Count ?? 0;
-                    GD.Print($"    Card {i + 1}: {card.Resource.CardName} ({actionCount} actions)");
+                    _logger.LogInfo($"    Card {i + 1}: {card.Resource.CardName} ({actionCount} actions)");
                 }
             }
             catch (Exception ex)
             {
-                GD.Print($"[PreCalculateSpellCommand] Error logging pre-calculation start: {ex.Message}");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Error logging pre-calculation start: {ex.Message}");
             }
         }
 
@@ -146,20 +146,20 @@ namespace Scripts.Commands.Spell
         {
             try
             {
-                GD.Print($"[PreCalculateSpellCommand] Generated Snapshots for Spell {spellId}:");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Generated Snapshots for Spell {spellId}:");
                 for (int i = 0; i < snapshots.Length; i++)
                 {
                     var snapshot = snapshots[i];
-                    GD.Print($"  Snapshot {i + 1}: {snapshot.ActionKey}");
-                    GD.Print($"    Damage: {snapshot.ActionResult.FinalDamage}");
-                    GD.Print($"    Action Index: {snapshot.ResultingState.ActionIndex}");
-                    GD.Print($"    Modifiers Consumed: {snapshot.ActionResult.ConsumedModifiers.Length}");
-                    GD.Print($"    Created: {snapshot.CreatedAt:HH:mm:ss.fff}");
+                    _logger.LogInfo($"  Snapshot {i + 1}: {snapshot.ActionKey}");
+                    _logger.LogInfo($"    Damage: {snapshot.ActionResult.FinalDamage}");
+                    _logger.LogInfo($"    Action Index: {snapshot.ResultingState.ActionIndex}");
+                    _logger.LogInfo($"    Modifiers Consumed: {snapshot.ActionResult.ConsumedModifiers.Length}");
+                    _logger.LogInfo($"    Created: {snapshot.CreatedAt:HH:mm:ss.fff}");
                 }
             }
             catch (Exception ex)
             {
-                GD.Print($"[PreCalculateSpellCommand] Error logging snapshot details: {ex.Message}");
+                _logger.LogInfo($"[PreCalculateSpellCommand] Error logging snapshot details: {ex.Message}");
             }
         }
 

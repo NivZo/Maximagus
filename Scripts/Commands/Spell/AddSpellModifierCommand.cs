@@ -51,7 +51,7 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print($"[AddSpellModifierCommand] Adding modifier: {_modifierType} {_value} {_element} (Consumed: {_isConsumedOnUse})");
+            _logger.LogInfo($"[AddSpellModifierCommand] Adding modifier: {_modifierType} {_value} {_element} (Consumed: {_isConsumedOnUse})");
             
             try
             {
@@ -67,7 +67,7 @@ namespace Scripts.Commands.Spell
                 var newSpellState = SpellLogicManager.AddModifier(currentState.Spell, modifier);
                 var newState = currentState.WithSpell(newSpellState);
                 
-                GD.Print($"[AddSpellModifierCommand] Modifier added successfully. Total modifiers: {newSpellState.ActiveModifiers.Length}");
+                _logger.LogInfo($"[AddSpellModifierCommand] Modifier added successfully. Total modifiers: {newSpellState.ActiveModifiers.Length}");
                 
                 token.Complete(CommandResult.Success(newState));
             }

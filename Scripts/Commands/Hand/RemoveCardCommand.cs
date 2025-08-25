@@ -30,12 +30,12 @@ namespace Scripts.Commands.Hand
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print($"[RemoveCardCommand] Removing card {_cardId} from GameState");
+            _logger.LogInfo($"[RemoveCardCommand] Removing card {_cardId} from GameState");
 
             var newCards = currentState.Cards.WithRemovedCard(_cardId);
             var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully");
+            _logger.LogInfo($"[RemoveCardCommand] Card {_cardId} removed from GameState successfully");
 
             token.Complete(CommandResult.Success(newState));
         }

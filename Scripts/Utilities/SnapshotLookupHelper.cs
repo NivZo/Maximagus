@@ -12,6 +12,8 @@ namespace Scripts.Utilities
     /// </summary>
     public static class SnapshotLookupHelper
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         /// <summary>
         /// Attempts to find a snapshot for the given action using multiple lookup strategies.
         /// This method encapsulates the common snapshot lookup logic used by all action types.
@@ -51,23 +53,23 @@ namespace Scripts.Utilities
                     
                     if (snapshot != null && snapshot.IsValid())
                     {
-                        GD.Print($"[{logContext}] Found snapshot via just-executed strategy: {executedActionKey}");
+                        _logger.LogInfo($"[{logContext}] Found snapshot via just-executed strategy: {executedActionKey}");
                         return snapshot;
                     }
 
                     // Strategy 2: Look for the current action index (alternative timing)
-                    GD.Print("Attempting snapshot lookup strategy 2: current action index");
+                    _logger.LogInfo("Attempting snapshot lookup strategy 2: current action index");
                     var currentActionKey = $"{actionId}_{currentActionIndex}";
                     snapshot = EncounterSnapshotManager.GetSnapshotForAction(spellId, currentActionKey);
                     
                     if (snapshot != null && snapshot.IsValid())
                     {
-                        GD.Print($"[{logContext}] Found snapshot via current-action strategy: {currentActionKey}");
+                        _logger.LogInfo($"[{logContext}] Found snapshot via current-action strategy: {currentActionKey}");
                         return snapshot;
                     }
 
                     // Strategy 3: Search through all snapshots for this action ID (fallback)
-                    GD.Print("Attempting snapshot lookup strategy 3: searching all snapshots");
+                    _logger.LogInfo("Attempting snapshot lookup strategy 3: searching all snapshots");
                     var allSnapshots = EncounterSnapshotManager.GetAllSnapshots(spellId);
                     foreach (var candidateSnapshot in allSnapshots)
                     {
@@ -75,14 +77,14 @@ namespace Scripts.Utilities
                         {
                             if (candidateSnapshot.IsValid())
                             {
-                                GD.Print($"[{logContext}] Found snapshot via search strategy: {candidateSnapshot.ActionKey}");
+                                _logger.LogInfo($"[{logContext}] Found snapshot via search strategy: {candidateSnapshot.ActionKey}");
                                 return candidateSnapshot;
                             }
                         }
                     }
 
                     // No valid snapshot found
-                    GD.Print($"[{logContext}] No valid snapshot found for action {actionId} " +
+                    _logger.LogInfo($"[{logContext}] No valid snapshot found for action {actionId} " +
                             $"(spell: {spellId}, currentIndex: {currentActionIndex})");
                     return null;
                 }
@@ -93,7 +95,7 @@ namespace Scripts.Utilities
             }
             catch (Exception ex)
             {
-                GD.Print($"[{logContext}] Error during snapshot lookup for action {actionId}: {ex.Message}");
+                _logger.LogInfo($"[{logContext}] Error during snapshot lookup for action {actionId}: {ex.Message}");
                 return null;
             }
         }

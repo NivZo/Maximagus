@@ -15,6 +15,8 @@ namespace Maximagus.Scripts.Managers
     /// </summary>
     public static class EncounterSnapshotManager
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+        
         // Thread-safe storage for snapshots by spell ID
         private static readonly ConcurrentDictionary<string, ImmutableArray<EncounterStateSnapshot>> _snapshots
             = new ConcurrentDictionary<string, ImmutableArray<EncounterStateSnapshot>>();
@@ -44,7 +46,7 @@ namespace Maximagus.Scripts.Managers
             var lookupDict = snapshots.ToImmutableDictionary(s => s.ActionKey, s => s);
             _actionLookupCache.AddOrUpdate(spellId, lookupDict, (key, existing) => lookupDict);
             
-            GD.Print($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} with optimized lookup");
+            _logger.LogInfo($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} with optimized lookup");
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace Maximagus.Scripts.Managers
             {
                 if (lookupDict.TryGetValue(actionKey, out var snapshot))
                 {
-                    GD.Print($"[EncounterSnapshotManager] Retrieved snapshot for action {actionKey} in spell {spellId} (optimized)");
+                    _logger.LogInfo($"[EncounterSnapshotManager] Retrieved snapshot for action {actionKey} in spell {spellId} (optimized)");
                     return snapshot;
                 }
             }
@@ -80,17 +82,17 @@ namespace Maximagus.Scripts.Managers
                 
                 if (snapshot == null)
                 {
-                    GD.Print($"[EncounterSnapshotManager] No snapshot found for action {actionKey} in spell {spellId}");
+                    _logger.LogInfo($"[EncounterSnapshotManager] No snapshot found for action {actionKey} in spell {spellId}");
                 }
                 else
                 {
-                    GD.Print($"[EncounterSnapshotManager] Retrieved snapshot for action {actionKey} in spell {spellId} (fallback)");
+                    _logger.LogInfo($"[EncounterSnapshotManager] Retrieved snapshot for action {actionKey} in spell {spellId} (fallback)");
                 }
 
                 return snapshot;
             }
 
-            GD.Print($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
+            _logger.LogInfo($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
             return null;
         }
 
@@ -106,11 +108,11 @@ namespace Maximagus.Scripts.Managers
 
             if (_snapshots.TryGetValue(spellId, out var snapshots))
             {
-                GD.Print($"[EncounterSnapshotManager] Retrieved {snapshots.Length} snapshots for spell {spellId}");
+                _logger.LogInfo($"[EncounterSnapshotManager] Retrieved {snapshots.Length} snapshots for spell {spellId}");
                 return snapshots;
             }
 
-            GD.Print($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
+            _logger.LogInfo($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
             return ImmutableArray<EncounterStateSnapshot>.Empty;
         }
 
@@ -128,11 +130,11 @@ namespace Maximagus.Scripts.Managers
 
             if (snapshotsRemoved)
             {
-                GD.Print($"[EncounterSnapshotManager] Cleared {removedSnapshots.Length} snapshots for spell {spellId}");
+                _logger.LogInfo($"[EncounterSnapshotManager] Cleared {removedSnapshots.Length} snapshots for spell {spellId}");
             }
             else
             {
-                GD.Print($"[EncounterSnapshotManager] No snapshots to clear for spell {spellId}");
+                _logger.LogInfo($"[EncounterSnapshotManager] No snapshots to clear for spell {spellId}");
             }
         }
 
@@ -177,7 +179,7 @@ namespace Maximagus.Scripts.Managers
 
             if (totalClearedSnapshots > 0)
             {
-                GD.Print($"[EncounterSnapshotManager] Cleared {totalClearedSnapshots} expired snapshots " +
+                _logger.LogInfo($"[EncounterSnapshotManager] Cleared {totalClearedSnapshots} expired snapshots " +
                          $"(older than {maxAge.TotalMinutes:F1} minutes)");
             }
         }
@@ -209,7 +211,7 @@ namespace Maximagus.Scripts.Managers
             
             if (totalCleared > 0)
             {
-                GD.Print($"[EncounterSnapshotManager] Cleared all {totalCleared} snapshots from memory");
+                _logger.LogInfo($"[EncounterSnapshotManager] Cleared all {totalCleared} snapshots from memory");
             }
         }
 
@@ -241,7 +243,7 @@ namespace Maximagus.Scripts.Managers
             // Store snapshots with optimized structure for faster retrieval
             _snapshots.AddOrUpdate(spellId, snapshots, (key, existing) => snapshots);
             
-            GD.Print($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} (optimized)");
+            _logger.LogInfo($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} (optimized)");
         }
 
         /// <summary>

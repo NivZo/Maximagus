@@ -33,12 +33,12 @@ namespace Scripts.Commands.Spell
         {
             var currentState = _commandProcessor.CurrentState;
             
-            GD.Print("[StartSpellCommand] Starting new spell");
+            _logger.LogInfo("[StartSpellCommand] Starting new spell");
             
             var newSpellState = currentState.Spell.WithActiveSpell(DateTime.UtcNow);
             var newState = currentState.WithSpell(newSpellState);
             
-            GD.Print($"[StartSpellCommand] Spell started at {newSpellState.StartTime}");
+            _logger.LogInfo($"[StartSpellCommand] Spell started at {newSpellState.StartTime}");
             
             token.Complete(CommandResult.Success(newState));
         }

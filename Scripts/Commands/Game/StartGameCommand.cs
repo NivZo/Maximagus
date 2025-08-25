@@ -16,7 +16,7 @@ namespace Scripts.Commands.Game
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print("[StartGameCommand] Starting game...");
+            _logger.LogInfo("[StartGameCommand] Starting game...");
             
             var newPhaseState = currentState.Phase.WithPhase(GamePhase.TurnStart);
             var newState = currentState.WithPhase(newPhaseState);

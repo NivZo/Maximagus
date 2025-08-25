@@ -11,9 +11,11 @@ namespace Tests
     /// </summary>
     public partial class StatusEffectCommandsConsoleTest : RefCounted
     {
+        private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
+
         public static void RunConsoleTest()
         {
-            GD.Print("=== Status Effect Commands Console Test ===");
+            _logger.LogInfo("=== Status Effect Commands Console Test ===");
             
             try
             {
@@ -21,19 +23,19 @@ namespace Tests
                 TestTriggerStatusEffectsCommandCreation();
                 TestProcessStatusEffectDecayCommandCreation();
                 
-                GD.Print("=== Status Effect Commands Console Test Passed! ===");
+                _logger.LogInfo("=== Status Effect Commands Console Test Passed! ===");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"Status Effect Commands Console Test failed: {ex.Message}");
-                GD.PrintErr($"Stack trace: {ex.StackTrace}");
+                _logger.LogError($"Status Effect Commands Console Test failed: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         private static void TestApplyStatusEffectCommandCreation()
         {
-            GD.Print("Testing ApplyStatusEffectCommand creation...");
+            _logger.LogInfo("Testing ApplyStatusEffectCommand creation...");
             
             var statusEffect = new StatusEffectResource();
             statusEffect.EffectType = StatusEffectType.Poison;
@@ -51,12 +53,12 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ ApplyStatusEffectCommand created successfully: {description}");
+            _logger.LogInfo($"  ✓ ApplyStatusEffectCommand created successfully: {description}");
         }
 
         private static void TestTriggerStatusEffectsCommandCreation()
         {
-            GD.Print("Testing TriggerStatusEffectsCommand creation...");
+            _logger.LogInfo("Testing TriggerStatusEffectsCommand creation...");
             
             var command = new TriggerStatusEffectsCommand(StatusEffectTrigger.StartOfTurn);
             
@@ -71,12 +73,12 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ TriggerStatusEffectsCommand created successfully: {description}");
+            _logger.LogInfo($"  ✓ TriggerStatusEffectsCommand created successfully: {description}");
         }
 
         private static void TestProcessStatusEffectDecayCommandCreation()
         {
-            GD.Print("Testing ProcessStatusEffectDecayCommand creation...");
+            _logger.LogInfo("Testing ProcessStatusEffectDecayCommand creation...");
             
             var command = new ProcessStatusEffectDecayCommand(StatusEffectDecayMode.EndOfTurn);
             
@@ -91,7 +93,7 @@ namespace Tests
                 throw new System.Exception("Command description should not be empty");
             }
             
-            GD.Print($"  ✓ ProcessStatusEffectDecayCommand created successfully: {description}");
+            _logger.LogInfo($"  ✓ ProcessStatusEffectDecayCommand created successfully: {description}");
         }
     }
 }

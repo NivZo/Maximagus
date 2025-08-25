@@ -35,12 +35,12 @@ namespace Scripts.Commands.Card
         public override void Execute(CommandCompletionToken token)
         {
             var currentState = _commandProcessor.CurrentState;
-            GD.Print($"[SelectCardCommand] Selecting card {_cardId} in GameState");
+            _logger.LogInfo($"[SelectCardCommand] Selecting card {_cardId} in GameState");
 
             var newCards = currentState.Cards.WithCardSelection(_cardId, true);
             var newState = currentState.WithCards(newCards);
 
-            GD.Print($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
+            _logger.LogInfo($"[SelectCardCommand] Card {_cardId} selected in GameState successfully");
 
             token.Complete(CommandResult.Success(newState));
         }

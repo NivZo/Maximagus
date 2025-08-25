@@ -13,11 +13,13 @@ namespace Scripts.Input
 	public class InputToCommandMapper
 	{
 		private readonly IGameCommandProcessor _commandProcessor;
+		private readonly ILogger _logger;
 		private readonly Dictionary<string, Func<InputEventData, GameCommand>> _inputMappings;
 
 		public InputToCommandMapper(IGameCommandProcessor commandProcessor)
 		{
 			_commandProcessor = commandProcessor ?? throw new ArgumentNullException(nameof(commandProcessor));
+			_logger = ServiceLocator.GetService<ILogger>();
 			_inputMappings = new Dictionary<string, Func<InputEventData, GameCommand>>();
 			InitializeInputMappings();
 		}
@@ -35,7 +37,7 @@ namespace Scripts.Input
 			}
 			catch (Exception ex)
 			{
-				GD.Print($"Error processing input: {ex.Message}");
+				_logger.LogError($"Error processing input: {ex.Message}");
 				return false;
 			}
 		}

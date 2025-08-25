@@ -23,12 +23,14 @@ public partial class QueuedActionsManager : Node
     private float _currentDelayTimer = 0f;
     private bool _isWaitingBeforeAction = false;
     private QueuedAction? _currentAction = null;
+    private ILogger _logger;
     
     public bool IsProcessingActions => _isProcessingActions;
     public int QueueCount => _actionQueue.Count;
     
     public override void _Ready()
     {
+        _logger = ServiceLocator.GetService<ILogger>();
         SetProcess(true);
     }
     
@@ -49,7 +51,7 @@ public partial class QueuedActionsManager : Node
     {
         if (action == null)
         {
-            GD.PrintErr("ActionQueue: Attempted to queue a null action");
+            _logger.LogError("ActionQueue: Attempted to queue a null action");
             return;
         }
         
@@ -67,7 +69,7 @@ public partial class QueuedActionsManager : Node
             }
             else
             {
-                GD.PrintErr("ActionQueue: Attempted to queue a null action in batch");
+                _logger.LogError("ActionQueue: Attempted to queue a null action in batch");
             }
         }
     }
@@ -139,7 +141,7 @@ public partial class QueuedActionsManager : Node
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"ActionQueue: Error executing action - {ex.Message}");
+            _logger.LogError($"ActionQueue: Error executing action - {ex.Message}");
         }
         
         if (_currentAction.Value.DelayAfter > 0f)
