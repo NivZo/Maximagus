@@ -212,7 +212,7 @@ public partial class Card : Control, IOrderable
     {
         Resource = spellCardResource;
         _artTexture.Texture = spellCardResource.CardArt;
-        _tooltip = Tooltip.Create(() => TargetPosition + new Vector2(-Size.X / 2, -Size.Y * 1.5f), spellCardResource.CardName, spellCardResource.CardDescription);
+        _tooltip = Tooltip.Create(() => TargetPosition + new Vector2(0, -Size.Y * 2f), spellCardResource.CardName, spellCardResource.CardDescription);
     }
     #endregion
 

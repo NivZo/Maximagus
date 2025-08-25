@@ -1,34 +1,33 @@
 [gd_scene load_steps=4 format=3 uid="uid://bi4qgf8t5dit4"]
 
 [ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_xomf3"]
-[ext_resource type="Script" path="res://Scripts/Implementations/GUI/EnergyIndicator.cs" id="2_gryhm"]
-[ext_resource type="Texture2D" uid="uid://7rag6nrfb2d3" path="res://Assets/Art/Icons/Energy.png" id="2_xomf3"]
+[ext_resource type="Script" uid="uid://bteumiok8jl" path="res://Scripts/Implementations/GUI/EnergyIndicator.cs" id="2_gryhm"]
+[ext_resource type="Texture2D" uid="uid://b7ixl0o5gqrwu" path="res://Assets/Art/Icons/Redraw.png" id="3_gryhm"]
 
 [node name="EnergyIndicator" type="Control"]
 modulate = Color(0, 0.776471, 1, 1)
 layout_mode = 3
 anchor_right = 0.076
 anchor_bottom = 0.062
-offset_right = 0.447998
-offset_bottom = -0.176003
+offset_right = -4.64
+offset_bottom = -6.32
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_xomf3")
 script = ExtResource("2_gryhm")
 
 [node name="Value" type="RichTextLabel" parent="."]
-layout_mode = 0
-offset_left = 48.0
-offset_right = 104.0
-offset_bottom = 48.0
-theme_override_font_sizes/normal_font_size = 40
-text = "10"
+offset_left = 20.0
+offset_right = 44.0
+offset_bottom = 18.0
+theme_override_font_sizes/normal_font_size = 16
+text = "999"
 fit_content = true
 scroll_active = false
 vertical_alignment = 1
 
 [node name="TextureRect" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("2_xomf3")
+offset_right = 16.0
+offset_bottom = 16.0
+texture = ExtResource("3_gryhm")
+stretch_mode = 2

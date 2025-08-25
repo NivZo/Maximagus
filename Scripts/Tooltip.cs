@@ -12,6 +12,7 @@ public partial class Tooltip : Control
     private TextureRect _middle;
     private TextureRect _bottom;
     private Func<Vector2> _getPosition;
+    private int _heightDelta;
 
     private const int CONTENT_FONT_SIZE = 12;
 
@@ -31,6 +32,7 @@ public partial class Tooltip : Control
         ServiceLocator.GetService<CardsRoot>().AddChild(tooltip);
         tooltip.GetNode<RichTextLabel>("TooltipTop/TitleLabel").Text = title;
         tooltip.GetNode<RichTextLabel>("ContentLabel").Text = content;
+
         tooltip.FitHeight();
         tooltip.Visible = false;
         tooltip._getPosition = getPosition;
@@ -43,7 +45,7 @@ public partial class Tooltip : Control
         base._Process(delta);
         if (Visible)
         {
-            GlobalPosition = _getPosition();
+            GlobalPosition = _getPosition() - new Vector2(Size.X/2, _heightDelta);
         }
     }
 
@@ -67,14 +69,18 @@ public partial class Tooltip : Control
 
     private void FitHeight()
     {
-        var heightDelta = _contentLabel.GetContentHeight() - _contentLabel.Size.Y + CONTENT_FONT_SIZE;
-        if (heightDelta > 0)
+        _heightDelta = (int)(_contentLabel.GetContentHeight() - _contentLabel.Size.Y + CONTENT_FONT_SIZE);
+        if (_heightDelta > 0)
         {
-            _middle.Size = _middle.Size with { Y = heightDelta };
-            _bottom.Position = _bottom.Position with { Y = _bottom.Position.Y + heightDelta };
-            _contentLabel.SetSize(_contentLabel.Size with { Y = _contentLabel.Size.Y + heightDelta });
+            _middle.Size = _middle.Size with { Y = _heightDelta };
+            _bottom.Position = _bottom.Position with { Y = _bottom.Position.Y + _heightDelta };
+            _contentLabel.SetSize(_contentLabel.Size with { Y = _contentLabel.Size.Y + _heightDelta });
             // _contentLabel.Size = _contentLabel.Size with { Y = _contentLabel.Size.Y + heightDelta };
-            Position = Position with { Y = Position.Y - heightDelta };
+            Position = Position with { Y = Position.Y - _heightDelta };
+        }
+        else
+        {
+            _heightDelta = 0;
         }
 
     }

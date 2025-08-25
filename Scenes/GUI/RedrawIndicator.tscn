@@ -9,26 +9,25 @@ modulate = Color(1, 0.776471, 0, 1)
 layout_mode = 3
 anchor_right = 0.076
 anchor_bottom = 0.062
-offset_right = 0.447998
-offset_bottom = -0.176003
+offset_right = -4.64
+offset_bottom = -6.32
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_umtcq")
 script = ExtResource("2_ks5sx")
 
 [node name="Value" type="RichTextLabel" parent="."]
-layout_mode = 0
-offset_left = 48.0
-offset_right = 104.0
-offset_bottom = 48.0
-theme_override_font_sizes/normal_font_size = 40
-text = "10"
+offset_left = 20.0
+offset_right = 44.0
+offset_bottom = 18.0
+theme_override_font_sizes/normal_font_size = 16
+text = "999"
 fit_content = true
 scroll_active = false
 vertical_alignment = 1
 
 [node name="TextureRect" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 16.0
+offset_bottom = 16.0
 texture = ExtResource("2_unxqe")
+stretch_mode = 2

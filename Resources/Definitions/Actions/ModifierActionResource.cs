@@ -41,9 +41,9 @@ namespace Maximagus.Resources.Definitions.Actions
 
         public override Color PopUpEffectColor => Element switch
         {
-            DamageType.Fire => new Color(1, 0.5f, 0),
-            DamageType.Frost => new Color(0, 0.5f, 1),
-            DamageType.PerChill => new Color(0, 0.5f, 1),
+            DamageType.Fire => new Color(1, 0.3f, 0),
+            DamageType.Frost => new Color(0, 0.3f, 1),
+            DamageType.PerChill => new Color(0, 0.3f, 1),
             _ => new Color(1, 1, 1)
         };
 

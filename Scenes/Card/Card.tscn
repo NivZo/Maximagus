@@ -1,10 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://ccpeukrdsfbkm"]
+[gd_scene load_steps=7 format=3 uid="uid://ccpeukrdsfbkm"]
 
 [ext_resource type="Script" uid="uid://bfkueqhdjuv4m" path="res://Scripts/Implementations/Card/Card.cs" id="1_vlntq"]
-[ext_resource type="Texture2D" uid="uid://d3l86imuqfwu3" path="res://Assets/Art/CardFrameBack.png" id="3_1f3cl"]
+[ext_resource type="Texture2D" uid="uid://c82b8lx3j81na" path="res://Assets/Art/CardFrameBackSmall.png" id="3_1f3cl"]
+[ext_resource type="Texture2D" uid="uid://br6nvxborucle" path="res://Assets/Art/CardFrameFrontSmall.png" id="4_1f3cl"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
-[ext_resource type="Texture2D" uid="uid://cutqq0h35o5w0" path="res://Assets/Art/CardFrameFront.png" id="4_do640"]
-[ext_resource type="Texture2D" uid="uid://cywfbq2o5vtee" path="res://Assets/Art/CardFrame.png" id="4_j66st"]
 [ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
@@ -23,15 +22,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -58.0
-offset_top = -90.0
-offset_right = 58.0
-offset_bottom = 90.0
+offset_left = -320.0
+offset_top = -180.0
+offset_right = -272.0
+offset_bottom = -106.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(58, 90)
-size_flags_horizontal = 4
-size_flags_vertical = 4
+pivot_offset = Vector2(24, 36)
 script = ExtResource("1_vlntq")
 AngleXMax = 5.0
 AngleYMax = 5.0
@@ -45,25 +42,21 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(24, 36)
 mouse_filter = 1
 
 [node name="Card" type="TextureRect" parent="Textures"]
 self_modulate = Color(0.174434, 0.153542, 0.131605, 1)
 material = SubResource("ShaderMaterial_cho03")
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -58.0
-offset_top = -90.0
-offset_right = 58.0
-offset_bottom = 90.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(80, 120)
+pivot_offset = Vector2(22, 32)
 texture = ExtResource("3_1f3cl")
+expand_mode = 1
 stretch_mode = 5
 
 [node name="Front" type="TextureRect" parent="Textures/Card"]
@@ -75,11 +68,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(80, 120)
+pivot_offset = Vector2(24, 36)
 mouse_filter = 2
-texture = ExtResource("4_do640")
+texture = ExtResource("4_1f3cl")
 expand_mode = 1
-stretch_mode = 5
 
 [node name="Art" type="TextureRect" parent="Textures/Card"]
 use_parent_material = true
@@ -87,13 +79,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 38.0
-offset_right = -6.0
-offset_bottom = -42.0
+offset_left = 24.0
+offset_top = 40.0
+offset_right = -24.0
+offset_bottom = -34.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(50, 50)
+scale = Vector2(0.6, 0.6)
 mouse_filter = 2
 texture = ExtResource("5_o7v1n")
 expand_mode = 1
@@ -113,8 +105,8 @@ offset_top = 8.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(80, 120)
+pivot_offset = Vector2(24, 36)
 mouse_filter = 2
-texture = ExtResource("4_j66st")
+texture = ExtResource("3_1f3cl")
 expand_mode = 1
 stretch_mode = 5
