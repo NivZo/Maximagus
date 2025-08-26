@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Maximagus.Scripts.Enums;
 using Maximagus.Resources.Definitions.StatusEffects;
 using Scripts.State;
+using Scripts.Utils;
 
 namespace Maximagus.Scripts.Managers
 {
@@ -14,10 +15,8 @@ namespace Maximagus.Scripts.Managers
             int stacks,
             StatusEffectActionType actionType)
         {
-            if (currentEncounterState == null)
-                throw new System.ArgumentNullException(nameof(currentEncounterState));
-            if (effect == null)
-                throw new System.ArgumentNullException(nameof(effect));
+            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
+            CommonValidation.ThrowIfNull(effect, nameof(effect));
 
             var newStatusEffectsState = ApplyStatusEffect(
                 currentEncounterState.StatusEffects,
@@ -27,45 +26,40 @@ namespace Maximagus.Scripts.Managers
 
             return currentEncounterState.WithStatusEffects(newStatusEffectsState);
         }
+
         public static EncounterState TriggerEffectsInEncounter(
             EncounterState currentEncounterState,
             StatusEffectTrigger trigger)
         {
-            if (currentEncounterState == null)
-                throw new System.ArgumentNullException(nameof(currentEncounterState));
-
+            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
             var newStatusEffectsState = TriggerEffects(currentEncounterState.StatusEffects, trigger);
             return currentEncounterState.WithStatusEffects(newStatusEffectsState);
         }
+
         public static EncounterState ProcessDecayInEncounter(
             EncounterState currentEncounterState,
             StatusEffectDecayMode decayMode)
         {
-            if (currentEncounterState == null)
-                throw new System.ArgumentNullException(nameof(currentEncounterState));
-
+            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
             var newStatusEffectsState = ProcessDecay(currentEncounterState.StatusEffects, decayMode);
             return currentEncounterState.WithStatusEffects(newStatusEffectsState);
         }
+
         public static StatusEffectsState ApplyStatusEffect(
             StatusEffectsState currentState,
             StatusEffectResource effect,
             int stacks,
             StatusEffectActionType actionType)
         {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
-            if (effect == null)
-                throw new System.ArgumentNullException(nameof(effect));
-
+            CommonValidation.ThrowIfNull(currentState, nameof(currentState));
+            CommonValidation.ThrowIfNull(effect, nameof(effect));
             return currentState.WithAppliedEffect(effect, stacks, actionType);
         }
         public static StatusEffectsState TriggerEffects(
             StatusEffectsState currentState,
             StatusEffectTrigger trigger)
         {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+            CommonValidation.ThrowIfNull(currentState, nameof(currentState));
 
             // Get all effects that should trigger
             var effectsToTrigger = currentState.GetEffectsForTrigger(trigger);
@@ -78,81 +72,43 @@ namespace Maximagus.Scripts.Managers
                 effectInstance.EffectResource.OnTrigger(effectInstance.CurrentStacks);
 
                 // Apply decay based on the effect's decay mode
-                if (effectInstance.EffectResource.DecayMode == StatusEffectDecayMode.ReduceByOneOnTrigger)
+                updatedState = effectInstance.EffectResource.DecayMode switch
                 {
-                    updatedState = updatedState.WithAppliedEffect(
-                        effectInstance.EffectResource, 
-                        1, 
-                        StatusEffectActionType.Remove);
-                }
-                else if (effectInstance.EffectResource.DecayMode == StatusEffectDecayMode.RemoveOnTrigger)
-                {
-                    updatedState = updatedState.WithRemovedEffect(effectInstance.EffectType);
-                }
+                    StatusEffectDecayMode.ReduceByOneOnTrigger => updatedState.WithAppliedEffect(
+                        effectInstance.EffectResource, 1, StatusEffectActionType.Remove),
+                    StatusEffectDecayMode.RemoveOnTrigger => updatedState.WithRemovedEffect(effectInstance.EffectType),
+                    _ => updatedState
+                };
             }
 
             // Remove any expired effects
             return updatedState.WithExpiredEffectsRemoved();
         }
+
         public static StatusEffectsState ProcessDecay(
             StatusEffectsState currentState,
             StatusEffectDecayMode decayMode)
         {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
-
-            // Use the existing WithDecayProcessed method
+            CommonValidation.ThrowIfNull(currentState, nameof(currentState));
             return currentState.WithDecayProcessed(decayMode);
         }
-        public static int GetStacksOfEffect(
-            StatusEffectsState currentState,
-            StatusEffectType effectType)
-        {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+        // Simple delegation methods - these just wrap the state methods
+        public static int GetStacksOfEffect(StatusEffectsState currentState, StatusEffectType effectType)
+            => currentState?.GetStacksOfEffect(effectType) ?? 0;
 
-            return currentState.GetStacksOfEffect(effectType);
-        }
-        public static bool HasEffect(
-            StatusEffectsState currentState,
-            StatusEffectType effectType)
-        {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+        public static bool HasEffect(StatusEffectsState currentState, StatusEffectType effectType)
+            => currentState?.HasEffect(effectType) ?? false;
 
-            return currentState.HasEffect(effectType);
-        }
-        public static ImmutableArray<StatusEffectInstanceData> GetEffectsForTrigger(
-            StatusEffectsState currentState,
-            StatusEffectTrigger trigger)
-        {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+        public static ImmutableArray<StatusEffectInstanceData> GetEffectsForTrigger(StatusEffectsState currentState, StatusEffectTrigger trigger)
+            => currentState?.GetEffectsForTrigger(trigger) ?? ImmutableArray<StatusEffectInstanceData>.Empty;
 
-            return currentState.GetEffectsForTrigger(trigger);
-        }
-        public static StatusEffectInstanceData GetEffect(
-            StatusEffectsState currentState,
-            StatusEffectType effectType)
-        {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+        public static StatusEffectInstanceData GetEffect(StatusEffectsState currentState, StatusEffectType effectType)
+            => currentState?.GetEffect(effectType);
 
-            return currentState.GetEffect(effectType);
-        }
         public static StatusEffectsState RemoveExpiredEffects(StatusEffectsState currentState)
-        {
-            if (currentState == null)
-                throw new System.ArgumentNullException(nameof(currentState));
+            => currentState?.WithExpiredEffectsRemoved();
 
-            return currentState.WithExpiredEffectsRemoved();
-        }
         public static bool ValidateState(StatusEffectsState currentState)
-        {
-            if (currentState == null)
-                return false;
-
-            return currentState.IsValid();
-        }
+            => currentState?.IsValid() ?? false;
     }
 }

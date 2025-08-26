@@ -7,6 +7,7 @@ using Maximagus.Resources.Definitions.Actions;
 using Maximagus.Scripts.Enums;
 using Maximagus.Scripts.Managers;
 using Scripts.State;
+using Scripts.Utils;
 
 namespace Maximagus.Scripts.Managers
 {
@@ -19,18 +20,16 @@ namespace Maximagus.Scripts.Managers
             ActionResource action,
             EncounterState currentEncounterState)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (currentEncounterState == null)
-                throw new ArgumentNullException(nameof(currentEncounterState));
+            CommonValidation.ThrowIfNull(action, nameof(action));
+            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
 
             // Calculate the action result using the encounter state
             var actionResult = PreCalculateActionResult(action, currentEncounterState);
             
             // Simulate the action's effects on the encounter state
             var resultingEncounterState = SimulateActionEffectsOnEncounterState(
-                currentEncounterState, 
-                action, 
+                currentEncounterState,
+                action,
                 actionResult);
             
             // Create the action key using both action ID and current action index for uniqueness
@@ -131,26 +130,6 @@ namespace Maximagus.Scripts.Managers
 
         public static ActionExecutionResult PreCalculateActionResult(
             ActionResource action,
-            IGameStateData gameState)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (gameState == null)
-                throw new ArgumentNullException(nameof(gameState));
-
-            switch (action)
-            {
-                case DamageActionResource damageAction:
-                    var (finalDamage, consumedModifiers) = ApplyDamageModifiers(damageAction, gameState);
-                    return ActionExecutionResult.CreateForDamage(damageAction, finalDamage, consumedModifiers);
-                    
-                default:
-                    return ActionExecutionResult.CreateForNonDamage(action);
-            }
-        }
-
-        public static ActionExecutionResult PreCalculateActionResult(
-            ActionResource action,
             EncounterState encounterState)
         {
             if (action == null)
@@ -169,70 +148,18 @@ namespace Maximagus.Scripts.Managers
             }
         }
 
-
-
-
-
-
-        public static (float finalDamage, ImmutableArray<ModifierData> remainingModifiers) ApplyDamageModifiers(
-            DamageActionResource damageAction,
-            IGameStateData gameState)
-        {
-            if (damageAction == null)
-                throw new ArgumentNullException(nameof(damageAction));
-            if (gameState == null)
-                throw new ArgumentNullException(nameof(gameState));
-
-            var activeModifiers = gameState.Spell.ActiveModifiers;
-            _logger.LogInfo($"[Spell Casting Refactor] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
-
-            var baseDamage = GetRawDamage(damageAction, gameState);
-            var modifiedDamage = baseDamage;
-            var modifiersToRemove = ImmutableArray.CreateBuilder<ModifierData>();
-
-            foreach (var modifier in activeModifiers)
-            {
-                if (modifier.CanApply(damageAction.DamageType))
-                {
-                    var oldDamage = modifiedDamage;
-                    modifiedDamage = modifier.Apply(modifiedDamage);
-                    _logger.LogInfo($"[Spell Casting Refactor] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
-                    
-                    if (modifier.IsConsumedOnUse)
-                    {
-                        modifiersToRemove.Add(modifier);
-                        _logger.LogInfo($"[Spell Casting Refactor] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
-                    }
-                }
-            }
-
-            var remainingModifiers = activeModifiers;
-            foreach (var modifierToRemove in modifiersToRemove)
-            {
-                var index = remainingModifiers.IndexOf(modifierToRemove);
-                if (index >= 0)
-                {
-                    remainingModifiers = remainingModifiers.RemoveAt(index);
-                }
-            }
-
-            _logger.LogInfo($"[Spell Casting Refactor] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
-            return (modifiedDamage, remainingModifiers);
-        }
-
         public static (float finalDamage, ImmutableArray<ModifierData> remainingModifiers) ApplyDamageModifiers(
             DamageActionResource damageAction,
             EncounterState encounterState)
         {
-            if (damageAction == null)
-                throw new ArgumentNullException(nameof(damageAction));
-            if (encounterState == null)
-                throw new ArgumentNullException(nameof(encounterState));
+            CommonValidation.ThrowIfNull(damageAction, nameof(damageAction));
+            CommonValidation.ThrowIfNull(encounterState, nameof(encounterState));
 
             var activeModifiers = encounterState.Spell.ActiveModifiers;
-            _logger.LogInfo($"[EncounterState] ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
-
             var baseDamage = GetRawDamage(damageAction, encounterState);
+
+            _logger.LogInfo($"ApplyDamageModifiers: {damageAction.DamageType} damage {damageAction.Amount} with {activeModifiers.Length} modifiers");
+
             var modifiedDamage = baseDamage;
             var modifiersToRemove = ImmutableArray.CreateBuilder<ModifierData>();
 
@@ -242,12 +169,12 @@ namespace Maximagus.Scripts.Managers
                 {
                     var oldDamage = modifiedDamage;
                     modifiedDamage = modifier.Apply(modifiedDamage);
-                    _logger.LogInfo($"[EncounterState] Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
+                    _logger.LogInfo($"Applied modifier {modifier.Type} {modifier.Value}: {oldDamage} -> {modifiedDamage}");
                     
                     if (modifier.IsConsumedOnUse)
                     {
                         modifiersToRemove.Add(modifier);
-                        _logger.LogInfo($"[EncounterState] Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
+                        _logger.LogInfo($"Marked consumable modifier for removal: {modifier.Type} {modifier.Value}");
                     }
                 }
             }
@@ -262,10 +189,9 @@ namespace Maximagus.Scripts.Managers
                 }
             }
 
-            _logger.LogInfo($"[EncounterState] Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
+            _logger.LogInfo($"Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
             return (modifiedDamage, remainingModifiers);
         }
-
 
         public static SpellState AddModifier(SpellState currentState, ModifierData modifier)
         {
@@ -323,24 +249,19 @@ namespace Maximagus.Scripts.Managers
                 "Ensure PreCalculateSpellCommand creates snapshots and ExecuteCardActionCommand uses ApplyEncounterSnapshot.");
         }
         private static float GetRawDamage(DamageActionResource damageAction, IGameStateData gameState)
-        {
-            return damageAction.DamageType switch
-            {
-                DamageType.None => damageAction.Amount,
-                DamageType.Fire => damageAction.Amount,
-                DamageType.Frost => damageAction.Amount,
-                DamageType.PerChill => damageAction.Amount * StatusEffectLogicManager.GetStacksOfEffect(gameState.StatusEffects, StatusEffectType.Chill),
-                _ => damageAction.Amount
-            };
-        }
+            => GetRawDamageInternal(damageAction, gameState.StatusEffects);
+
         private static float GetRawDamage(DamageActionResource damageAction, EncounterState encounterState)
+            => GetRawDamageInternal(damageAction, encounterState.StatusEffects);
+
+        private static float GetRawDamageInternal(DamageActionResource damageAction, StatusEffectsState statusEffects)
         {
             return damageAction.DamageType switch
             {
                 DamageType.None => damageAction.Amount,
                 DamageType.Fire => damageAction.Amount,
                 DamageType.Frost => damageAction.Amount,
-                DamageType.PerChill => damageAction.Amount * StatusEffectLogicManager.GetStacksOfEffect(encounterState.StatusEffects, StatusEffectType.Chill),
+                DamageType.PerChill => damageAction.Amount * StatusEffectLogicManager.GetStacksOfEffect(statusEffects, StatusEffectType.Chill),
                 _ => damageAction.Amount
             };
         }

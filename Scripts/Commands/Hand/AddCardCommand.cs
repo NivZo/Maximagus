@@ -14,7 +14,7 @@ namespace Scripts.Commands.Hand
         private readonly ContainerType _containerType;
         private readonly int _position;
 
-        public AddCardCommand(SpellCardResource spellCardResource, ContainerType containerType, int position = -1) : base(true)
+        public AddCardCommand(SpellCardResource spellCardResource, ContainerType containerType, int position = -1) : base()
         {
             _spellCardResource = spellCardResource;
             _containerType = containerType;

@@ -332,7 +332,6 @@ offset_bottom = 327.824
 
 [node name="StatusEffectIndicator" parent="." instance=ExtResource("12_frkhe")]
 layout_mode = 1
-anchors_preset = 0
 offset_left = 16.0
 offset_top = 36.0
 offset_right = 16.448

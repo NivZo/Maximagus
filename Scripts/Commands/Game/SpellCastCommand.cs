@@ -13,7 +13,7 @@ namespace Scripts.Commands.Game
 
     public class SpellCastCommand : GameCommand
     {
-        public SpellCastCommand() : base(true)
+        public SpellCastCommand() : base()
         {
         }
 
