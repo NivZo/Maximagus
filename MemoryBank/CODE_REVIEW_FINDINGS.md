@@ -38,7 +38,7 @@ The code review identified significant architectural issues that violate SOLID p
 ```csharp
 public enum StatusEffectType
 {
-    Poison,
+    Burning,
     Burn,
     Freeze,
     Stun,

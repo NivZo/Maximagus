@@ -94,7 +94,7 @@ namespace Scripts.Commands.Spell
                 }
                 
                 // Generate a unique spell ID for this casting
-                var spellId = GenerateSpellId(currentState);
+                var spellId = GenerateSpellId();
                 
                 // Store the snapshots for later retrieval during action execution
                 EncounterSnapshotManager.StoreSnapshots(spellId, snapshots);
@@ -142,7 +142,7 @@ namespace Scripts.Commands.Spell
             }
         }
 
-        private void LogSnapshotDetails(string spellId, System.Collections.Immutable.ImmutableArray<EncounterStateSnapshot> snapshots)
+        private void LogSnapshotDetails(string spellId, ImmutableArray<EncounterStateSnapshot> snapshots)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace Scripts.Commands.Spell
             }
         }
 
-        private string GenerateSpellId(IGameStateData gameState)
+        private string GenerateSpellId()
         {
             // Generate a unique spell ID based on timestamp and spell state
             var timestamp = DateTime.UtcNow.Ticks;

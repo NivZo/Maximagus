@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://c82b8lx3j81na" path="res://Assets/Art/CardFrameBackSmall.png" id="3_1f3cl"]
 [ext_resource type="Texture2D" uid="uid://br6nvxborucle" path="res://Assets/Art/CardFrameFrontSmall.png" id="4_1f3cl"]
 [ext_resource type="Shader" uid="uid://8lkaopjh0juv" path="res://Shaders/2DPerspective.gdshader" id="4_25b8w"]
-[ext_resource type="Texture2D" uid="uid://da27h7pkocg40" path="res://Assets/Art/Firebolt.png" id="5_o7v1n"]
+[ext_resource type="Texture2D" uid="uid://cswygv4lb3xmp" path="res://Assets/Art/CardArt/Firebolt.png" id="5_l5eg5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cho03"]
 resource_local_to_scene = true
@@ -74,22 +74,21 @@ texture = ExtResource("4_1f3cl")
 expand_mode = 1
 
 [node name="Art" type="TextureRect" parent="Textures/Card"]
+self_modulate = Color(0.92549, 0.52549, 0.0980392, 1)
 use_parent_material = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 40.0
-offset_right = -24.0
-offset_bottom = -34.0
+offset_left = 8.0
+offset_top = 16.0
+offset_right = -8.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(0.6, 0.6)
 mouse_filter = 2
-texture = ExtResource("5_o7v1n")
-expand_mode = 1
-stretch_mode = 5
+texture = ExtResource("5_l5eg5")
+stretch_mode = 3
 
 [node name="Shadow" type="TextureRect" parent="Textures/Card"]
 modulate = Color(0, 0, 0, 1)

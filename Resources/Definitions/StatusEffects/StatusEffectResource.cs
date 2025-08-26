@@ -42,8 +42,6 @@ namespace Maximagus.Resources.Definitions.StatusEffects
             var effectValue = CalculateEffectValue(stacks);
             return EffectType switch
             {
-                StatusEffectType.Poison => $"Poison: {effectValue} damage ({stacks} stacks)",
-                StatusEffectType.Bleeding => $"Bleeding: +{effectValue} damage to attacks ({stacks} stacks)",
                 StatusEffectType.Chill => $"Chill: -{effectValue} damage reduction ({stacks} stacks)",
                 StatusEffectType.Burning => $"Burning: {effectValue} damage over time ({stacks} stacks)",
                 _ => $"{EffectName}: {effectValue} ({stacks} stacks)"

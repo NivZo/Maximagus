@@ -1,35 +1,35 @@
 [gd_resource type="Resource" script_class="SpellCardResource" load_steps=9 format=3 uid="uid://bnww4au5kjnnv"]
 
-[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_6fwmh"]
-[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="1_geg3t"]
-[ext_resource type="Texture2D" uid="uid://bdgm4cwcopkcj" path="res://Assets/Art/FrostShards.png" id="2_fny2q"]
-[ext_resource type="Resource" uid="uid://binjto7ckoq7k" path="res://Resources/StatusEffects/Chill.tres" id="2_xcfaj"]
-[ext_resource type="Script" uid="uid://cv2tlkbcoaiyr" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="3_4jx7c"]
+[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_xcfaj"]
+[ext_resource type="Resource" uid="uid://binjto7ckoq7k" path="res://Resources/StatusEffects/Chill.tres" id="2_4jx7c"]
+[ext_resource type="Script" uid="uid://cv2tlkbcoaiyr" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="3_0vcwd"]
+[ext_resource type="Texture2D" uid="uid://cj78nyvsq5l8y" path="res://Assets/Art/CardArt/Frostshards.png" id="4_6x5my"]
+[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="5_a542o"]
 
 [sub_resource type="Resource" id="Resource_y114i"]
-script = ExtResource("1_6fwmh")
+script = ExtResource("1_xcfaj")
 DamageType = 2
 Amount = 3
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [sub_resource type="Resource" id="Resource_xcfaj"]
-script = ExtResource("1_6fwmh")
+script = ExtResource("1_xcfaj")
 DamageType = 2
 Amount = 3
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
 [sub_resource type="Resource" id="Resource_0vcwd"]
-script = ExtResource("3_4jx7c")
-StatusEffect = ExtResource("2_xcfaj")
+script = ExtResource("3_0vcwd")
+StatusEffect = ExtResource("2_4jx7c")
 ActionType = 0
 Stacks = 2
 metadata/_custom_type_script = "uid://cv2tlkbcoaiyr"
 
 [resource]
-script = ExtResource("1_geg3t")
+script = ExtResource("5_a542o")
 CardResourceId = "frostshards"
 CardName = "Frost Shards"
 CardDescription = "Deal 3 [b]Frost[/b] damage twice
 Inflict 2 [b]Chill[/b]"
-CardArt = ExtResource("2_fny2q")
+CardArt = ExtResource("4_6x5my")
 Actions = Array[Resource]([SubResource("Resource_y114i"), SubResource("Resource_xcfaj"), SubResource("Resource_0vcwd")])

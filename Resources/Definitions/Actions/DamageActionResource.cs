@@ -47,10 +47,10 @@ namespace Maximagus.Resources.Definitions.Actions
 
         public override Color PopUpEffectColor => DamageType switch
         {
-            DamageType.Fire => new Color(1, 0.3f, 0),
-            DamageType.Frost => new Color(0, 0.3f, 1),
-            DamageType.PerChill => new Color(0, 0.3f, 1),
-            _ => new Color(1, 1, 1)
+            DamageType.Fire => ElementColors.Fire,
+            DamageType.Frost => ElementColors.Frost,
+            DamageType.PerChill => ElementColors.Frost,
+            _ => ElementColors.Neutral
         };
 
         public override GameCommand CreateExecutionCommand(string cardId)

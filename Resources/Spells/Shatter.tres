@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://cv2tlkbcoaiyr" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="1_8biyy"]
 [ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_ludp6"]
 [ext_resource type="Resource" uid="uid://binjto7ckoq7k" path="res://Resources/StatusEffects/Chill.tres" id="2_3r3pg"]
-[ext_resource type="Texture2D" uid="uid://dm3rikfmbctbx" path="res://Assets/Art/Shatter.png" id="2_pgbnt"]
 [ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="3_euegq"]
+[ext_resource type="Texture2D" uid="uid://cemeqqq5ny5yr" path="res://Assets/Art/CardArt/Shatter.png" id="4_ludp6"]
 
 [sub_resource type="Resource" id="Resource_fk7u1"]
 script = ExtResource("1_ludp6")
@@ -25,5 +25,5 @@ CardResourceId = "shatter"
 CardName = "Shatter"
 CardDescription = "Deal 3 [b]Frost[/b] damage for each [b]Chill[/b]
 Remove all [b]Chill[/b]"
-CardArt = ExtResource("2_pgbnt")
+CardArt = ExtResource("4_ludp6")
 Actions = Array[Resource]([SubResource("Resource_fk7u1"), SubResource("Resource_ludp6")])

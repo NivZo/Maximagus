@@ -26,20 +26,18 @@ namespace Maximagus.Resources.Definitions.Actions
         {
             return ActionType switch
             {
-                StatusEffectActionType.Add => $"+{Stacks} {StatusEffect.EffectType}",
-                StatusEffectActionType.Remove => $"-{Stacks} {StatusEffect.EffectType}",
-                StatusEffectActionType.Set => $"={Stacks} {StatusEffect.EffectType}",
+                StatusEffectActionType.Add => $"{StatusEffect.EffectType} +{Stacks}",
+                StatusEffectActionType.Remove => $"{StatusEffect.EffectType} -{Stacks}",
+                StatusEffectActionType.Set => $"{StatusEffect.EffectType} ={Stacks}",
                 _ => string.Empty
             };
         }
 
         public override Color PopUpEffectColor => StatusEffect.EffectType switch
         {
-            StatusEffectType.Poison => new Color(1, 0.5f, 0),
-            StatusEffectType.Chill => new Color(0, 0.5f, 1),
-            StatusEffectType.Burning => new Color(0, 0.5f, 1),
-            StatusEffectType.Bleeding => new Color(0, 0.5f, 1),
-            _ => new Color(1, 1, 1)
+            StatusEffectType.Burning => ElementColors.Fire,
+            StatusEffectType.Chill => ElementColors.Frost,
+            _ => ElementColors.Neutral
         };
 
         public override GameCommand CreateExecutionCommand(string cardId)

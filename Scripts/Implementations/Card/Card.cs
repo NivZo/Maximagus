@@ -175,6 +175,8 @@ public partial class Card : Control, IOrderable
 
         var front = _textures.GetNode<TextureRect>("Card/Front");
         front.SelfModulate = Resource.Actions.First().PopUpEffectColor;
+        var art = _textures.GetNode<TextureRect>("Card/Art");
+        art.SelfModulate = Resource.Actions.First().PopUpEffectColor;
     }
 
     #endregion

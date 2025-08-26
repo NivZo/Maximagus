@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_de2rq")
-EffectType = 3
+EffectType = 1
 EffectName = "Chill"
 Description = "Take more damage from Frost spells"
 Trigger = 2
