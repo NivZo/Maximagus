@@ -24,24 +24,15 @@ namespace Scripts.State
             CalculatedAt = calculatedAt;
         }
 
-        public static ActionExecutionResult CreateForDamage(
-            DamageActionResource damageAction,
-            float finalDamage,
-            ImmutableArray<ModifierData> consumedModifiers)
-        {
-            return new ActionExecutionResult(
-                damageAction,
-                finalDamage,
-                consumedModifiers,
-                DateTime.UtcNow);
-        }
-
-        public static ActionExecutionResult CreateForNonDamage(ActionResource action)
+        public static ActionExecutionResult Create(
+            ActionResource action,
+            float finalDamageDealt = 0,
+            ImmutableArray<ModifierData> consumedModifiers = default)
         {
             return new ActionExecutionResult(
                 action,
-                0f,
-                ImmutableArray<ModifierData>.Empty,
+                finalDamageDealt,
+                consumedModifiers.IsDefaultOrEmpty ? ImmutableArray<ModifierData>.Empty : consumedModifiers,
                 DateTime.UtcNow);
         }
 

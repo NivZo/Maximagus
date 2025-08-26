@@ -98,4 +98,56 @@
 
 ---
 
+## 2025-08-26: Critical Bug Fix - Spell Modifier State Management
+
+### Task Completed: Fixed Modifier Consumption Bug in SpellLogicManager
+**Date**: August 26, 2025
+**Duration**: ~15 minutes
+**Status**: ✅ COMPLETED
+
+#### Problem Identified:
+**Critical Bug**: Spell execution was not properly updating modifier state due to two issues:
+1. **Naming Confusion**: `ApplyDamageModifiers` returned `remainingModifiers` but caller expected `consumedModifiers`
+2. **State Update Logic**: `SimulateActionEffectsOnEncounterState` was incorrectly attempting to manually remove consumed modifiers instead of using the correctly calculated remaining modifiers
+
+#### Root Cause Analysis:
+- **Line 143**: Method call destructured tuple incorrectly (expected consumed, got remaining)
+- **Line 144**: `ActionExecutionResult` was created with wrong modifier data
+- **Lines 282-289**: Simulation logic redundantly tried to remove consumed modifiers from active modifiers instead of using the pre-calculated remaining modifiers
+- **Result**: Modifiers were never actually consumed, leading to incorrect spell behavior
+
+#### Solution Implemented:
+**1. Enhanced ApplyDamageModifiers Method:**
+- Changed return signature from `(float, ImmutableArray<ModifierData>)` to `(float, ImmutableArray<ModifierData>, ImmutableArray<ModifierData>)`
+- Now returns: `(finalDamage, consumedModifiers, remainingModifiers)`
+- Clear separation between consumed and remaining modifier arrays
+
+**2. Fixed Method Callers:**
+- Updated `PreCalculateActionResult` to properly destructure 3-tuple with `var (finalDamage, consumedModifiers, _)`
+- Ensures `ActionExecutionResult` gets correct consumed modifiers for tracking
+
+**3. Simplified State Simulation:**
+- Replaced complex manual modifier removal logic in `SimulateActionEffectsOnEncounterState`
+- Now directly calls `ApplyDamageModifiers` to get correct remaining modifiers
+- Eliminates redundant computation and potential bugs
+
+#### Files Modified:
+- `Scripts/Implementations/Managers/SpellLogicManager.cs`
+  - Enhanced `ApplyDamageModifiers` method signature and implementation
+  - Fixed `PreCalculateActionResult` method call
+  - Simplified `SimulateActionEffectsOnEncounterState` damage handling
+
+#### Technical Impact:
+- **Correctness**: Spell modifiers now properly consume when marked as `IsConsumedOnUse`
+- **State Integrity**: Game state correctly reflects remaining modifiers after spell execution
+- **Performance**: Eliminated redundant modifier removal operations
+- **Maintainability**: Clear separation of concerns between consumed and remaining modifiers
+
+#### Testing Implications:
+- Spells with consumable modifiers (e.g., `AmplifyFire`, `AmplifyFrost`) will now work correctly
+- Modifier stacking and consumption behaves as designed
+- State snapshots will contain accurate modifier information
+
+---
+
 *This log tracks significant milestones and changes to the Maximagus project.*

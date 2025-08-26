@@ -16,26 +16,22 @@ namespace Maximagus.Scripts.Managers
     {
         private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
 
-        public static EncounterStateSnapshot PreCalculateActionWithSnapshot(
+        private static EncounterStateSnapshot PreCalculateActionWithSnapshot(
             ActionResource action,
             EncounterState currentEncounterState)
         {
             CommonValidation.ThrowIfNull(action, nameof(action));
             CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
 
-            // Calculate the action result using the encounter state
             var actionResult = PreCalculateActionResult(action, currentEncounterState);
             
-            // Simulate the action's effects on the encounter state
             var resultingEncounterState = SimulateActionEffectsOnEncounterState(
                 currentEncounterState,
                 action,
                 actionResult);
             
-            // Create the action key using both action ID and current action index for uniqueness
             var actionKey = $"{action.ActionId}_{currentEncounterState.ActionIndex}";
             
-            // Create and return the snapshot
             return EncounterStateSnapshot.Create(actionKey, resultingEncounterState, actionResult);
         }
 
@@ -63,14 +59,11 @@ namespace Maximagus.Scripts.Managers
                 {
                     _logger.LogInfo("\n-----------------------------------------------------------------------");
                     
-                    // Update the encounter state with the current action index
                     currentEncounterState = currentEncounterState.WithActionIndex(actionIndex);
                     
-                    // Pre-calculate this action with complete snapshot
                     var snapshot = PreCalculateActionWithSnapshot(action, currentEncounterState);
                     snapshots.Add(snapshot);
                     
-                    // Use the resulting state for the next action
                     currentEncounterState = snapshot.ResultingState;
                     
                     _logger.LogInfo($"[SpellLogicManager] Created snapshot for action {actionIndex}: {action.GetType().Name} -> {snapshot.ActionResult.FinalDamage} damage");
@@ -140,15 +133,15 @@ namespace Maximagus.Scripts.Managers
             switch (action)
             {
                 case DamageActionResource damageAction:
-                    var (finalDamage, consumedModifiers) = ApplyDamageModifiers(damageAction, encounterState);
-                    return ActionExecutionResult.CreateForDamage(damageAction, finalDamage, consumedModifiers);
-                    
+                    var (finalDamage, consumedModifiers, _) = ApplyDamageModifiers(damageAction, encounterState);
+                    return ActionExecutionResult.Create(damageAction, finalDamage, consumedModifiers);
+
                 default:
-                    return ActionExecutionResult.CreateForNonDamage(action);
+                    return ActionExecutionResult.Create(action);
             }
         }
 
-        public static (float finalDamage, ImmutableArray<ModifierData> remainingModifiers) ApplyDamageModifiers(
+        public static (float finalDamage, ImmutableArray<ModifierData> consumedModifiers, ImmutableArray<ModifierData> remainingModifiers) ApplyDamageModifiers(
             DamageActionResource damageAction,
             EncounterState encounterState)
         {
@@ -189,8 +182,9 @@ namespace Maximagus.Scripts.Managers
                 }
             }
 
-            _logger.LogInfo($"Final damage: {modifiedDamage}, Consumed {modifiersToRemove.Count} modifiers, {remainingModifiers.Length} remaining");
-            return (modifiedDamage, remainingModifiers);
+            var consumedModifiers = modifiersToRemove.ToImmutable();
+            _logger.LogInfo($"Final damage: {modifiedDamage}, Consumed {consumedModifiers.Length} modifiers, {remainingModifiers.Length} remaining");
+            return (modifiedDamage, consumedModifiers, remainingModifiers);
         }
 
         public static SpellState AddModifier(SpellState currentState, ModifierData modifier)
@@ -248,8 +242,6 @@ namespace Maximagus.Scripts.Managers
                 "ProcessDamageAction is deprecated. Use EncounterState snapshot-based execution instead. " +
                 "Ensure PreCalculateSpellCommand creates snapshots and ExecuteCardActionCommand uses ApplyEncounterSnapshot.");
         }
-        private static float GetRawDamage(DamageActionResource damageAction, IGameStateData gameState)
-            => GetRawDamageInternal(damageAction, gameState.StatusEffects);
 
         private static float GetRawDamage(DamageActionResource damageAction, EncounterState encounterState)
             => GetRawDamageInternal(damageAction, encounterState.StatusEffects);
@@ -274,21 +266,11 @@ namespace Maximagus.Scripts.Managers
             switch (action)
             {
                 case DamageActionResource damageAction:
-                    // Update spell state with consumed modifiers and context properties
+                    // Get the correct remaining modifiers directly from ApplyDamageModifiers
+                    var (_, _, remainingModifiers) = ApplyDamageModifiers(damageAction, currentEncounterState);
+                    
+                    // Update spell state with remaining modifiers and context properties
                     var currentSpellState = currentEncounterState.Spell;
-                    var remainingModifiers = currentSpellState.ActiveModifiers;
-                    
-                    // Remove consumed modifiers
-                    foreach (var consumedModifier in actionResult.ConsumedModifiers)
-                    {
-                        var index = remainingModifiers.IndexOf(consumedModifier);
-                        if (index >= 0)
-                        {
-                            remainingModifiers = remainingModifiers.RemoveAt(index);
-                        }
-                    }
-                    
-                    // Update modifiers, total damage, and action index
                     var newTotalDamage = currentSpellState.TotalDamageDealt + actionResult.FinalDamage;
                     var newActionIndex = currentEncounterState.ActionIndex + 1;
                     var newSpellState = currentSpellState
