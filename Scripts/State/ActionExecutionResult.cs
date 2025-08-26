@@ -10,29 +10,34 @@ namespace Scripts.State
         public ActionResource Action { get; }
         public float FinalDamage { get; }
         public ImmutableArray<ModifierData> ConsumedModifiers { get; }
+        public ImmutableArray<ModifierData> RemainingModifiers { get; }
         public DateTime CalculatedAt { get; }
 
         public ActionExecutionResult(
             ActionResource action,
             float finalDamage,
             ImmutableArray<ModifierData> consumedModifiers,
+            ImmutableArray<ModifierData> remainingModifiers,
             DateTime calculatedAt)
         {
             Action = action ?? throw new ArgumentNullException(nameof(action));
             FinalDamage = finalDamage;
             ConsumedModifiers = consumedModifiers.IsDefault ? ImmutableArray<ModifierData>.Empty : consumedModifiers;
+            RemainingModifiers = remainingModifiers.IsDefault ? ImmutableArray<ModifierData>.Empty : remainingModifiers;
             CalculatedAt = calculatedAt;
         }
 
         public static ActionExecutionResult Create(
             ActionResource action,
             float finalDamageDealt = 0,
-            ImmutableArray<ModifierData> consumedModifiers = default)
+            ImmutableArray<ModifierData> consumedModifiers = default,
+            ImmutableArray<ModifierData> remainingModifiers = default)
         {
             return new ActionExecutionResult(
                 action,
                 finalDamageDealt,
                 consumedModifiers.IsDefaultOrEmpty ? ImmutableArray<ModifierData>.Empty : consumedModifiers,
+                remainingModifiers.IsDefaultOrEmpty ? ImmutableArray<ModifierData>.Empty : remainingModifiers,
                 DateTime.UtcNow);
         }
 
@@ -74,6 +79,7 @@ namespace Scripts.State
                 return Action.Equals(other.Action) &&
                        Math.Abs(FinalDamage - other.FinalDamage) < 0.001f &&
                        ConsumedModifiers.Equals(other.ConsumedModifiers) &&
+                       RemainingModifiers.Equals(other.RemainingModifiers) &&
                        CalculatedAt == other.CalculatedAt;
             }
             return false;
@@ -81,13 +87,13 @@ namespace Scripts.State
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Action, FinalDamage, ConsumedModifiers.Length, CalculatedAt);
+            return HashCode.Combine(Action, FinalDamage, ConsumedModifiers.Length, RemainingModifiers.Length, CalculatedAt);
         }
 
         public override string ToString()
         {
             return $"ActionExecutionResult[{Action.GetType().Name}, Damage: {FinalDamage:F1}, " +
-                   $"Consumed: {ConsumedModifiers.Length}, At: {CalculatedAt:HH:mm:ss}]";
+                   $"Consumed: {ConsumedModifiers.Length}, Remaining: {RemainingModifiers.Length}, At: {CalculatedAt:HH:mm:ss}]";
         }
     }
 }

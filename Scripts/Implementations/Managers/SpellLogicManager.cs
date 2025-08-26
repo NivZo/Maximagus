@@ -133,11 +133,18 @@ namespace Maximagus.Scripts.Managers
             switch (action)
             {
                 case DamageActionResource damageAction:
-                    var (finalDamage, consumedModifiers, _) = ApplyDamageModifiers(damageAction, encounterState);
-                    return ActionExecutionResult.Create(damageAction, finalDamage, consumedModifiers);
+                    var (finalDamage, consumedModifiers, remainingModifiers) = ApplyDamageModifiers(damageAction, encounterState);
+                    return ActionExecutionResult.Create(damageAction, finalDamage, consumedModifiers, remainingModifiers);
+
+                case ModifierActionResource modifierAction:
+                    var currentModifiers = encounterState.Spell.ActiveModifiers;
+                    var newModifier = ModifierData.FromActionResource(modifierAction);
+                    var modifiersAfterAddition = currentModifiers.Add(newModifier);
+                    return ActionExecutionResult.Create(modifierAction, 0, ImmutableArray<ModifierData>.Empty, modifiersAfterAddition);
 
                 default:
-                    return ActionExecutionResult.Create(action);
+                    var unchangedModifiers = encounterState.Spell.ActiveModifiers;
+                    return ActionExecutionResult.Create(action, 0, ImmutableArray<ModifierData>.Empty, unchangedModifiers);
             }
         }
 
@@ -244,16 +251,13 @@ namespace Maximagus.Scripts.Managers
         }
 
         private static float GetRawDamage(DamageActionResource damageAction, EncounterState encounterState)
-            => GetRawDamageInternal(damageAction, encounterState.StatusEffects);
-
-        private static float GetRawDamageInternal(DamageActionResource damageAction, StatusEffectsState statusEffects)
         {
             return damageAction.DamageType switch
             {
                 DamageType.None => damageAction.Amount,
                 DamageType.Fire => damageAction.Amount,
                 DamageType.Frost => damageAction.Amount,
-                DamageType.PerChill => damageAction.Amount * StatusEffectLogicManager.GetStacksOfEffect(statusEffects, StatusEffectType.Chill),
+                DamageType.PerChill => damageAction.Amount * StatusEffectLogicManager.GetStacksOfEffect(encounterState.StatusEffects, StatusEffectType.Chill),
                 _ => damageAction.Amount
             };
         }
@@ -266,8 +270,8 @@ namespace Maximagus.Scripts.Managers
             switch (action)
             {
                 case DamageActionResource damageAction:
-                    // Get the correct remaining modifiers directly from ApplyDamageModifiers
-                    var (_, _, remainingModifiers) = ApplyDamageModifiers(damageAction, currentEncounterState);
+                    // Use the precalculated remaining modifiers from actionResult - no need to recalculate!
+                    var remainingModifiers = actionResult.RemainingModifiers;
                     
                     // Update spell state with remaining modifiers and context properties
                     var currentSpellState = currentEncounterState.Spell;
@@ -295,10 +299,16 @@ namespace Maximagus.Scripts.Managers
                     return currentEncounterState.WithSpell(newSpellState).WithActionIndex(newActionIndex);
                     
                 case ModifierActionResource modifierAction:
-                    var modifierData = ModifierData.FromActionResource(modifierAction);
-                    var spellStateWithModifier = AddModifier(currentEncounterState.Spell, modifierData);
+                    // Use the precalculated remaining modifiers from actionResult
+                    var remainingModifiersForModifier = actionResult.RemainingModifiers;
                     var newActionIndexForModifier = currentEncounterState.ActionIndex + 1;
-                    var updatedSpellStateWithModifier = spellStateWithModifier.WithActionIndex(newActionIndexForModifier);
+                    
+                    // Create updated spell state with the precalculated modifiers
+                    var currentSpellStateForModifier = currentEncounterState.Spell;
+                    var updatedSpellStateWithModifier = currentSpellStateForModifier
+                        .WithModifiers(remainingModifiersForModifier)
+                        .WithActionIndex(newActionIndexForModifier);
+                    
                     return currentEncounterState.WithSpell(updatedSpellStateWithModifier).WithActionIndex(newActionIndexForModifier);
                     
                 case StatusEffectActionResource statusEffectAction:
