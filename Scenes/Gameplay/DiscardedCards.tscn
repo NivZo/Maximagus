@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://wynxvlgqi4fm"]
 
-[ext_resource type="Script" uid="uid://bxaldncpulihx" path="res://Scripts/Implementations/Containers/DiscardedCards.cs" id="1_x55uh"]
+[ext_resource type="Script" uid="uid://bxaldncpulihx" path="res://Scenes/Gameplay/Scripts/DiscardedCards.cs" id="1_x55uh"]
 [ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="2_6ef3l"]
 
 [node name="DiscardedCards" type="Control"]

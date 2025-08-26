@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://b5mg28jbg6a0"]
 
-[ext_resource type="Script" uid="uid://mqcix5h6lo82" path="res://Scripts/Implementations/Containers/PlayedCards.cs" id="1_d1o5m"]
+[ext_resource type="Script" uid="uid://mqcix5h6lo82" path="res://Scenes/Gameplay/Scripts/PlayedCards.cs" id="1_d1o5m"]
 [ext_resource type="PackedScene" uid="uid://xr3by7dgq0hx" path="res://Scenes/GUI/OrderedContainer.tscn" id="2_57f1u"]
 
 [node name="PlayedCards" type="Control"]

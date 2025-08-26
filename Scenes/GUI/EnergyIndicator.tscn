@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bi4qgf8t5dit4"]
 
 [ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_xomf3"]
-[ext_resource type="Script" uid="uid://bteumiok8jl" path="res://Scripts/Implementations/GUI/EnergyIndicator.cs" id="2_gryhm"]
+[ext_resource type="Script" uid="uid://bgetup8wwtr5b" path="res://Scenes/GUI/Scripts/EnergyIndicator.cs" id="2_gryhm"]
 [ext_resource type="Texture2D" uid="uid://b7ixl0o5gqrwu" path="res://Assets/Art/Icons/Redraw.png" id="3_gryhm"]
 
 [node name="EnergyIndicator" type="Control"]

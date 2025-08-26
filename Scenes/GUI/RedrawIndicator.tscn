@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://ddemmax8jnlg2"]
 
 [ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_umtcq"]
-[ext_resource type="Script" uid="uid://isory84fnncg" path="res://Scripts/Implementations/GUI/RedrawIndicator.cs" id="2_ks5sx"]
+[ext_resource type="Script" path="res://Scenes/GUI/Scripts/RedrawIndicator.cs" id="2_ks5sx"]
 [ext_resource type="Texture2D" uid="uid://b7ixl0o5gqrwu" path="res://Assets/Art/Icons/Redraw.png" id="2_unxqe"]
 
 [node name="RedrawIndicator" type="Control"]
