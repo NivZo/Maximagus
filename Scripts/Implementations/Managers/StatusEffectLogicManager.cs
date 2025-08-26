@@ -9,6 +9,7 @@ namespace Maximagus.Scripts.Managers
 
     public static class StatusEffectLogicManager
     {
+        // Encounter state convenience methods - callers should extract StatusEffects and use core methods below
         public static EncounterState ApplyStatusEffectToEncounter(
             EncounterState currentEncounterState,
             StatusEffectResource effect,
@@ -24,24 +25,6 @@ namespace Maximagus.Scripts.Managers
                 stacks,
                 actionType);
 
-            return currentEncounterState.WithStatusEffects(newStatusEffectsState);
-        }
-
-        public static EncounterState TriggerEffectsInEncounter(
-            EncounterState currentEncounterState,
-            StatusEffectTrigger trigger)
-        {
-            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
-            var newStatusEffectsState = TriggerEffects(currentEncounterState.StatusEffects, trigger);
-            return currentEncounterState.WithStatusEffects(newStatusEffectsState);
-        }
-
-        public static EncounterState ProcessDecayInEncounter(
-            EncounterState currentEncounterState,
-            StatusEffectDecayMode decayMode)
-        {
-            CommonValidation.ThrowIfNull(currentEncounterState, nameof(currentEncounterState));
-            var newStatusEffectsState = ProcessDecay(currentEncounterState.StatusEffects, decayMode);
             return currentEncounterState.WithStatusEffects(newStatusEffectsState);
         }
 
