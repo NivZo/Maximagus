@@ -7,11 +7,9 @@ namespace Scripts.Commands
     {
         protected readonly ILogger _logger;
         protected readonly IGameCommandProcessor _commandProcessor;
-        public bool IsBlocking { get; init; } = false;
 
-        public GameCommand(bool isBlocking = false)
+        public GameCommand()
         {
-            IsBlocking = isBlocking;
             _logger = ServiceLocator.GetService<ILogger>();
             _commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
         }

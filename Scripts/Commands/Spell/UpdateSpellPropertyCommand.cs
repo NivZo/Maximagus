@@ -16,7 +16,7 @@ namespace Scripts.Commands.Spell
         public UpdateSpellPropertyCommand(
             string propertyKey, 
             Variant value, 
-            ContextPropertyOperation operation) : base(false)
+            ContextPropertyOperation operation) : base()
         {
             _propertyKey = propertyKey ?? throw new ArgumentNullException(nameof(propertyKey));
             _value = value;
@@ -26,7 +26,7 @@ namespace Scripts.Commands.Spell
         public UpdateSpellPropertyCommand(
             ContextProperty property, 
             float value, 
-            ContextPropertyOperation operation) : base(false)
+            ContextPropertyOperation operation) : base()
         {
             _propertyKey = property.ToString();
             _value = Variant.From(value);

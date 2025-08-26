@@ -11,7 +11,7 @@ namespace Scripts.Commands.Spell
     {
         private readonly StatusEffectDecayMode _decayMode;
 
-        public ProcessStatusEffectDecayCommand(StatusEffectDecayMode decayMode) : base(false)
+        public ProcessStatusEffectDecayCommand(StatusEffectDecayMode decayMode) : base()
         {
             _decayMode = decayMode;
         }

@@ -20,7 +20,7 @@ namespace Scripts.Commands.Spell
             DamageType element,
             float value,
             bool isConsumedOnUse = true,
-            SpellModifierCondition[] conditions = null) : base(false)
+            SpellModifierCondition[] conditions = null) : base()
         {
             _modifierType = modifierType;
             _element = element;

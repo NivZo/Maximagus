@@ -13,7 +13,7 @@ namespace Scripts.Commands.Spell
         private readonly ActionResource _action;
         private readonly string _cardId;
 
-        public ExecuteCardActionCommand(ActionResource action, string cardId) : base(false)
+        public ExecuteCardActionCommand(ActionResource action, string cardId) : base()
         {
             _action = action ?? throw new ArgumentNullException(nameof(action));
             _cardId = cardId ?? throw new ArgumentNullException(nameof(cardId));
@@ -24,7 +24,6 @@ namespace Scripts.Commands.Spell
             var currentState = _commandProcessor.CurrentState;
             if (currentState == null) return false;
             
-            // Must have an active spell to execute actions
             if (!currentState.Spell.IsActive)
             {
                 _logger.LogWarning("[ExecuteCardActionCommand] Cannot execute action - no active spell");
@@ -37,7 +36,6 @@ namespace Scripts.Commands.Spell
                 return false;
             }
 
-            // Check if we have a spell ID for snapshot retrieval
             var spellId = GetSpellIdFromState(currentState);
             if (string.IsNullOrEmpty(spellId))
             {

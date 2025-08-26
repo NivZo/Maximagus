@@ -7,7 +7,7 @@ namespace Scripts.Commands.Spell
 
     public class StartSpellCommand : GameCommand
     {
-        public StartSpellCommand() : base(false)
+        public StartSpellCommand() : base()
         {
         }
 

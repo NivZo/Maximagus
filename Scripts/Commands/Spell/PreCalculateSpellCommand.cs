@@ -14,7 +14,7 @@ namespace Scripts.Commands.Spell
     {
         private readonly IReadOnlyList<ActionResource> _allActions;
 
-        public PreCalculateSpellCommand(IReadOnlyList<ActionResource> allActions) : base(false)
+        public PreCalculateSpellCommand(IReadOnlyList<ActionResource> allActions) : base()
         {
             _allActions = allActions ?? throw new ArgumentNullException(nameof(allActions));
         }

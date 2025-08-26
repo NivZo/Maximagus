@@ -17,7 +17,7 @@ namespace Scripts.Commands.Spell
         public ApplyStatusEffectCommand(
             StatusEffectResource statusEffect, 
             int stacks, 
-            StatusEffectActionType actionType) : base(false)
+            StatusEffectActionType actionType) : base()
         {
             _statusEffect = statusEffect ?? throw new ArgumentNullException(nameof(statusEffect));
             _stacks = stacks;

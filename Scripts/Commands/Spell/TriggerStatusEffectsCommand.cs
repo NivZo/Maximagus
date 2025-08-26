@@ -11,7 +11,7 @@ namespace Scripts.Commands.Spell
     {
         private readonly StatusEffectTrigger _trigger;
 
-        public TriggerStatusEffectsCommand(StatusEffectTrigger trigger) : base(false)
+        public TriggerStatusEffectsCommand(StatusEffectTrigger trigger) : base()
         {
             _trigger = trigger;
         }

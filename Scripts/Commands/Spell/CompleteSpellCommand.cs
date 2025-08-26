@@ -18,7 +18,7 @@ namespace Scripts.Commands.Spell
         public CompleteSpellCommand(
             IReadOnlyList<SpellCardResource> castCards = null, 
             bool wasSuccessful = true, 
-            string errorMessage = null) : base(false)
+            string errorMessage = null) : base()
         {
             _castCards = castCards ?? new List<SpellCardResource>();
             _wasSuccessful = wasSuccessful;
