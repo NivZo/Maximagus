@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://bof7eb8y8iu68"]
 
 [ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="1_npmai"]
-[ext_resource type="Script" uid="uid://lom28c5prahp" path="res://Scripts/Tooltip.cs" id="1_wlw5m"]
+[ext_resource type="Script" uid="uid://bd3ce02vdhrl1" path="res://Scenes/GUI/Scripts/Tooltip.cs" id="1_wlw5m"]
 [ext_resource type="Texture2D" uid="uid://2ljma303kjn" path="res://Assets/Art/TooltipBody.png" id="2_bpvxn"]
 [ext_resource type="Texture2D" uid="uid://0kcvlh3rn4xl" path="res://Assets/Art/TooltipTop.png" id="3_npmai"]
 [ext_resource type="Texture2D" uid="uid://disvtvnh4firm" path="res://Assets/Art/TooltipBottom.png" id="4_rgrnt"]

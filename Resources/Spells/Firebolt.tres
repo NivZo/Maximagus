@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SpellCardResource" load_steps=5 format=3 uid="uid://dxbwslmvquxc6"]
 
-[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_pg10i"]
-[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="1_wosrl"]
+[ext_resource type="Script" uid="uid://ipx5wlebw4k5" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_pg10i"]
+[ext_resource type="Script" uid="uid://dugryxjgpqdpj" path="res://Resources/Definitions/SpellCardResource.cs" id="1_wosrl"]
 [ext_resource type="Texture2D" uid="uid://cswygv4lb3xmp" path="res://Assets/Art/CardArt/Firebolt.png" id="2_pg10i"]
 
 [sub_resource type="Resource" id="Resource_lrix1"]

@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="SpellCardResource" load_steps=8 format=3 uid="uid://crjvhlf4hta78"]
 
-[ext_resource type="Script" uid="uid://cv2tlkbcoaiyr" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="1_8biyy"]
-[ext_resource type="Script" uid="uid://b07sh0rbkcanr" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_ludp6"]
+[ext_resource type="Script" uid="uid://dtrny8owcijh5" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="1_8biyy"]
+[ext_resource type="Script" uid="uid://ipx5wlebw4k5" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_ludp6"]
 [ext_resource type="Resource" uid="uid://binjto7ckoq7k" path="res://Resources/StatusEffects/Chill.tres" id="2_3r3pg"]
-[ext_resource type="Script" uid="uid://def5pu1dpvnfu" path="res://Resources/Definitions/SpellCardResource.cs" id="3_euegq"]
+[ext_resource type="Script" uid="uid://dugryxjgpqdpj" path="res://Resources/Definitions/SpellCardResource.cs" id="3_euegq"]
 [ext_resource type="Texture2D" uid="uid://cemeqqq5ny5yr" path="res://Assets/Art/CardArt/Shatter.png" id="4_ludp6"]
 
 [sub_resource type="Resource" id="Resource_fk7u1"]
