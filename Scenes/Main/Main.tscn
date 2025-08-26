@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cg02ef5roa11x"]
+[gd_scene load_steps=15 format=3 uid="uid://cg02ef5roa11x"]
 
 [ext_resource type="Script" uid="uid://bc7btovp4qeh2" path="res://Scenes/Main/Scripts/Main.cs" id="1_rgh2o"]
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://ddemmax8jnlg2" path="res://Scenes/GUI/RedrawIndicator.tscn" id="11_4kpch"]
 [ext_resource type="PackedScene" uid="uid://bvqld7rwxnqys" path="res://Scenes/GUI/StatusEffectIndicator.tscn" id="12_frkhe"]
 [ext_resource type="PackedScene" uid="uid://bi4qgf8t5dit4" path="res://Scenes/GUI/EnergyIndicator.tscn" id="12_grg3l"]
+[ext_resource type="Texture2D" uid="uid://bdhbw0r1ghp7m" path="res://Assets/Art/HealthbarFront.png" id="13_cv8e0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
@@ -96,14 +97,14 @@ grow_vertical = 1
 [node name="Hand" parent="." instance=ExtResource("3_kln2b")]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.444
-anchor_top = 0.889148
-anchor_right = 0.556
-anchor_bottom = 0.987765
-offset_left = -124.16
-offset_top = 3.90671
-offset_right = 124.16
-offset_bottom = 4.4046
+anchor_left = 0.206
+anchor_top = 0.987765
+anchor_right = 0.794
+anchor_bottom = 0.989
+offset_left = 28.16
+offset_top = -31.5954
+offset_right = -28.16
+offset_bottom = 3.95999
 
 [node name="Shaders" type="CanvasLayer" parent="."]
 
@@ -338,3 +339,15 @@ offset_right = 16.448
 offset_bottom = 35.824
 grow_horizontal = 1
 grow_vertical = 1
+
+[node name="HealthbarFront" type="TextureRect" parent="."]
+self_modulate = Color(0.485035, 0.14152, 0.105007, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 20.0
+offset_right = 180.0
+offset_bottom = 64.0
+texture = ExtResource("13_cv8e0")

@@ -68,7 +68,7 @@ namespace Scripts.Commands.Spell
 
                 _logger.LogInfo($"[CompleteSpellCommand] Spell completed and moved to history. History count: {newSpellState.History.Length}");
                 
-                token.Complete(CommandResult.Success(newState));
+                TimerUtils.ExecuteAfter(() => token.Complete(CommandResult.Success(newState)), 2f);
             }
             catch (Exception ex)
             {
