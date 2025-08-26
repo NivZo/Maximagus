@@ -6,10 +6,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to add modifiers to the active spell state.
-    /// Modifiers affect damage calculations and are consumed based on their configuration.
-    /// </summary>
+
     public class AddSpellModifierCommand : GameCommand
     {
         private readonly ModifierType _modifierType;

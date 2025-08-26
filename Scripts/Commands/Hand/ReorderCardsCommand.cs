@@ -6,9 +6,7 @@ using Scripts.State;
 
 namespace Scripts.Commands.Hand
 {
-    /// <summary>
-    /// Command to reorder cards in the player's hand
-    /// </summary>
+
     public class ReorderCardsCommand : GameCommand
     {
         private readonly IReadOnlyList<string> _newCardOrder;

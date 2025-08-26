@@ -6,9 +6,7 @@ using Maximagus.Resources.Definitions.StatusEffects;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable state representing all active status effects
-    /// </summary>
+
     public class StatusEffectsState
     {
         public ImmutableArray<StatusEffectInstanceData> ActiveEffects { get; }
@@ -18,25 +16,16 @@ namespace Scripts.State
             ActiveEffects = activeEffects.IsDefault ? ImmutableArray<StatusEffectInstanceData>.Empty : activeEffects;
         }
 
-        /// <summary>
-        /// Creates an initial empty status effects state
-        /// </summary>
         public static StatusEffectsState CreateInitial()
         {
             return new StatusEffectsState();
         }
 
-        /// <summary>
-        /// Creates a new state with updated active effects
-        /// </summary>
         public StatusEffectsState WithActiveEffects(ImmutableArray<StatusEffectInstanceData> newActiveEffects)
         {
             return new StatusEffectsState(newActiveEffects);
         }
 
-        /// <summary>
-        /// Creates a new state with an added status effect
-        /// </summary>
         public StatusEffectsState WithAddedEffect(StatusEffectInstanceData effect)
         {
             if (effect == null)
@@ -45,9 +34,6 @@ namespace Scripts.State
             return new StatusEffectsState(ActiveEffects.Add(effect));
         }
 
-        /// <summary>
-        /// Creates a new state with a status effect applied (stacking if it already exists)
-        /// </summary>
         public StatusEffectsState WithAppliedEffect(StatusEffectResource effectResource, int stacks, StatusEffectActionType actionType)
         {
             if (effectResource == null)
@@ -86,9 +72,6 @@ namespace Scripts.State
             return this;
         }
 
-        /// <summary>
-        /// Creates a new state with a specific effect removed
-        /// </summary>
         public StatusEffectsState WithRemovedEffect(StatusEffectType effectType)
         {
             var effectToRemove = ActiveEffects.FirstOrDefault(e => e.EffectType == effectType);
@@ -99,18 +82,12 @@ namespace Scripts.State
             return this;
         }
 
-        /// <summary>
-        /// Creates a new state with expired effects removed
-        /// </summary>
         public StatusEffectsState WithExpiredEffectsRemoved()
         {
             var nonExpiredEffects = ActiveEffects.Where(e => !e.IsExpired).ToImmutableArray();
             return new StatusEffectsState(nonExpiredEffects);
         }
 
-        /// <summary>
-        /// Creates a new state with effects processed for decay
-        /// </summary>
         public StatusEffectsState WithDecayProcessed(StatusEffectDecayMode decayMode)
         {
             var updatedEffects = ActiveEffects.Select(effect =>
@@ -133,17 +110,11 @@ namespace Scripts.State
             return new StatusEffectsState(updatedEffects);
         }
 
-        /// <summary>
-        /// Gets all effects that should trigger for the given trigger type
-        /// </summary>
         public ImmutableArray<StatusEffectInstanceData> GetEffectsForTrigger(StatusEffectTrigger trigger)
         {
             return ActiveEffects.Where(e => e.ShouldTrigger(trigger)).ToImmutableArray();
         }
 
-        /// <summary>
-        /// Gets the total stacks of a specific effect type
-        /// </summary>
         public int GetStacksOfEffect(StatusEffectType effectType)
         {
             return ActiveEffects
@@ -151,35 +122,20 @@ namespace Scripts.State
                 .Sum(e => e.CurrentStacks);
         }
 
-        /// <summary>
-        /// Gets a specific effect instance by type (returns first if multiple exist)
-        /// </summary>
         public StatusEffectInstanceData GetEffect(StatusEffectType effectType)
         {
             return ActiveEffects.FirstOrDefault(e => e.EffectType == effectType);
         }
 
-        /// <summary>
-        /// Determines if any effects of the specified type are active
-        /// </summary>
         public bool HasEffect(StatusEffectType effectType)
         {
             return ActiveEffects.Any(e => e.EffectType == effectType);
         }
 
-        /// <summary>
-        /// Gets the total number of active status effects
-        /// </summary>
         public int TotalActiveEffects => ActiveEffects.Length;
 
-        /// <summary>
-        /// Determines if there are any active status effects
-        /// </summary>
         public bool HasAnyActiveEffects => ActiveEffects.Length > 0;
 
-        /// <summary>
-        /// Validates that the status effects state is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

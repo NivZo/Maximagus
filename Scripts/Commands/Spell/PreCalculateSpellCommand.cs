@@ -9,11 +9,7 @@ using System.Collections.Immutable;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to pre-calculate all action results for a complete spell sequence using EncounterState snapshots.
-    /// This generates complete EncounterState snapshots for all spell actions, ensuring that dependent 
-    /// calculations (like PerChill damage) use the correct cumulative state from previous actions.
-    /// </summary>
+
     public class PreCalculateSpellCommand : GameCommand
     {
         private readonly IReadOnlyList<ActionResource> _allActions;

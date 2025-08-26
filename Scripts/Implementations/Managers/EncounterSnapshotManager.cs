@@ -8,11 +8,7 @@ using Scripts.State;
 
 namespace Maximagus.Scripts.Managers
 {
-    /// <summary>
-    /// Static manager class for storing and retrieving EncounterState snapshots.
-    /// Provides thread-safe snapshot management for pre-calculated spell actions.
-    /// Optimized for performance with complex spells containing many actions.
-    /// </summary>
+
     public static class EncounterSnapshotManager
     {
         private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
@@ -24,12 +20,6 @@ namespace Maximagus.Scripts.Managers
         // Optimized lookup cache for action keys within spells
         private static readonly ConcurrentDictionary<string, ImmutableDictionary<string, EncounterStateSnapshot>> _actionLookupCache
             = new ConcurrentDictionary<string, ImmutableDictionary<string, EncounterStateSnapshot>>();
-
-        /// <summary>
-        /// Stores snapshots for a specific spell with optimized lookup cache
-        /// </summary>
-        /// <param name="spellId">Unique identifier for the spell</param>
-        /// <param name="snapshots">Array of snapshots to store</param>
         public static void StoreSnapshots(
             string spellId,
             ImmutableArray<EncounterStateSnapshot> snapshots)
@@ -48,13 +38,6 @@ namespace Maximagus.Scripts.Managers
             
             _logger.LogInfo($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} with optimized lookup");
         }
-
-        /// <summary>
-        /// Gets a specific snapshot for an action within a spell using optimized lookup
-        /// </summary>
-        /// <param name="spellId">Unique identifier for the spell</param>
-        /// <param name="actionKey">Unique identifier for the action</param>
-        /// <returns>The snapshot if found, null otherwise</returns>
         public static EncounterStateSnapshot GetSnapshotForAction(
             string spellId,
             string actionKey)
@@ -95,12 +78,6 @@ namespace Maximagus.Scripts.Managers
             _logger.LogInfo($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
             return null;
         }
-
-        /// <summary>
-        /// Gets all snapshots for a specific spell
-        /// </summary>
-        /// <param name="spellId">Unique identifier for the spell</param>
-        /// <returns>Array of all snapshots for the spell, empty if none found</returns>
         public static ImmutableArray<EncounterStateSnapshot> GetAllSnapshots(string spellId)
         {
             if (string.IsNullOrEmpty(spellId))
@@ -115,11 +92,6 @@ namespace Maximagus.Scripts.Managers
             _logger.LogInfo($"[EncounterSnapshotManager] No snapshots found for spell {spellId}");
             return ImmutableArray<EncounterStateSnapshot>.Empty;
         }
-
-        /// <summary>
-        /// Clears all snapshots for a specific spell including lookup cache
-        /// </summary>
-        /// <param name="spellId">Unique identifier for the spell</param>
         public static void ClearSnapshots(string spellId)
         {
             if (string.IsNullOrEmpty(spellId))
@@ -137,11 +109,6 @@ namespace Maximagus.Scripts.Managers
                 _logger.LogInfo($"[EncounterSnapshotManager] No snapshots to clear for spell {spellId}");
             }
         }
-
-        /// <summary>
-        /// Clears snapshots that are older than the specified maximum age
-        /// </summary>
-        /// <param name="maxAge">Maximum age for snapshots to retain</param>
         public static void ClearExpiredSnapshots(TimeSpan maxAge)
         {
             var cutoffTime = DateTime.UtcNow - maxAge;
@@ -184,25 +151,16 @@ namespace Maximagus.Scripts.Managers
             }
         }
 
-        /// <summary>
-        /// Gets the total number of stored snapshots across all spells
-        /// </summary>
         public static int GetTotalSnapshotCount()
         {
             return _snapshots.Values.Sum(snapshots => snapshots.Length);
         }
 
-        /// <summary>
-        /// Gets the number of spells that have stored snapshots
-        /// </summary>
         public static int GetSpellCount()
         {
             return _snapshots.Count;
         }
 
-        /// <summary>
-        /// Clears all snapshots from memory (use with caution)
-        /// </summary>
         public static void ClearAllSnapshots()
         {
             var totalCleared = GetTotalSnapshotCount();
@@ -215,10 +173,6 @@ namespace Maximagus.Scripts.Managers
             }
         }
 
-        /// <summary>
-        /// Automatically cleans up expired snapshots based on a default retention policy.
-        /// Called periodically to prevent memory leaks.
-        /// </summary>
         public static void AutoCleanup()
         {
             // Default retention: keep snapshots for 5 minutes
@@ -226,10 +180,6 @@ namespace Maximagus.Scripts.Managers
             ClearExpiredSnapshots(defaultRetention);
         }
 
-        /// <summary>
-        /// Optimized snapshot storage using a dictionary for faster action key lookups.
-        /// This improves performance for spells with many actions.
-        /// </summary>
         public static void StoreSnapshotsOptimized(
             string spellId,
             ImmutableArray<EncounterStateSnapshot> snapshots)
@@ -246,9 +196,6 @@ namespace Maximagus.Scripts.Managers
             _logger.LogInfo($"[EncounterSnapshotManager] Stored {snapshots.Length} snapshots for spell {spellId} (optimized)");
         }
 
-        /// <summary>
-        /// Gets memory usage statistics for monitoring performance
-        /// </summary>
         public static (int totalSnapshots, int spellCount, long estimatedMemoryBytes) GetMemoryStats()
         {
             var totalSnapshots = GetTotalSnapshotCount();

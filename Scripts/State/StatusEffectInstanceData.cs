@@ -4,9 +4,7 @@ using Maximagus.Resources.Definitions.StatusEffects;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable data representing a status effect instance in state
-    /// </summary>
+
     public partial class StatusEffectInstanceData
     {
         public StatusEffectType EffectType { get; }
@@ -26,9 +24,6 @@ namespace Scripts.State
             AppliedAt = appliedAt;
         }
 
-        /// <summary>
-        /// Creates a StatusEffectInstanceData from a StatusEffectResource
-        /// </summary>
         public static StatusEffectInstanceData FromResource(StatusEffectResource resource, int stacks = -1, DateTime? appliedAt = null)
         {
             if (resource == null)
@@ -44,9 +39,6 @@ namespace Scripts.State
                 actualAppliedAt);
         }
 
-        /// <summary>
-        /// Creates a test StatusEffectInstanceData with minimal resource for testing purposes
-        /// </summary>
         public static StatusEffectInstanceData Create(StatusEffectType effectType, int stacks, DateTime? appliedAt = null)
         {
             // Create a minimal test resource
@@ -60,9 +52,6 @@ namespace Scripts.State
                 actualAppliedAt);
         }
 
-        /// <summary>
-        /// Minimal test implementation of StatusEffectResource for testing
-        /// </summary>
         private partial class TestStatusEffectResource : Maximagus.Resources.Definitions.StatusEffects.StatusEffectResource
         {
             public TestStatusEffectResource()
@@ -83,9 +72,6 @@ namespace Scripts.State
             }
         }
 
-        /// <summary>
-        /// Creates a new instance with updated stack count
-        /// </summary>
         public StatusEffectInstanceData WithStacks(int newStacks)
         {
             return new StatusEffectInstanceData(
@@ -95,46 +81,28 @@ namespace Scripts.State
                 AppliedAt);
         }
 
-        /// <summary>
-        /// Creates a new instance with added stacks
-        /// </summary>
         public StatusEffectInstanceData WithAddedStacks(int stacksToAdd)
         {
             return WithStacks(CurrentStacks + stacksToAdd);
         }
 
-        /// <summary>
-        /// Creates a new instance with reduced stacks
-        /// </summary>
         public StatusEffectInstanceData WithReducedStacks(int stacksToReduce)
         {
             return WithStacks(CurrentStacks - stacksToReduce);
         }
 
-        /// <summary>
-        /// Determines if this status effect instance has expired (no stacks remaining)
-        /// </summary>
         public bool IsExpired => CurrentStacks <= 0;
 
-        /// <summary>
-        /// Determines if this status effect should decay based on the decay mode
-        /// </summary>
         public bool ShouldDecay(StatusEffectDecayMode decayMode)
         {
             return EffectResource.DecayMode == decayMode;
         }
 
-        /// <summary>
-        /// Determines if this status effect should trigger for the given trigger type
-        /// </summary>
         public bool ShouldTrigger(StatusEffectTrigger trigger)
         {
             return EffectResource.Trigger == trigger;
         }
 
-        /// <summary>
-        /// Validates that the status effect instance data is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

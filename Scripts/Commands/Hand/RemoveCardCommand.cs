@@ -4,10 +4,7 @@ using System.Linq;
 
 namespace Scripts.Commands.Hand
 {
-    /// <summary>
-    /// Command to remove a card from the player's hand in GameState
-    /// Used when cards are discarded or removed
-    /// </summary>
+
     public class RemoveCardCommand : GameCommand
     {
         private readonly string _cardId;

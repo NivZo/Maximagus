@@ -5,9 +5,7 @@ using Scripts.State;
 
 namespace Scripts.Commands
 {
-    /// <summary>
-    /// Result of executing a command, containing new state and any follow-up actions
-    /// </summary>
+
     public class CommandResult
     {
         public IGameStateData NewState { get; }

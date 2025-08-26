@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using Maximagus.Scripts.Managers;
 using Maximagus.Scripts.Spells.Abstractions;
 
-/// <summary>
-/// Represents a deck of cards that can be drawn from
-/// Now uses ResourceManager for card resources to maintain state-driven design
-/// </summary>
 public class Deck
 {
     private IResourceManager _resourceManager;
@@ -28,11 +24,6 @@ public class Deck
             _deckQueue.Enqueue(resource);
         }
     }
-
-    /// <summary>
-    /// Gets the next card resource from the deck
-    /// </summary>
-    /// <returns>The SpellCardResource for the next card</returns>
     public SpellCardResource GetNext()
     {
         if (_deckQueue.Count == 0)

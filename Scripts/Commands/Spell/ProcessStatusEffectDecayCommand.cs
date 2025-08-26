@@ -6,10 +6,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to process status effect decay for end-of-turn or other decay modes.
-    /// Handles status effect expiration and stack reduction through StatusEffectLogicManager.
-    /// </summary>
+
     public class ProcessStatusEffectDecayCommand : GameCommand
     {
         private readonly StatusEffectDecayMode _decayMode;
@@ -66,9 +63,6 @@ namespace Scripts.Commands.Spell
             return $"Process status effect decay for {_decayMode}";
         }
 
-        /// <summary>
-        /// Gets the decay mode for testing purposes
-        /// </summary>
         public StatusEffectDecayMode GetDecayMode()
         {
             return _decayMode;

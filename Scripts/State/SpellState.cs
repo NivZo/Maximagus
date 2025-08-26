@@ -8,9 +8,7 @@ using Maximagus.Resources.Definitions.Actions;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable state representing the current spell being cast and spell history
-    /// </summary>
+
     public class SpellState
     {
         public bool IsActive { get; }
@@ -40,17 +38,11 @@ namespace Scripts.State
             CurrentActionIndex = currentActionIndex;
         }
 
-        /// <summary>
-        /// Creates an initial empty spell state
-        /// </summary>
         public static SpellState CreateInitial()
         {
             return new SpellState();
         }
 
-        /// <summary>
-        /// Creates a new spell state with an active spell
-        /// </summary>
         public SpellState WithActiveSpell(DateTime startTime)
         {
             return new SpellState(
@@ -63,9 +55,6 @@ namespace Scripts.State
                 currentActionIndex: 0);
         }
 
-        /// <summary>
-        /// Creates a new spell state with updated properties
-        /// </summary>
         public SpellState WithProperties(ImmutableDictionary<string, Variant> newProperties)
         {
             return new SpellState(
@@ -78,25 +67,16 @@ namespace Scripts.State
                 CurrentActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new spell state with an added property
-        /// </summary>
         public SpellState WithProperty(string key, Variant value)
         {
             return WithProperties(Properties.SetItem(key, value));
         }
 
-        /// <summary>
-        /// Creates a new spell state with a removed property
-        /// </summary>
         public SpellState WithoutProperty(string key)
         {
             return WithProperties(Properties.Remove(key));
         }
 
-        /// <summary>
-        /// Creates a new spell state with updated modifiers
-        /// </summary>
         public SpellState WithModifiers(ImmutableArray<ModifierData> newModifiers)
         {
             return new SpellState(
@@ -109,17 +89,11 @@ namespace Scripts.State
                 CurrentActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new spell state with an added modifier
-        /// </summary>
         public SpellState WithAddedModifier(ModifierData modifier)
         {
             return WithModifiers(ActiveModifiers.Add(modifier));
         }
 
-        /// <summary>
-        /// Creates a new spell state with updated total damage
-        /// </summary>
         public SpellState WithTotalDamage(float newTotalDamage)
         {
             return new SpellState(
@@ -132,9 +106,6 @@ namespace Scripts.State
                 CurrentActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new spell state with updated action index
-        /// </summary>
         public SpellState WithActionIndex(int newActionIndex)
         {
             return new SpellState(
@@ -147,9 +118,6 @@ namespace Scripts.State
                 newActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new spell state with the current spell moved to history
-        /// </summary>
         public SpellState WithCompletedSpell(SpellHistoryEntry historyEntry)
         {
             var newHistory = History.Add(historyEntry);
@@ -170,19 +138,11 @@ namespace Scripts.State
                 currentActionIndex: 0);
         }
 
-        /// <summary>
-        /// Gets a property value with a default fallback
-        /// </summary>
         public T GetProperty<[MustBeVariant] T>(string key, T defaultValue)
         {
             return Properties.TryGetValue(key, out var value) ? value.As<T>() : defaultValue;
         }
 
-
-
-        /// <summary>
-        /// Validates that the spell state is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

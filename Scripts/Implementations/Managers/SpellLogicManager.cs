@@ -15,10 +15,6 @@ namespace Maximagus.Scripts.Managers
     {
         private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
 
-        /// <summary>
-        /// Pre-calculates an action with complete EncounterState snapshot creation.
-        /// This creates a complete snapshot containing both the action result and the resulting encounter state.
-        /// </summary>
         public static EncounterStateSnapshot PreCalculateActionWithSnapshot(
             ActionResource action,
             EncounterState currentEncounterState)
@@ -44,10 +40,6 @@ namespace Maximagus.Scripts.Managers
             return EncounterStateSnapshot.Create(actionKey, resultingEncounterState, actionResult);
         }
 
-        /// <summary>
-        /// Pre-calculates all actions in a spell sequence, generating complete EncounterState snapshots.
-        /// Each snapshot contains the complete encounter state after that action executes.
-        /// </summary>
         public static ImmutableArray<EncounterStateSnapshot> PreCalculateSpellWithSnapshots(
             IGameStateData initialGameState,
             IEnumerable<CardState> playedCards)
@@ -93,11 +85,6 @@ namespace Maximagus.Scripts.Managers
             return snapshots.ToImmutable();
         }
 
-        /// <summary>
-        /// Applies a pre-calculated EncounterState snapshot to the current game state.
-        /// This updates both spell state and status effect state atomically.
-        /// Preserves important spell properties like SnapshotSpellId that are needed for subsequent actions.
-        /// </summary>
         public static IGameStateData ApplyEncounterSnapshot(
             IGameStateData gameState,
             EncounterStateSnapshot snapshot)
@@ -142,10 +129,6 @@ namespace Maximagus.Scripts.Managers
                 .WithStatusEffects(snapshot.ResultingState.StatusEffects);
         }
 
-        /// <summary>
-        /// Pre-calculates the execution result for an action without applying it to the game state.
-        /// This is used for UI previews and to ensure consistency between preview and actual execution.
-        /// </summary>
         public static ActionExecutionResult PreCalculateActionResult(
             ActionResource action,
             IGameStateData gameState)
@@ -166,10 +149,6 @@ namespace Maximagus.Scripts.Managers
             }
         }
 
-        /// <summary>
-        /// Pre-calculates the execution result for an action using EncounterState.
-        /// This overload works with EncounterState for snapshot-based pre-calculation.
-        /// </summary>
         public static ActionExecutionResult PreCalculateActionResult(
             ActionResource action,
             EncounterState encounterState)
@@ -241,10 +220,6 @@ namespace Maximagus.Scripts.Managers
             return (modifiedDamage, remainingModifiers);
         }
 
-        /// <summary>
-        /// Applies damage modifiers using EncounterState for snapshot-based calculations.
-        /// This includes status effect stacks in damage modifier calculations.
-        /// </summary>
         public static (float finalDamage, ImmutableArray<ModifierData> remainingModifiers) ApplyDamageModifiers(
             DamageActionResource damageAction,
             EncounterState encounterState)
@@ -329,15 +304,6 @@ namespace Maximagus.Scripts.Managers
             _logger.LogInfo($"[Spell Casting Refactor] UpdateProperty: {key} {operation} {floatValue} ({currentValue} -> {newValue})");
             return currentState.WithProperty(key, Variant.From(newValue));
         }
-
-        /// <summary>
-        /// Updates a property in the spell state using the ContextProperty enum.
-        /// </summary>
-        /// <param name="currentState">The current spell state</param>
-        /// <param name="property">The context property to update</param>
-        /// <param name="value">The value to apply</param>
-        /// <param name="operation">The operation to perform (Add, Multiply, Set)</param>
-        /// <returns>New spell state with the updated property</returns>
         public static SpellState UpdateProperty(
             SpellState currentState,
             ContextProperty property,
@@ -347,17 +313,6 @@ namespace Maximagus.Scripts.Managers
             return UpdateProperty(currentState, property.ToString(), Variant.From(value), operation);
         }
 
-        /// <summary>
-        /// Processes a damage action and updates the spell state with the results.
-        /// This includes applying modifiers, updating total damage, and updating context properties.
-        /// </summary>
-        /// <param name="gameState">The complete game state for accessing spell and status effect data</param>
-        /// <param name="damageAction">The damage action to process</param>
-        /// <returns>New spell state with damage processing results</returns>
-        /// <summary>
-        /// Processes a damage action. This method is deprecated and should not be used.
-        /// Use EncounterState snapshot-based execution instead via ApplyEncounterSnapshot.
-        /// </summary>
         [Obsolete("Use EncounterState snapshot-based execution instead via ApplyEncounterSnapshot")]
         public static SpellState ProcessDamageAction(
             IGameStateData gameState,
@@ -367,13 +322,6 @@ namespace Maximagus.Scripts.Managers
                 "ProcessDamageAction is deprecated. Use EncounterState snapshot-based execution instead. " +
                 "Ensure PreCalculateSpellCommand creates snapshots and ExecuteCardActionCommand uses ApplyEncounterSnapshot.");
         }
-
-        /// <summary>
-        /// Gets the raw damage value for a damage action, accounting for special damage types like PerChill.
-        /// </summary>
-        /// <param name="damageAction">The damage action</param>
-        /// <param name="gameState">The complete game state for accessing status effects</param>
-        /// <returns>The raw damage value</returns>
         private static float GetRawDamage(DamageActionResource damageAction, IGameStateData gameState)
         {
             return damageAction.DamageType switch
@@ -385,14 +333,6 @@ namespace Maximagus.Scripts.Managers
                 _ => damageAction.Amount
             };
         }
-
-        /// <summary>
-        /// Gets the raw damage value for a damage action using EncounterState, accounting for special damage types like PerChill.
-        /// This uses status effect state from the EncounterState for accurate PerChill calculations.
-        /// </summary>
-        /// <param name="damageAction">The damage action</param>
-        /// <param name="encounterState">The encounter state for accessing status effects</param>
-        /// <returns>The raw damage value</returns>
         private static float GetRawDamage(DamageActionResource damageAction, EncounterState encounterState)
         {
             return damageAction.DamageType switch
@@ -405,10 +345,6 @@ namespace Maximagus.Scripts.Managers
             };
         }
 
-        /// <summary>
-        /// Simulates an action's effects on the EncounterState for pre-calculation purposes.
-        /// This creates a new EncounterState with all the changes that would result from executing the action.
-        /// </summary>
         private static EncounterState SimulateActionEffectsOnEncounterState(
             EncounterState currentEncounterState,
             ActionResource action,

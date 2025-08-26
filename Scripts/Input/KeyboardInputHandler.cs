@@ -3,10 +3,7 @@ using Godot;
 
 namespace Scripts.Input
 {
-    /// <summary>
-    /// Handles global keyboard input events and converts them to game commands.
-    /// This class manages keyboard shortcuts and global key bindings.
-    /// </summary>
+
     public partial class KeyboardInputHandler : Node
     {
         private InputToCommandMapper _inputMapper;
@@ -18,20 +15,10 @@ namespace Scripts.Input
             // Set to process unhandled input to catch global keyboard events
             SetProcessUnhandledInput(true);
         }
-
-        /// <summary>
-        /// Initializes the keyboard input handler
-        /// </summary>
-        /// <param name="inputMapper">The input mapper to send events to</param>
         public void Initialize(InputToCommandMapper inputMapper)
         {
             _inputMapper = inputMapper ?? throw new ArgumentNullException(nameof(inputMapper));
         }
-
-        /// <summary>
-        /// Handles unhandled input events for global keyboard shortcuts
-        /// </summary>
-        /// <param name="event">The input event</param>
         public override void _UnhandledInput(InputEvent @event)
         {
             // Only process keyboard events, ignore mouse events
@@ -54,12 +41,6 @@ namespace Scripts.Input
                 }
             }
         }
-
-        /// <summary>
-        /// Processes keyboard events and converts them to InputEventData
-        /// </summary>
-        /// <param name="event">The input event</param>
-        /// <returns>InputEventData or null if not a relevant keyboard event</returns>
         private InputEventData ProcessKeyboardEvent(InputEvent @event)
         {
             if (@event is not InputEventKey keyEvent || !keyEvent.Pressed)
@@ -81,12 +62,6 @@ namespace Scripts.Input
 
             return null;
         }
-
-        /// <summary>
-        /// Checks if a key event represents a global shortcut
-        /// </summary>
-        /// <param name="keyEvent">The key event to check</param>
-        /// <returns>True if this is a global shortcut that should be processed</returns>
         private bool IsGlobalShortcut(InputEventKey keyEvent)
         {
             // Handle individual keys that should be processed globally
@@ -148,43 +123,20 @@ namespace Scripts.Input
 
             return false;
         }
-
-        /// <summary>
-        /// Enables or disables keyboard input processing
-        /// </summary>
-        /// <param name="enabled">Whether to enable keyboard processing</param>
         public void SetKeyboardProcessingEnabled(bool enabled)
         {
             SetProcessUnhandledInput(enabled);
         }
-
-        /// <summary>
-        /// Gets whether keyboard processing is currently enabled
-        /// </summary>
-        /// <returns>True if keyboard processing is enabled</returns>
         public bool IsKeyboardProcessingEnabled()
         {
             return IsProcessingUnhandledInput();
         }
-
-        /// <summary>
-        /// Adds a custom keyboard shortcut
-        /// This could be extended to support runtime shortcut configuration
-        /// </summary>
-        /// <param name="keyCode">The key code</param>
-        /// <param name="modifiers">Modifier keys required</param>
-        /// <param name="action">Action string for the shortcut</param>
         public void AddCustomShortcut(Key keyCode, KeyModifierMask modifiers, string action)
         {
             // TODO: Implement custom shortcut storage and processing
             // For now, shortcuts are hardcoded in IsGlobalShortcut
             _logger.LogInfo($"Custom shortcut registered: {keyCode} + {modifiers} -> {action}");
         }
-
-        /// <summary>
-        /// Gets help text for available keyboard shortcuts
-        /// </summary>
-        /// <returns>String describing available shortcuts</returns>
         public string GetShortcutHelp()
         {
             return "Keyboard Shortcuts:\n" +

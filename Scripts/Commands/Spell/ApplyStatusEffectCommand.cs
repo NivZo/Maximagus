@@ -7,10 +7,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to apply, update, or remove status effects in the centralized status effects state.
-    /// Handles different action types (Add, Set, Remove) through delegation to StatusEffectLogicManager.
-    /// </summary>
+
     public class ApplyStatusEffectCommand : GameCommand
     {
         private readonly StatusEffectResource _statusEffect;

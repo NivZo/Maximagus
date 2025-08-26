@@ -4,10 +4,7 @@ using Godot;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to initialize spell state when spell casting begins.
-    /// Sets up the active spell state with empty properties and modifiers.
-    /// </summary>
+
     public class StartSpellCommand : GameCommand
     {
         public StartSpellCommand() : base(false)

@@ -8,10 +8,7 @@ using Maximagus.Scripts.Enums;
 
 namespace Scripts.Commands.Hand
 {
-    /// <summary>
-    /// PURE COMMAND: Initiates spell casting by transitioning to SpellCasting phase
-    /// Natural phase flow: CardSelection -> SpellCasting (on play) -> TurnEnd -> TurnStart
-    /// </summary>
+
     public class PlayHandCommand : GameCommand
     {
         public PlayHandCommand() : base()

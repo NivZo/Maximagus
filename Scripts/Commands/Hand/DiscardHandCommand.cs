@@ -5,9 +5,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Hand
 {
-    /// <summary>
-    /// Command to discard the currently selected cards without playing them
-    /// </summary>
+
     public class DiscardHandCommand : GameCommand
     {
         private readonly IHandManager _handManager;

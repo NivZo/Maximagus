@@ -2,9 +2,7 @@ using System;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Represents the different phases of the game following the exact turn loop
-    /// </summary>
+
     public enum GamePhase
     {
         GameStart,
@@ -16,9 +14,6 @@ namespace Scripts.State
         Victory
     }
 
-    /// <summary>
-    /// Immutable state for the current game phase and related data
-    /// </summary>
     public class GamePhaseState
     {
         public GamePhase CurrentPhase { get; }
@@ -35,9 +30,6 @@ namespace Scripts.State
             PhaseDescription = phaseDescription ?? GetDefaultPhaseDescription(currentPhase);
         }
 
-        /// <summary>
-        /// Creates a new GamePhaseState with a different phase
-        /// </summary>
         public GamePhaseState WithPhase(GamePhase newPhase)
         {
             return new GamePhaseState(
@@ -46,37 +38,22 @@ namespace Scripts.State
                 GetDefaultPhaseDescription(newPhase));
         }
 
-        /// <summary>
-        /// Creates a new GamePhaseState with incremented turn
-        /// </summary>
         public GamePhaseState WithNextTurn()
         {
             return new GamePhaseState(CurrentPhase, TurnNumber + 1, PhaseDescription);
         }
 
-        /// <summary>
-        /// Creates a new GamePhaseState with custom description
-        /// </summary>
         public GamePhaseState WithDescription(string description)
         {
             return new GamePhaseState(CurrentPhase, TurnNumber, description);
         }
 
-        /// <summary>
-        /// Checks if the current phase allows card selection (only during CardSelection phase)
-        /// </summary>
         public bool AllowsCardSelection => CurrentPhase == GamePhase.CardSelection;
 
-        /// <summary>
-        /// Checks if the game is in an active gameplay phase
-        /// </summary>
         public bool IsInGameplay => CurrentPhase != GamePhase.GameStart && 
                                    CurrentPhase != GamePhase.GameOver && 
                                    CurrentPhase != GamePhase.Victory;
 
-        /// <summary>
-        /// Checks if the game has ended
-        /// </summary>
         public bool IsGameEnded => CurrentPhase == GamePhase.GameOver || CurrentPhase == GamePhase.Victory;
 
         private static string GetDefaultPhaseDescription(GamePhase phase)
@@ -108,9 +85,6 @@ namespace Scripts.State
             };
         }
 
-        /// <summary>
-        /// Validates that the phase state is consistent
-        /// </summary>
         public bool IsValid()
         {
             return TurnNumber >= 1 && 

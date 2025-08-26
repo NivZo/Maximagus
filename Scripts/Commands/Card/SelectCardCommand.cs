@@ -5,10 +5,7 @@ using Godot;
 
 namespace Scripts.Commands.Card
 {
-    /// <summary>
-    /// PURE COMMAND SYSTEM: Command to select a card in the player's hand
-    /// Updates only GameState - visual sync happens automatically
-    /// </summary>
+
     public class SelectCardCommand : GameCommand
     {
         private readonly string _cardId;

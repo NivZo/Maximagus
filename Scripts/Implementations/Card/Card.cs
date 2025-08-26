@@ -255,10 +255,7 @@ public partial class Card : Control, IOrderable
     #endregion
 
     #region State Change Handling
-    
-    /// <summary>
-    /// Handles game state changes to detect when popup effects should be shown
-    /// </summary>
+
     internal void ActionActivationOnGameStateChanged(IGameStateData previousState, IGameStateData newState)
     {
         try
@@ -280,9 +277,6 @@ public partial class Card : Control, IOrderable
         }
     }
 
-    /// <summary>
-    /// Determines if this card should show popup effects based on state changes
-    /// </summary>
     private bool ShouldCheckForActionActivation(IGameStateData newState)
     {
         // Only show effects during spell processing
@@ -297,9 +291,6 @@ public partial class Card : Control, IOrderable
         return true;
     }
 
-    /// <summary>
-    /// Determines if this card's action was just executed based on spell state changes
-    /// </summary>
     private ActionResource GetCardActionExecuted(IGameStateData previousState, IGameStateData newState)
     {
         // Check if the spell action index advanced
@@ -324,9 +315,6 @@ public partial class Card : Control, IOrderable
         return null;
     }
 
-    /// <summary>
-    /// Creates popup effects based on the current spell state (immediate visual response)
-    /// </summary>
     private void CreateActionActivationEffect(IGameStateData gameState, ActionResource action)
     {
         try
@@ -346,9 +334,6 @@ public partial class Card : Control, IOrderable
         }
     }
 
-    /// <summary>
-    /// Shows a popup effect for a specific action
-    /// </summary>
     protected virtual void ShowPopupEffectForAction(ActionResource action, IGameStateData gameState)
     {
         try

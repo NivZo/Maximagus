@@ -3,10 +3,7 @@ using Godot;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable state that unifies SpellState and StatusEffectsState for encounter management.
-    /// Provides a cohesive view of all encounter-related state during spell processing.
-    /// </summary>
+
     public class EncounterState
     {
         public SpellState Spell { get; }
@@ -26,43 +23,28 @@ namespace Scripts.State
             ActionIndex = actionIndex;
         }
 
-        /// <summary>
-        /// Creates a new EncounterState with updated spell state
-        /// </summary>
         public EncounterState WithSpell(SpellState newSpell)
         {
             if (newSpell == null) throw new ArgumentNullException(nameof(newSpell));
             return new EncounterState(newSpell, StatusEffects, Timestamp, ActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new EncounterState with updated status effects state
-        /// </summary>
         public EncounterState WithStatusEffects(StatusEffectsState newStatusEffects)
         {
             if (newStatusEffects == null) throw new ArgumentNullException(nameof(newStatusEffects));
             return new EncounterState(Spell, newStatusEffects, Timestamp, ActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new EncounterState with updated timestamp
-        /// </summary>
         public EncounterState WithTimestamp(DateTime newTimestamp)
         {
             return new EncounterState(Spell, StatusEffects, newTimestamp, ActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new EncounterState with updated action index
-        /// </summary>
         public EncounterState WithActionIndex(int newActionIndex)
         {
             return new EncounterState(Spell, StatusEffects, Timestamp, newActionIndex);
         }
 
-        /// <summary>
-        /// Creates a new EncounterState with both spell and status effects updated
-        /// </summary>
         public EncounterState WithBoth(SpellState newSpell, StatusEffectsState newStatusEffects)
         {
             if (newSpell == null) throw new ArgumentNullException(nameof(newSpell));
@@ -70,9 +52,6 @@ namespace Scripts.State
             return new EncounterState(newSpell, newStatusEffects, Timestamp, ActionIndex);
         }
 
-        /// <summary>
-        /// Creates an EncounterState from the current game state
-        /// </summary>
         public static EncounterState FromGameState(IGameStateData gameState, DateTime timestamp)
         {
             if (gameState == null) throw new ArgumentNullException(nameof(gameState));
@@ -84,9 +63,6 @@ namespace Scripts.State
                 gameState.Spell.CurrentActionIndex);
         }
 
-        /// <summary>
-        /// Applies this EncounterState to a game state, updating both spell and status effects
-        /// </summary>
         public IGameStateData ApplyToGameState(IGameStateData gameState)
         {
             if (gameState == null) throw new ArgumentNullException(nameof(gameState));
@@ -96,9 +72,6 @@ namespace Scripts.State
                 .WithStatusEffects(StatusEffects);
         }
 
-        /// <summary>
-        /// Validates that the EncounterState is consistent and valid
-        /// </summary>
         public bool IsValid()
         {
             try

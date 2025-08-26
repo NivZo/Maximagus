@@ -7,10 +7,7 @@ using System.Linq;
 
 namespace Scripts.Commands.Hand
 {
-    /// <summary>
-    /// Command to add a new card to the player's hand in GameState
-    /// Used when cards are drawn/created after initial game setup
-    /// </summary>
+
     public class AddCardCommand : GameCommand
     {
         private readonly SpellCardResource _spellCardResource;

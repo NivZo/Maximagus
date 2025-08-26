@@ -2,10 +2,7 @@ using System;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable snapshot containing a complete EncounterState and its associated action result.
-    /// Used for pre-calculation and snapshot-based execution of spell actions.
-    /// </summary>
+
     public class EncounterStateSnapshot
     {
         public string ActionKey { get; }
@@ -25,9 +22,6 @@ namespace Scripts.State
             CreatedAt = createdAt;
         }
 
-        /// <summary>
-        /// Creates a snapshot with the current timestamp
-        /// </summary>
         public static EncounterStateSnapshot Create(
             string actionKey,
             EncounterState resultingState,
@@ -36,9 +30,6 @@ namespace Scripts.State
             return new EncounterStateSnapshot(actionKey, resultingState, actionResult, DateTime.UtcNow);
         }
 
-        /// <summary>
-        /// Validates that the snapshot is consistent and valid
-        /// </summary>
         public bool IsValid()
         {
             try

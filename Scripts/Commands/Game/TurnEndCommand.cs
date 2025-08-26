@@ -10,10 +10,7 @@ using Maximagus.Scripts.Enums;
 
 namespace Scripts.Commands.Game
 {
-    /// <summary>
-    /// PURE COMMAND: Handles turn start - draws cards to max hand size and transitions to CardSelection
-    /// Natural phase flow: TurnEnd -> TurnStart (processing) -> CardSelection
-    /// </summary>
+
     public class TurnEndCommand : GameCommand
     {
 

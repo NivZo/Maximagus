@@ -5,9 +5,7 @@ using System.Linq;
 
 namespace Maximagus.Scripts.Managers
 {
-    /// <summary>
-    /// Manages loading and caching of game resources to ensure a single source of truth
-    /// </summary>
+
     public class ResourceManager : IResourceManager
     {
         // Remove static instance since we'll use ServiceLocator instead
@@ -22,9 +20,6 @@ namespace Maximagus.Scripts.Managers
             PreloadResources();
         }
 
-        /// <summary>
-        /// Preloads all spell card resources for efficient access
-        /// </summary>
         private void PreloadResources()
         {
             // Load all spell resources in the Resources/Spells directory
@@ -50,11 +45,6 @@ namespace Maximagus.Scripts.Managers
 
             _logger.LogInfo($"[ResourceManager] Preloaded {_spellCardResources.Length} spell resources");
         }
-
-        /// <summary>
-        /// Gets a random spell card resource
-        /// </summary>
-        /// <returns>A random SpellCardResource</returns>
         public SpellCardResource GetNextSpellCardResource()
         {
             if (_spellCardResources.Length == 0)

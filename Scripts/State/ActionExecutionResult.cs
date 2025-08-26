@@ -4,9 +4,7 @@ using Maximagus.Resources.Definitions.Actions;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable data representing the pre-calculated result of an action execution
-    /// </summary>
+
     public class ActionExecutionResult
     {
         public ActionResource Action { get; }
@@ -26,9 +24,6 @@ namespace Scripts.State
             CalculatedAt = calculatedAt;
         }
 
-        /// <summary>
-        /// Creates an action execution result for a damage action
-        /// </summary>
         public static ActionExecutionResult CreateForDamage(
             DamageActionResource damageAction,
             float finalDamage,
@@ -41,9 +36,6 @@ namespace Scripts.State
                 DateTime.UtcNow);
         }
 
-        /// <summary>
-        /// Creates an action execution result for a non-damage action
-        /// </summary>
         public static ActionExecutionResult CreateForNonDamage(ActionResource action)
         {
             return new ActionExecutionResult(
@@ -53,9 +45,6 @@ namespace Scripts.State
                 DateTime.UtcNow);
         }
 
-        /// <summary>
-        /// Validates that the execution result is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

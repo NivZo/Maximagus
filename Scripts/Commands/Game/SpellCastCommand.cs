@@ -10,10 +10,7 @@ using Maximagus.Resources.Definitions.Actions;
 
 namespace Scripts.Commands.Game
 {
-    /// <summary>
-    /// Command to handle the spell casting phase - processes the spell effects
-    /// Creates a command chain for spell processing: StartSpell -> ExecuteCardActions -> CompleteSpell -> TurnEnd
-    /// </summary>
+
     public class SpellCastCommand : GameCommand
     {
         public SpellCastCommand() : base(true)

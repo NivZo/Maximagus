@@ -2,10 +2,7 @@ using Godot;
 
 namespace Scripts.Config
 {
-    /// <summary>
-    /// Centralized configuration constants for the game.
-    /// Replaces magic numbers scattered throughout the codebase.
-    /// </summary>
+
     public static class GameConfig
     {
         // Card Interaction Constants

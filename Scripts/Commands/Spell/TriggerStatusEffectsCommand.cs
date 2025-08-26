@@ -6,10 +6,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to trigger all status effects that match a specific trigger type.
-    /// Processes status effect triggers and applies any resulting decay through StatusEffectLogicManager.
-    /// </summary>
+
     public class TriggerStatusEffectsCommand : GameCommand
     {
         private readonly StatusEffectTrigger _trigger;
@@ -74,9 +71,6 @@ namespace Scripts.Commands.Spell
             return $"Trigger status effects for {_trigger}";
         }
 
-        /// <summary>
-        /// Gets the trigger type for testing purposes
-        /// </summary>
         public StatusEffectTrigger GetTrigger()
         {
             return _trigger;

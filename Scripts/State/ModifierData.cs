@@ -5,9 +5,7 @@ using Maximagus.Scripts.Enums;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable data representing a spell modifier in state
-    /// </summary>
+
     public class ModifierData
     {
         public ModifierType Type { get; }
@@ -30,9 +28,6 @@ namespace Scripts.State
             Conditions = conditions.IsDefault ? ImmutableArray<SpellModifierCondition>.Empty : conditions;
         }
 
-        /// <summary>
-        /// Creates a ModifierData from a ModifierActionResource
-        /// </summary>
         public static ModifierData FromActionResource(Maximagus.Resources.Definitions.Actions.ModifierActionResource resource)
         {
             if (resource == null)
@@ -48,9 +43,6 @@ namespace Scripts.State
                 conditions);
         }
 
-        /// <summary>
-        /// Determines if this modifier can be applied to a damage action
-        /// </summary>
         public bool CanApply(DamageType damageType)
         {
             if (Conditions.IsEmpty)
@@ -72,9 +64,6 @@ namespace Scripts.State
             return true;
         }
 
-        /// <summary>
-        /// Applies this modifier to a base damage value
-        /// </summary>
         public float Apply(float baseDamage)
         {
             return Type switch
@@ -86,9 +75,6 @@ namespace Scripts.State
             };
         }
 
-        /// <summary>
-        /// Validates that the modifier data is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace Scripts.Commands.Card
 {
-    /// <summary>
-    /// Command to start dragging a card in the command system
-    /// </summary>
+
     public class StartDragCommand : GameCommand
     {
         private readonly string _cardId;

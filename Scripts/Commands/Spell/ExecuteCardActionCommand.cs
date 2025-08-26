@@ -7,11 +7,7 @@ using System.Collections.Generic;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to process individual card actions using pre-calculated EncounterState snapshots.
-    /// Fetches and applies pre-calculated snapshots instead of performing live calculations,
-    /// ensuring consistent results and atomic application of both spell and status effect state changes.
-    /// </summary>
+
     public class ExecuteCardActionCommand : GameCommand
     {
         private readonly ActionResource _action;

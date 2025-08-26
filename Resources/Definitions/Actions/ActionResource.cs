@@ -9,9 +9,7 @@ namespace Maximagus.Resources.Definitions.Actions
     [GlobalClass]
     public abstract partial class ActionResource : Resource
     {
-        /// <summary>
-        /// Unique identifier for this action instance, generated on instantiation
-        /// </summary>
+
         public string ActionId { get; private set; }
 
         public ActionResource()

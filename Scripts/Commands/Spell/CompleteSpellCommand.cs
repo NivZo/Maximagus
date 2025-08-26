@@ -8,10 +8,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to finalize spell casting and move the spell context to history.
-    /// Clears the active spell state and creates a history entry with the final results.
-    /// </summary>
+
     public class CompleteSpellCommand : GameCommand
     {
         private readonly IReadOnlyList<SpellCardResource> _castCards;

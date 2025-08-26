@@ -7,9 +7,7 @@ using Maximagus.Scripts.Spells.Abstractions;
 
 namespace Scripts.State
 {
-    /// <summary>
-    /// Immutable data representing a completed spell in history
-    /// </summary>
+
     public class SpellHistoryEntry
     {
         public DateTime CompletedAt { get; }
@@ -38,9 +36,6 @@ namespace Scripts.State
             ErrorMessage = errorMessage ?? string.Empty;
         }
 
-        /// <summary>
-        /// Creates a successful spell history entry from current spell state
-        /// </summary>
         public static SpellHistoryEntry CreateSuccessful(
             SpellState currentSpellState,
             ImmutableArray<string> cardIds,
@@ -59,9 +54,6 @@ namespace Scripts.State
                 null);
         }
 
-        /// <summary>
-        /// Creates a failed spell history entry
-        /// </summary>
         public static SpellHistoryEntry CreateFailed(
             SpellState currentSpellState,
             ImmutableArray<string> cardIds,
@@ -81,25 +73,16 @@ namespace Scripts.State
                 errorMessage ?? "Unknown error");
         }
 
-        /// <summary>
-        /// Gets a property value with a default fallback
-        /// </summary>
         public T GetProperty<[MustBeVariant] T>(string key, T defaultValue)
         {
             return FinalProperties.TryGetValue(key, out var value) ? value.As<T>() : defaultValue;
         }
 
-        /// <summary>
-        /// Gets the duration of the spell if start time is available
-        /// </summary>
         public TimeSpan? GetDuration(DateTime? startTime)
         {
             return startTime.HasValue ? CompletedAt - startTime.Value : null;
         }
 
-        /// <summary>
-        /// Validates that the history entry is consistent
-        /// </summary>
         public bool IsValid()
         {
             try

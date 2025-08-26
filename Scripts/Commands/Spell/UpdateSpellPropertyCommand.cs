@@ -6,10 +6,7 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Commands.Spell
 {
-    /// <summary>
-    /// Command to update spell context properties using various operations (Add, Multiply, Set).
-    /// Supports both string-based and enum-based property keys.
-    /// </summary>
+
     public class UpdateSpellPropertyCommand : GameCommand
     {
         private readonly string _propertyKey;

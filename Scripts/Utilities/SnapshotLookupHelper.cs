@@ -5,23 +5,12 @@ using Maximagus.Scripts.Managers;
 
 namespace Scripts.Utilities
 {
-    /// <summary>
-    /// Utility class for looking up EncounterState snapshots for action popup text generation.
-    /// Follows SOLID principles by providing a single responsibility for snapshot retrieval
-    /// with consistent lookup strategies across all action types.
-    /// </summary>
+    
     public static class SnapshotLookupHelper
     {
         private static readonly ILogger _logger = ServiceLocator.GetService<ILogger>();
 
-        /// <summary>
-        /// Attempts to find a snapshot for the given action using multiple lookup strategies.
-        /// This method encapsulates the common snapshot lookup logic used by all action types.
-        /// </summary>
-        /// <param name="gameState">The current game state containing spell information</param>
-        /// <param name="actionId">The ID of the action to find a snapshot for</param>
-        /// <param name="logContext">Context string for logging (e.g., "DamageActionResource")</param>
-        /// <returns>The found snapshot, or null if no valid snapshot is available</returns>
+        
         public static EncounterStateSnapshot TryGetSnapshotForAction(
             IGameStateData gameState, 
             string actionId, 
@@ -100,25 +89,14 @@ namespace Scripts.Utilities
             }
         }
 
-        /// <summary>
-        /// Checks if snapshot-based popup text is available for the given game state.
-        /// This is a lightweight check that can be used to determine whether to attempt
-        /// snapshot-based calculations or fall back to static text.
-        /// </summary>
-        /// <param name="gameState">The current game state</param>
-        /// <returns>True if snapshots are potentially available, false otherwise</returns>
+        
         public static bool IsSnapshotBasedPopupAvailable(IGameStateData gameState)
         {
             return gameState?.Spell?.IsActive == true &&
                    gameState.Spell.Properties?.ContainsKey("SnapshotSpellId") == true;
         }
 
-        /// <summary>
-        /// Gets the spell ID from the game state for snapshot operations.
-        /// Encapsulates the property access logic for consistency.
-        /// </summary>
-        /// <param name="gameState">The current game state</param>
-        /// <returns>The spell ID if available, null otherwise</returns>
+        
         public static string GetSpellIdFromGameState(IGameStateData gameState)
         {
             if (gameState?.Spell?.Properties?.TryGetValue("SnapshotSpellId", out var spellIdValue) == true)
