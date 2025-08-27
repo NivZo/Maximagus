@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://n84dju5wqbyj" path="res://Scenes/Gameplay/Hand.tscn" id="3_kln2b"]
 [ext_resource type="Script" uid="uid://dkl7cvku6muaw" path="res://Scenes/Main/Scripts/Parallax.cs" id="3_rgh2o"]
 [ext_resource type="Texture2D" uid="uid://cdeksxxi33e1p" path="res://Assets/Art/DarkBg.png" id="3_v1gob"]
+[ext_resource type="PackedScene" uid="uid://dtig60xn5prsv" path="res://Scenes/GUI/Healthbar.tscn" id="4_cv8e0"]
 [ext_resource type="PackedScene" uid="uid://b5mg28jbg6a0" path="res://Scenes/Gameplay/PlayedCards.tscn" id="4_jw32o"]
 [ext_resource type="Shader" uid="uid://83e0aq6o8bcu" path="res://Shaders/CRT.gdshader" id="5_pbw6q"]
 [ext_resource type="Script" uid="uid://baupsgmaf5th6" path="res://Scenes/Main/Scripts/CardsRoot.cs" id="7_jw32o"]
@@ -12,7 +13,6 @@
 [ext_resource type="PackedScene" uid="uid://ddemmax8jnlg2" path="res://Scenes/GUI/RedrawIndicator.tscn" id="11_4kpch"]
 [ext_resource type="PackedScene" uid="uid://bvqld7rwxnqys" path="res://Scenes/GUI/StatusEffectIndicator.tscn" id="12_frkhe"]
 [ext_resource type="PackedScene" uid="uid://bi4qgf8t5dit4" path="res://Scenes/GUI/EnergyIndicator.tscn" id="12_grg3l"]
-[ext_resource type="Texture2D" uid="uid://bdhbw0r1ghp7m" path="res://Assets/Art/HealthbarFront.png" id="13_cv8e0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
@@ -83,6 +83,16 @@ grow_vertical = 2
 texture = ExtResource("3_v1gob")
 stretch_mode = 1
 
+[node name="Healthbar" parent="." instance=ExtResource("4_cv8e0")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 16.0
+offset_right = -180.0
+offset_bottom = 16.0
+
 [node name="PlayedCards" parent="." instance=ExtResource("4_jw32o")]
 layout_mode = 1
 anchors_preset = 10
@@ -139,14 +149,14 @@ offset_left = 4.0
 offset_top = 12.0
 offset_right = 8.0
 offset_bottom = 348.0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="VLR" type="ColorRect" parent="Borders"]
 offset_left = 124.0
 offset_top = 12.0
 offset_right = 128.0
 offset_bottom = 348.0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="VRL" type="ColorRect" parent="Borders"]
 anchors_preset = 1
@@ -157,7 +167,7 @@ offset_top = 12.0
 offset_right = -124.0
 offset_bottom = 348.0
 grow_horizontal = 0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="VRR" type="ColorRect" parent="Borders"]
 anchors_preset = 1
@@ -168,28 +178,28 @@ offset_top = 12.0
 offset_right = -4.0
 offset_bottom = 348.0
 grow_horizontal = 0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HLTop" type="ColorRect" parent="Borders"]
 offset_left = 12.0
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 8.0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HLMiddle" type="ColorRect" parent="Borders"]
 offset_left = 12.0
 offset_top = 224.0
 offset_right = 120.0
 offset_bottom = 228.0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HLBottom" type="ColorRect" parent="Borders"]
 offset_left = 12.0
 offset_top = 352.0
 offset_right = 120.0
 offset_bottom = 356.0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HMTop" type="ColorRect" parent="Borders"]
 anchors_preset = 10
@@ -199,7 +209,7 @@ offset_top = 4.0
 offset_right = -132.0
 offset_bottom = 8.0
 grow_horizontal = 2
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HMBottom" type="ColorRect" parent="Borders"]
 anchors_preset = 10
@@ -209,7 +219,7 @@ offset_top = 352.0
 offset_right = -132.0
 offset_bottom = 356.0
 grow_horizontal = 2
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HRTop" type="ColorRect" parent="Borders"]
 anchors_preset = 1
@@ -220,7 +230,7 @@ offset_top = 4.0
 offset_right = -12.0
 offset_bottom = 8.0
 grow_horizontal = 0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HRMiddle" type="ColorRect" parent="Borders"]
 anchors_preset = 1
@@ -231,7 +241,7 @@ offset_top = 224.0
 offset_right = -12.0
 offset_bottom = 228.0
 grow_horizontal = 0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="HRBottom" type="ColorRect" parent="Borders"]
 anchors_preset = 1
@@ -242,30 +252,30 @@ offset_top = 352.0
 offset_right = -12.0
 offset_bottom = 356.0
 grow_horizontal = 0
-color = Color(0.85098, 0.835294, 0.756863, 1)
+color = Color(0.794801, 0.659385, 0.512291, 1)
 
 [node name="DLTop" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 offset_right = 12.0
 offset_bottom = 12.0
 texture = ExtResource("10_bmxlf")
 
 [node name="DL2Top" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 offset_left = 120.0
 offset_right = 132.0
 offset_bottom = 12.0
 texture = ExtResource("10_bmxlf")
 
 [node name="DLBottom" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 offset_top = 348.0
 offset_right = 12.0
 offset_bottom = 360.0
 texture = ExtResource("10_bmxlf")
 
 [node name="DL2Bottom" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 offset_left = 120.0
 offset_top = 348.0
 offset_right = 132.0
@@ -273,7 +283,7 @@ offset_bottom = 360.0
 texture = ExtResource("10_bmxlf")
 
 [node name="DRTop" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -284,7 +294,7 @@ grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
 
 [node name="DR2Top" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -294,7 +304,7 @@ grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
 
 [node name="DRBottom" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -306,7 +316,7 @@ grow_horizontal = 0
 texture = ExtResource("10_bmxlf")
 
 [node name="DR2Bottom" type="TextureRect" parent="Borders"]
-self_modulate = Color(0.85098, 0.835294, 0.756863, 1)
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -339,15 +349,3 @@ offset_right = 16.448
 offset_bottom = 35.824
 grow_horizontal = 1
 grow_vertical = 1
-
-[node name="HealthbarFront" type="TextureRect" parent="."]
-self_modulate = Color(0.485035, 0.14152, 0.105007, 1)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -180.0
-offset_top = 20.0
-offset_right = 180.0
-offset_bottom = 64.0
-texture = ExtResource("13_cv8e0")

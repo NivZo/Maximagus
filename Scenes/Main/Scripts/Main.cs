@@ -98,11 +98,12 @@ public partial class Main : Control
 				_logger.LogError("GamePhaseState validation failed");
 				return;
 			}
-			
+
 			var gameState = GameState.Create(
 				cards: cardsState,
 				hand: handState,
 				player: new PlayerState(),
+				enemy: new EnemyState(40, 40),
 				phase: gamePhaseState,
 				spell: SpellState.CreateInitial(),
 				statusEffects: StatusEffectsState.CreateInitial()

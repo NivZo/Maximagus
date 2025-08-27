@@ -1,0 +1,63 @@
+[gd_scene load_steps=6 format=3 uid="uid://dtig60xn5prsv"]
+
+[ext_resource type="Texture2D" uid="uid://cgaud2ems735a" path="res://Assets/Art/HealthbarBack.png" id="1_eil5o"]
+[ext_resource type="Script" uid="uid://dlputauekuwfy" path="res://Scenes/GUI/Scripts/Healthbar.cs" id="1_qq8yn"]
+[ext_resource type="Texture2D" uid="uid://et47utb0pm6f" path="res://Assets/Art/HealthbarFill.png" id="2_dctmm"]
+[ext_resource type="Texture2D" uid="uid://bdhbw0r1ghp7m" path="res://Assets/Art/HealthbarFront.png" id="3_qq8yn"]
+[ext_resource type="Theme" uid="uid://bky1darji2kb4" path="res://Assets/Themes/base.tres" id="4_dctmm"]
+
+[node name="Healthbar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_qq8yn")
+
+[node name="Back" type="TextureRect" parent="."]
+self_modulate = Color(0.082173, 1.46272e-07, 0.00116958, 1)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_eil5o")
+
+[node name="FillFlash" type="TextureProgressBar" parent="."]
+self_modulate = Color(0.988235, 0.717647, 0.635294, 1)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+texture_progress = ExtResource("2_dctmm")
+
+[node name="Fill" type="TextureProgressBar" parent="."]
+self_modulate = Color(0.490196, 0.0980392, 0.0980392, 1)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+texture_progress = ExtResource("2_dctmm")
+
+[node name="Front" type="TextureRect" parent="."]
+self_modulate = Color(0.794801, 0.659385, 0.512291, 1)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("3_qq8yn")
+
+[node name="Value" type="RichTextLabel" parent="."]
+self_modulate = Color(0.796078, 0.658824, 0.513726, 1)
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 352.0
+offset_bottom = 40.0
+theme = ExtResource("4_dctmm")
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureProgressBar2" type="TextureProgressBar" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

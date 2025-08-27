@@ -119,11 +119,14 @@ namespace Maximagus.Scripts.Services
                 snapshotSpellState.History,
                 snapshotSpellState.StartTime,
                 snapshotSpellState.CurrentActionIndex);
-            
+
+            var updatedEnemyState = gameState.Enemy.WithCurrentHealth(gameState.Enemy.CurrentHealth - (int)snapshot.ActionResult.FinalDamage);
+
             // Apply the updated spell state and status effects from the snapshot
             return gameState
                 .WithSpell(updatedSpellState)
-                .WithStatusEffects(snapshot.ResultingState.StatusEffects);
+                .WithStatusEffects(snapshot.ResultingState.StatusEffects)
+                .WithEnemy(updatedEnemyState);
         }
     }
 }

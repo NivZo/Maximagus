@@ -10,6 +10,8 @@ namespace Scripts.State
 
         PlayerState Player { get; }
 
+        EnemyState Enemy { get; }
+
         GamePhaseState Phase { get; }
 
         SpellState Spell { get; }
@@ -21,6 +23,8 @@ namespace Scripts.State
         IGameStateData WithHand(HandState newHandState);
 
         IGameStateData WithPlayer(PlayerState newPlayerState);
+
+        IGameStateData WithEnemy(EnemyState newEnemyState);
 
         IGameStateData WithPhase(GamePhaseState newPhaseState);
 

@@ -116,7 +116,6 @@ namespace Scripts.Commands.Spell
             
             _snapshotService.LogActionExecution(currentState, newState, snapshot, _action, _cardId, "ExecuteCardActionCommand");
             
-            // Delay completion to preserve original timing (1.5s between actions)
             const float CardAnimationDelay = 1.5f;
             TimerUtils.ExecuteAfter(() => {
                 token.Complete(CommandResult.Success(newState, followUpCommands));
