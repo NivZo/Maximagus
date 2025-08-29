@@ -11,32 +11,18 @@
 [ext_resource type="PackedScene" uid="uid://wynxvlgqi4fm" path="res://Scenes/Gameplay/DiscardedCards.tscn" id="9_vy5pj"]
 [ext_resource type="Texture2D" uid="uid://dy6hdmfv4qef1" path="res://Assets/Art/BorderDot.png" id="10_bmxlf"]
 [ext_resource type="PackedScene" uid="uid://ddemmax8jnlg2" path="res://Scenes/GUI/RedrawIndicator.tscn" id="11_4kpch"]
-[ext_resource type="PackedScene" uid="uid://bvqld7rwxnqys" path="res://Scenes/GUI/StatusEffectIndicator.tscn" id="12_frkhe"]
 [ext_resource type="PackedScene" uid="uid://bi4qgf8t5dit4" path="res://Scenes/GUI/EnergyIndicator.tscn" id="12_grg3l"]
+[ext_resource type="PackedScene" uid="uid://cxhwqv8qd726d" path="res://Scenes/Gameplay/StatusEffectIndicators.tscn" id="14_hkvnm"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_v1gob"]
 shader = ExtResource("5_pbw6q")
-shader_parameter/overlay = true
-shader_parameter/scanlines_opacity = 0.4
-shader_parameter/scanlines_width = 0.25
-shader_parameter/grille_opacity = 0.0
 shader_parameter/resolution = Vector2(640, 360)
-shader_parameter/pixelate = false
-shader_parameter/roll = false
-shader_parameter/roll_speed = 8.0
-shader_parameter/roll_size = 0.0
-shader_parameter/roll_variation = 0.1
-shader_parameter/distort_intensity = 0.0
-shader_parameter/noise_opacity = 0.0
-shader_parameter/noise_speed = 5.0
-shader_parameter/static_noise_intensity = 0.0
-shader_parameter/aberration = 0.00200005
-shader_parameter/brightness = 1.0
-shader_parameter/discolor = false
+shader_parameter/scan_line_amount = 0.5
 shader_parameter/warp_amount = 0.0
-shader_parameter/clip_warp = false
-shader_parameter/vignette_intensity = 0.1
-shader_parameter/vignette_opacity = 0.5
+shader_parameter/vignette_amount = 0.5
+shader_parameter/vignette_intensity = 0.3
+shader_parameter/grille_amount = 0.0
+shader_parameter/brightness_boost = 1.2
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -341,11 +327,12 @@ offset_top = 328.0
 offset_right = 64.448
 offset_bottom = 327.824
 
-[node name="StatusEffectIndicator" parent="." instance=ExtResource("12_frkhe")]
+[node name="StatusEffectIndicators" parent="." instance=ExtResource("14_hkvnm")]
 layout_mode = 1
-offset_left = 16.0
-offset_top = 36.0
-offset_right = 16.448
-offset_bottom = 35.824
-grow_horizontal = 1
-grow_vertical = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_bottom = 0.0
+offset_left = -124.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 224.0

@@ -9,6 +9,6 @@ EffectName = "Chill"
 Description = "Take more damage from Frost spells"
 Trigger = 2
 DecayMode = 0
-InitialStacks = 1
+InitialStacks = 0
 Value = 0.0
 MaxStacks = 99
