@@ -17,7 +17,7 @@ namespace Maximagus.Scripts.Managers
         public ResourceManager()
         {
             _logger = ServiceLocator.GetService<ILogger>();
-            PreloadResources();
+            // PreloadResources();
         }
 
         private void PreloadResources()
@@ -47,14 +47,15 @@ namespace Maximagus.Scripts.Managers
         }
         public SpellCardResource GetNextSpellCardResource()
         {
-            if (_spellCardResources.Length == 0)
+            if (_currentIndex >= (_spellCardResources?.Length ?? 0))
             {
-                _logger?.LogError("No spell card resources available");
-                return null;
+                PreloadResources();
+                _currentIndex = 0;
             }
 
             var resource = _spellCardResources[_currentIndex];
-            _currentIndex = (_currentIndex + 1) % _spellCardResources.Length;
+            _currentIndex += 1;
+
             return resource;
         }
     }

@@ -82,7 +82,7 @@ namespace Scripts.Utils
 
             for (int i = 0; i < cardCount; i++)
             {
-                float normalizedPos = cardCount > 1 ? (2.0f * i / cardCount - 1.0f) : 0;
+                float normalizedPos = cardCount > 1 ? (2.0f * i / (cardCount - 1) - 1.0f) : 0;
                 float yOffset = Mathf.Pow(normalizedPos, 2) * -curveMultiplier;
                 positions[i] = new Vector2(0, baselineY - yOffset);
                 rotations[i] = normalizedPos * rotationMultiplier;

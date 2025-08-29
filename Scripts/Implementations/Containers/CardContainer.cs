@@ -227,7 +227,9 @@ public abstract partial class CardContainer : Control
                 card.ZIndex = i;
                 var currentTarget = card.TargetPosition;
                 card.TargetPosition = new Vector2(currentTarget.X, positions[i].Y);
-                card.RotationDegrees = rotations[i];
+                var rotation = rotations[i];
+                rotation = Mathf.Abs(rotation) < 0.001f ? 0.001f : rotation;    // HACK: Fix jittery movement when rotation is exactly zero
+                card.RotationDegrees = rotation;
             }
         }
         catch (Exception ex)
