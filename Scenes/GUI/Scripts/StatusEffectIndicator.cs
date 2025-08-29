@@ -7,7 +7,6 @@ using System;
 public partial class StatusEffectIndicator : Control
 {
     public StatusEffectType EffectType;
-
     private RichTextLabel _valueLabel;
 
 
@@ -21,6 +20,16 @@ public partial class StatusEffectIndicator : Control
         UpdateFromState(commandProcessor.CurrentState);
     }
 
+    public override void _ExitTree()
+    {
+        var commandProcessor = ServiceLocator.GetService<IGameCommandProcessor>();
+        if (commandProcessor != null)
+        {
+            commandProcessor.StateChanged -= OnGameStateChanged;
+        }
+        base._ExitTree();
+    }
+
     public static StatusEffectIndicator Create(StatusEffectType effectType)
     {
         var scene = GD.Load<PackedScene>("res://Scenes/GUI/StatusEffectIndicator.tscn");
@@ -30,7 +39,7 @@ public partial class StatusEffectIndicator : Control
     }
 
     private void OnGameStateChanged(IGameStateData oldState, IGameStateData newState)
-    {   
+    {
         UpdateFromState(newState);
     }
 
