@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StatusEffectResource" load_steps=2 format=3 uid="uid://b86jgx2x53rg2"]
+
+[ext_resource type="Script" uid="uid://rlbqgyxmojc8" path="res://Resources/Definitions/StatusEffects/StatusEffectResource.cs" id="1_yp15s"]
+
+[resource]
+script = ExtResource("1_yp15s")
+EffectType = 0
+EffectName = "Burn"
+Description = "Take more damage from Frost spells"
+Trigger = 1
+DecayMode = 4
+InitialStacks = 0
+Value = 0.0
+MaxStacks = 99

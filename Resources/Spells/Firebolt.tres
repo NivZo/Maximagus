@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="SpellCardResource" load_steps=5 format=3 uid="uid://dxbwslmvquxc6"]
+[gd_resource type="Resource" script_class="SpellCardResource" load_steps=8 format=3 uid="uid://dxbwslmvquxc6"]
 
 [ext_resource type="Script" uid="uid://ipx5wlebw4k5" path="res://Resources/Definitions/Actions/DamageActionResource.cs" id="1_pg10i"]
 [ext_resource type="Script" uid="uid://dugryxjgpqdpj" path="res://Resources/Definitions/SpellCardResource.cs" id="1_wosrl"]
+[ext_resource type="Resource" uid="uid://b86jgx2x53rg2" path="res://Resources/StatusEffects/Burn.tres" id="2_lbkql"]
 [ext_resource type="Texture2D" uid="uid://cswygv4lb3xmp" path="res://Assets/Art/CardArt/Firebolt.png" id="2_pg10i"]
+[ext_resource type="Script" uid="uid://dtrny8owcijh5" path="res://Resources/Definitions/Actions/StatusEffectActionResource.cs" id="3_gh1hl"]
 
 [sub_resource type="Resource" id="Resource_lrix1"]
 script = ExtResource("1_pg10i")
@@ -10,10 +12,17 @@ DamageType = 1
 Amount = 8
 metadata/_custom_type_script = "uid://b07sh0rbkcanr"
 
+[sub_resource type="Resource" id="Resource_02wuj"]
+script = ExtResource("3_gh1hl")
+StatusEffect = ExtResource("2_lbkql")
+ActionType = 0
+Stacks = 4
+metadata/_custom_type_script = "uid://dtrny8owcijh5"
+
 [resource]
 script = ExtResource("1_wosrl")
 CardResourceId = "firebolt"
 CardName = "Firebolt"
 CardDescription = "Deal 8 [b]Fire[/b] damage"
 CardArt = ExtResource("2_pg10i")
-Actions = Array[Resource]([SubResource("Resource_lrix1")])
+Actions = Array[Resource]([SubResource("Resource_lrix1"), SubResource("Resource_02wuj")])
